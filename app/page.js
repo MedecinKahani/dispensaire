@@ -609,6 +609,36 @@ export default function App() {
           </div>
         )}
 
+        {/* Danger zone: orphan categories (no longer in CATEGORIES list, e.g. after a rename/migration) */}
+        {!activeCategory && fiches && (() => {
+          const knownIds = CATEGORIES.map(c => c.id);
+          const orphanIds = [...new Set(fiches.map(f => f.category).filter(c => !knownIds.includes(c)))];
+          if (orphanIds.length === 0) return null;
+          return (
+            <div style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <p style={{ fontSize: 12, color: '#9A3412', margin: 0 }}>
+                Catégories obsolètes détectées (suite à une migration) :
+              </p>
+              {orphanIds.map(catId => {
+                const count = fiches.filter(f => f.category === catId).length;
+                return (
+                  <button
+                    key={catId}
+                    onClick={() => handleDeleteCategory({ id: catId, label: catId })}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
+                      borderRadius: 8, border: '1px solid #FCA5A5', background: '#FEF2F2',
+                      color: '#B91C1C', fontSize: 12, fontWeight: 600, cursor: 'pointer', width: 'fit-content'
+                    }}
+                  >
+                    <Trash2 size={13} /> Vider "{catId}" ({count} fiches orphelines)
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
+
         {/* New fiche button */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 28 }}>
           <button
