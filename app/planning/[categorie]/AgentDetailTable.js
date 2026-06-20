@@ -14,127 +14,146 @@ function mondayOf(date) {
   return d;
 }
 
-function DayCell({ category, agent, day, cellules, editable, copySource, onPickCopySource, onPaste, onSetCell, onFillRange, compact }) {
+function DayHeader({ agent, day, cellules, editable, onPickCopySource, compact }) {
+  const dk = dateKey(day.date);
+  const postGarde = isPostGardeRS(agent.id, day.date, cellules);
+  const filledCount = MOMENTS.filter(m => cellules[`${agent.id}|${dk}|${m.id}`]).length;
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '0 2px 4px', minWidth: 0 }}>
+      <span style={{ fontSize: compact ? 11 : 14, fontWeight: 800, color: day.outOfMonth ? '#C8C5BA' : '#1A2B3D' }}>
+        {day.date.getDate()}
+      </span>
+      {postGarde && (
+        <span title="Repos de garde (lendemain de garde)" style={{ display: 'flex', color: '#65521E', flexShrink: 0 }}>
+          <Moon size={compact ? 9 : 11} fill="#65521E" />
+        </span>
+      )}
+      {filledCount > 1 && (
+        <span title={`${filledCount} créneaux remplis ce jour`} style={{
+          fontSize: compact ? 7 : 8.5, fontWeight: 800, color: '#9CA3AF',
+          background: '#F0EEE7', borderRadius: 999, padding: '1px 3px', flexShrink: 0
+        }}>
+          +{filledCount - 1}
+        </span>
+      )}
+      {editable && !day.outOfMonth && !compact && (
+        <button
+          className="planning-copy-btn"
+          onClick={e => { e.stopPropagation(); onPickCopySource(dk); }}
+          title="Copier cette journée"
+          style={{
+            width: 14, height: 14, border: 'none', background: 'transparent',
+            color: '#C8C5BA', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+          }}
+        >
+          <Copy size={9} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function DayCell({ category, agent, day, cellules, editable, copySource, onPaste, onSetCell, onFillRange, compact }) {
   const dk = dateKey(day.date);
   const [editingMoment, setEditingMoment] = useState(null); // cellId (date|moment) en cours d'édition
   const postGarde = isPostGardeRS(agent.id, day.date, cellules);
-
-  const filledCount = MOMENTS.filter(m => cellules[`${agent.id}|${dk}|${m.id}`]).length;
 
   return (
     <div
       onClick={() => { if (editable && copySource && copySource !== dk) onPaste(dk); }}
       style={{
         border: postGarde ? '1.5px solid #65521E' : '1px solid #E5E1D8', borderRadius: 10,
-        padding: compact ? 4 : 6,
+        padding: compact ? 3 : 5,
         background: day.outOfMonth ? '#FAFAF8' : '#fff',
         opacity: day.outOfMonth ? 0.5 : 1,
-        minHeight: compact ? 76 : 130, display: 'flex', flexDirection: 'column', gap: compact ? 2 : 4,
+        height: '100%', display: 'flex', flexDirection: 'column', gap: compact ? 2 : 3,
         cursor: editable && copySource && copySource !== dk ? 'copy' : 'default',
         position: 'relative', minWidth: 0, boxSizing: 'border-box', overflow: 'hidden'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: compact ? '1px 2px' : '2px 2px' }}>
-        <span style={{ fontSize: compact ? 11 : 13, fontWeight: 800, color: day.outOfMonth ? '#C8C5BA' : '#1A2B3D' }}>
-          {day.date.getDate()}
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-          {filledCount > 1 && (
-            <span title={`${filledCount} créneaux remplis ce jour`} style={{
-              fontSize: compact ? 7.5 : 9, fontWeight: 800, color: '#9CA3AF',
-              background: '#F0EEE7', borderRadius: 999, padding: '1px 4px'
-            }}>
-              +{filledCount - 1}
-            </span>
-          )}
-          {postGarde && (
-            <span title="Repos de garde (lendemain de garde)" style={{ display: 'flex', color: '#65521E' }}>
-              <Moon size={compact ? 10 : 12} fill="#65521E" />
-            </span>
-          )}
-          {editable && !day.outOfMonth && !compact && (
+      {/* 3 bandes fixes empilées (matin/après-midi/nuit), chacune = exactement 1/3 de la case.
+          Une bande remplie occupe tout son espace en bloc plein coloré ; une bande vide reste neutre. */}
+      {MOMENTS.map(m => {
+        const code = cellules[`${agent.id}|${dk}|${m.id}`];
+        const info = code ? category.codes.find(c => c.code === code) : null;
+        const cellId = `${dk}|${m.id}`;
+        const isEditing = editingMoment === cellId;
+        return (
+          <div key={m.id} style={{ position: 'relative', flex: '1 1 0', minHeight: 0 }}>
             <button
-              className="planning-copy-btn"
-              onClick={e => { e.stopPropagation(); onPickCopySource(dk); }}
-              title="Copier cette journée"
+              onClick={e => {
+                e.stopPropagation();
+                if (editable && !day.outOfMonth && !copySource) setEditingMoment(isEditing ? null : cellId);
+              }}
+              disabled={!editable || day.outOfMonth}
+              title={m.label}
               style={{
-                width: 16, height: 16, border: 'none', background: 'transparent',
-                color: '#C8C5BA', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: info ? `1px solid ${info.color}40` : (editable && !day.outOfMonth ? '1px dashed #E5E1D8' : 'none'),
+                borderRadius: 6,
+                background: info ? info.bg : 'transparent',
+                color: info ? info.color : '#D1D5DB',
+                fontSize: compact ? 10 : 13, fontWeight: 800,
+                cursor: editable && !day.outOfMonth ? 'pointer' : 'default',
+                boxSizing: 'border-box'
               }}
             >
-              <Copy size={10} />
+              {code || (editable && !day.outOfMonth ? <Plus size={compact ? 9 : 11} /> : '')}
             </button>
-          )}
-        </div>
-      </div>
-
-      {/* 3 bandes fixes empilées (matin/après-midi/nuit), chacune = 1/3 de la hauteur restante.
-          Une bande remplie occupe tout son espace en bloc plein coloré ; une bande vide reste neutre. */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: compact ? 2 : 3, minHeight: 0 }}>
-        {MOMENTS.map(m => {
-          const code = cellules[`${agent.id}|${dk}|${m.id}`];
-          const info = code ? category.codes.find(c => c.code === code) : null;
-          const cellId = `${dk}|${m.id}`;
-          const isEditing = editingMoment === cellId;
-          return (
-            <div key={m.id} style={{ position: 'relative', flex: 1, minHeight: 0 }}>
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  if (editable && !day.outOfMonth && !copySource) setEditingMoment(isEditing ? null : cellId);
-                }}
-                disabled={!editable || day.outOfMonth}
-                title={m.label}
-                style={{
-                  width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: info ? `1px solid ${info.color}40` : (editable && !day.outOfMonth ? '1px dashed #E5E1D8' : 'none'),
-                  borderRadius: 6,
-                  background: info ? info.bg : 'transparent',
-                  color: info ? info.color : '#D1D5DB',
-                  fontSize: compact ? 10 : 13, fontWeight: 800,
-                  cursor: editable && !day.outOfMonth ? 'pointer' : 'default',
-                  boxSizing: 'border-box'
-                }}
-              >
-                {code || (editable && !day.outOfMonth ? <Plus size={compact ? 9 : 11} /> : '')}
-              </button>
-              {isEditing && (
-                <CellEditor
-                  codes={category.codes}
-                  value={code}
-                  date={dk}
-                  onChange={(newCode) => onSetCell(dk, m.id, newCode)}
-                  onFillRange={(fromDate, toDate, fillCode) => onFillRange(fromDate, toDate, m.id, fillCode)}
-                  onClose={() => setEditingMoment(null)}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
+            {isEditing && (
+              <CellEditor
+                codes={category.codes}
+                value={code}
+                date={dk}
+                onChange={(newCode) => onSetCell(dk, m.id, newCode)}
+                onFillRange={(fromDate, toDate, fillCode) => onFillRange(fromDate, toDate, m.id, fillCode)}
+                onClose={() => setEditingMoment(null)}
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 function WeekGrid({ category, agent, week, cellules, editable, copySource, onPickCopySource, onPaste, onSetCell, onFillRange, compact }) {
   return (
-    <div className={compact ? 'planning-week-row planning-week-row--compact' : 'planning-week-row'} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: compact ? 3 : 6, marginBottom: compact ? 3 : 6 }}>
-      {week.map(day => (
-        <DayCell
-          key={dateKey(day.date)}
-          category={category}
-          agent={agent}
-          day={day}
-          cellules={cellules}
-          editable={editable}
-          copySource={copySource}
-          onPickCopySource={onPickCopySource}
-          onPaste={onPaste}
-          onSetCell={onSetCell}
-          onFillRange={onFillRange}
-          compact={compact}
-        />
-      ))}
+    <div style={{ marginBottom: compact ? 3 : 6 }}>
+      <div className={compact ? 'planning-week-row planning-week-row--compact' : 'planning-week-row'} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: compact ? 3 : 6 }}>
+        {week.map(day => (
+          <DayHeader
+            key={dateKey(day.date)}
+            agent={agent}
+            day={day}
+            cellules={cellules}
+            editable={editable}
+            onPickCopySource={onPickCopySource}
+            compact={compact}
+          />
+        ))}
+      </div>
+      <div
+        className={compact ? 'planning-cells-row planning-cells-row--compact' : 'planning-cells-row'}
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: compact ? 3 : 6, height: compact ? 64 : 150 }}
+      >
+        {week.map(day => (
+          <DayCell
+            key={dateKey(day.date)}
+            category={category}
+            agent={agent}
+            day={day}
+            cellules={cellules}
+            editable={editable}
+            copySource={copySource}
+            onPaste={onPaste}
+            onSetCell={onSetCell}
+            onFillRange={onFillRange}
+            compact={compact}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -238,31 +257,35 @@ export default function AgentDetailTable({ category, agent, cellules, year, mont
       <style>{`
         .planning-week-grid, .planning-month-grid { container-type: inline-size; }
 
-        /* Vue semaine (mode par défaut) : on réduit progressivement avant de masquer le label M/AM/N */
+        /* Vue semaine (mode par défaut) */
         @media (max-width: 600px) {
-          .planning-week-row, .planning-week-grid .planning-week-row { gap: 4px !important; }
-          .planning-week-grid button { padding: 3px 4px !important; font-size: 10px !important; }
-          .planning-week-grid .planning-week-row > div > div { min-height: 92px !important; padding: 5px !important; }
+          .planning-week-grid .planning-week-row,
+          .planning-week-grid .planning-cells-row { gap: 4px !important; }
+          .planning-week-grid button { padding: 3px 4px !important; font-size: 11px !important; }
+          .planning-week-grid .planning-cells-row { height: 110px !important; }
         }
         @media (max-width: 460px) {
-          .planning-week-grid button { padding: 2px 3px !important; font-size: 9px !important; }
-          .planning-week-grid .planning-week-row > div > div { min-height: 78px !important; padding: 4px !important; }
+          .planning-week-grid button { padding: 2px 3px !important; font-size: 10px !important; }
+          .planning-week-grid .planning-cells-row { height: 96px !important; }
           .planning-week-grid .planning-copy-btn { display: none !important; }
         }
         @media (max-width: 360px) {
-          .planning-week-row { gap: 3px !important; }
-          .planning-week-grid button { font-size: 8px !important; }
+          .planning-week-grid .planning-week-row,
+          .planning-week-grid .planning-cells-row { gap: 3px !important; }
+          .planning-week-grid button { font-size: 9px !important; }
+          .planning-week-grid .planning-cells-row { height: 86px !important; }
         }
 
         /* Vue mois (compacte) */
         @media (max-width: 640px) {
           .planning-month-grid button { padding: 1px 2px !important; font-size: 8px !important; }
-          .planning-month-grid .planning-week-row { gap: 2px !important; }
-          .planning-month-grid .planning-week-row > div > div { min-height: 52px !important; padding: 2px !important; gap: 1px !important; }
+          .planning-month-grid .planning-week-row,
+          .planning-month-grid .planning-cells-row { gap: 2px !important; }
+          .planning-month-grid .planning-cells-row { height: 48px !important; }
         }
         @media (max-width: 420px) {
           .planning-month-grid button { font-size: 7px !important; }
-          .planning-month-grid .planning-week-row > div > div { min-height: 44px !important; }
+          .planning-month-grid .planning-cells-row { height: 40px !important; }
         }
       `}</style>
     </div>
