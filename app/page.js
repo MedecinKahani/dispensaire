@@ -1,652 +1,800 @@
-'use client';
-
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass } from 'lucide-react';
-
-const CATEGORIES = [
+[
   {
-    id: 'urgences',
-    label: 'Protocoles & Urgences',
-    icon: Stethoscope,
-    color: '#C2410C',
-    bg: '#FDF1EC',
-    description: 'Conduites à tenir, scores, seuils décisionnels'
+    "title": "ACR adulte extra-hospitalier — algorithme Urg'Ara",
+    "category": "vitales",
+    "summary": "Prise en charge avant arrivée hospitalière, contrôle MCE, étiologies, séquences choquable/non choquable.",
+    "content": "SOURCE : Urg'Ara, Groupe de Travail Arrêt Cardiaque, V1.0\n\nPRISE EN CHARGE AVANT RACS\n- Fréquence de massage : 100-120/min, profondeur 5cm (max 6cm)\n- Limiter au maximum les pauses de RCP\n- Changement au mieux toutes les 2 min\n- Contrôle des voies aériennes\n- Contrôle de la qualité du MCE\n- Présence des proches à considérer\n- Rechercher l'étiologie : hypovolémie, hypoxie, ions H+ (acidose), hypo/hyperkaliémie, hypothermie, pneumothorax sous tension, tamponnade cardiaque, toxines, thrombose pulmonaire, thrombose coronaire\n- Médicaments de l'AC selon rythme\n\nVENTILATION\nIntubation standard par MCE sans pause si possible, sinon technique alternative ou poursuivre au BAVU.\nMode ventilation assistée contrôlée : FiO2 100%, FR 10/min, Vt 6ml/kg, I/E = 1/5, trigger inspiratoire off. PMax 80 cmH2O. Dès RACS : basculer en ventilation protectrice.\n\nMONITORAGE\nDu rythme le plus tôt possible, puis toutes les 2 min.\n\nVOIE D'ABORD\nPose VVP. Si échec >2 min ou pose KT IO préférable, idéalement humérale.\n\nFV RÉFRACTAIRE (après 3e CEE)\nMode double défibrillation séquentielle : 2 chocs délivrés immédiatement l'un après l'autre.\n\n1. AC AVEC RYTHME NON CHOQUABLE\nAnalyse rythme → RCP 2min (contrôle voies aériennes + VVP) → RCP 2min, injecter ADRÉNALINE 1mg le plus tôt possible → RCP 2min → si absence de RACS, ADRÉNALINE 1mg → répéter toutes les 2 cycles\n\n2. AC AVEC RYTHME CHOQUABLE (FV, TV sans pouls)\nAnalyse rythme → RCP 2min (contrôle voies aériennes + VVP) → 1er CEE → RCP 2min → 2e CEE → RCP 2min → 3e CEE + AMIODARONE 300mg + ADRÉNALINE 1mg (double défibrillation séquentielle si besoin) → RCP 2min → 4e CEE + ADRÉNALINE 1mg → RCP 2min → 5e CEE + AMIODARONE 150mg + ADRÉNALINE 1mg → poursuivre ADRÉNALINE toutes les 2 cycles\n\nDOSE MAXIMALE D'ADRÉNALINE : 5mg. Dès que décision d'ECPR (ECMO VA) prise : ARRÊT injection adrénaline.\n\nRéférence : Cheskes et al., N Engl J Med 2022;387:1947-1956 (double défibrillation séquentielle)."
   },
   {
-    id: 'annuaire',
-    label: 'Annuaire & Avis Spé',
-    icon: Phone,
-    color: '#0E7490',
-    bg: '#EBF6F8',
-    description: 'Contacts, spécialistes, filières d\'évacuation'
+    "title": "ACR pédiatrique — algorithme RENAU complet (poids/âge)",
+    "category": "vitales",
+    "summary": "Algorithme complet asystolie/CEE pédiatrique avec table de posologies par tranche de poids (3kg à 50kg) — référence RENAU.",
+    "content": "SOURCE : RENAU — Prise en charge de l'arrêt cardiaque pédiatrique (hors NNé), validé Bureau Baby-Renau et Commission Scientifique RENAU.\n\nSIGNES D'AC\nInconscient + Gasps ou absence de respiration + absence de signes de vie → débuter RCP.\n5 insufflations initiales, puis RCP 15/2 à 100-120 compressions/min, profondeur 1/3 hauteur du thorax (≈4cm chez nourrisson).\nAprès intubation/ITB : compressions 100-120/min en continu + ventilation 10-12/min.\n\nDEUX ALGORITHMES SELON LE RYTHME\n\n1. RYTHME SANS indication de CEE (asystolie, AESP, bradycardie extrême)\nRCP 2min → analyse rythme → RCP 2min → ADRÉNALINE IVD/IO 4j/kg → RCP 2min (répéter, adrénaline toutes les 2 cycles/4min)\n\n2. RYTHME AVEC indication de CEE (FV et TV sans pouls)\nRCP 2min → analyse → 1er CEE 4J/kg → RCP 2min → 2e CEE 4J/kg → RCP 2min → 3e CEE 4J/kg + ADRÉNALINE + AMIODARONE → RCP 2min → 4e CEE 4J/kg + ADRÉNALINE → RCP 2min → 5e CEE 4J/kg + ADRÉNALINE + AMIODARONE\n\nÉQUIPEMENT\nAccès vasculaire ou dispositif intra-osseux (DIO). Intubation + EtCO2. Minimiser l'interruption des compressions thoraciques.\n\nTRAITER LES CAUSES RÉVERSIBLES\n4H : Hypoxie, Hypovolémie, Hyper-K+ et troubles métaboliques, Hypothermie\n4T : Thrombose, Pneumothorax compressif, Tamponnade cardiaque, Toxiques\n\nPARTICULARITÉS\n- Si FC < 60/min = AC → débuter RCP\n- Si effondrement brutal devant témoin et RCP/défibrillation précoce si rythme choquable\n- Si hyperkaliémie : bicarbonate de sodium 4,2% 2ml/kg IVL ; toujours flush avant et après injection ; chlorure de calcium 10% 0,2ml/kg IVL\n- Si intoxication médicamenteuse : cf fiche antidote\n\nTABLE DE RÉFÉRENCE PAR POIDS (sélection de repères)\n3kg : Adrénaline ≈0,05mg ; CEE ≈3J\n10kg : Adrénaline ≈0,1mg ; CEE ≈40J\n20kg : Adrénaline ≈0,2mg ; CEE ≈85J\n30kg : Adrénaline ≈0,3mg ; CEE ≈125-140J\n40kg+ (≈15 ans, 50kg) : passage posologies proches de l'adulte, CEE 200-300J\nLes posologies précises ADRÉNALINE, AMIODARONE, dilution NaCl/sparadrap, dimensions sonde/masque/canule de Guedel sont disponibles sur la table complète RENAU affichée en dispensaire (à reproduire en poster A3 si possible — table dense, mieux affichée qu'écrite).\n\nCONTACTS RÉFÉRENTS\nRéa pédiatrique HCE Grenoble : 06 46 32 44 32\nRéa pédiatrique HFME Lyon : 04 27 85 59 37\nMédecin trieur Genève : (+0041) 79 55 34 824"
   },
   {
-    id: 'lexique',
-    label: 'Lexique Shimaoré',
-    icon: Languages,
-    color: '#65521E',
-    bg: '#F8F2E6',
-    description: 'Vocabulaire médical Shimaoré / Français'
+    "title": "Acidocétose diabétique — prise en charge SAU",
+    "category": "vitales",
+    "summary": "Critères diagnostiques + protocole de réhydratation/insulinothérapie/potassium.",
+    "content": "CRITÈRES DIAGNOSTIQUES (pour mémoire)\n1. Cétonémie >3mmol/l (ou cétonurie >2+)\n2. Glycémie >14mmol/l ou >2,5g/l (à partir de 2g/l pour certains auteurs)\n3. Bicarbonate plasmatique <15mmol/l et/ou acidose pH <7,3 (sévère si <7,1)\n\nBILAN\n- Cétonémie, bilan sanguin, gaz du sang\n\nPRISE EN CHARGE\nVVP : NaCl 1000cc/1h, puis 1000cc/2h, puis 1000cc/4h (si possible G10 en Y pour resucrage)\n\nInsulinothérapie :\n- Idéal : débit dextro PSE, objectif 1,1-1,8 g/l. Relai SC quand glycémie <10mmol/l (Lente : ½ dose IVSE/24h ; Rapide : ½ dose IVSE/24h divisée par 3)\n- En dispensaire (sans PSE) : LANTUS SC 0,3 UI/kg/24h + NOVORAPID 0,3 UI/kg/24h divisé en 3\n\nPOTASSIUM (attendre le ionogramme)\nK >5,4 mmol/l : pas de KCl\nK 3,3-5,4 mmol/l : KCl 1g/h IVSE\nK <3,3 mmol/l : insulinothérapie en attente, KCl 2g/h IVSE\n\nSi pH <7 ou hyperkaliémie menaçante à l'ECG : 100cc bicarbonate 1,4% en Y, puis contrôle du pH. Renouveler tant que pH <7.\n\nSurveillance glycémie horaire (noter à 1h, 2h, 3h).\n\nReconsulter au SAU le lendemain pour résultat du bilan, instauration ADO selon fonction rénale."
   },
   {
-    id: 'caribou',
-    label: 'Caribou — Bienvenue',
-    icon: Compass,
-    color: '#0F766E',
-    bg: '#ECFAF8',
-    description: 'Mayotte, arrivée, culture mahoraise, organisation Kahani'
+    "title": "Allergie aiguë / Anaphylaxie — diagnostic et prise en charge",
+    "category": "vitales",
+    "summary": "Critères de Sampson + protocole adrénaline IM, posologies adulte/enfant.",
+    "content": "DIAGNOSTIC\nRéaction d'hypersensibilité systémique, généralisée, sévère, pouvant engager le pronostic vital. Apparition brutale, évolution rapide.\nAu Centre 15 : SMUR à engager facilement en cas d'anaphylaxie. Au SAU : admission en SAUV.\n\nCRITÈRES DIAGNOSTIQUES (Sampson) — anaphylaxie probable si :\n1. Installation aiguë (minutes à quelques heures) d'une atteinte cutanéo-muqueuse urticarienne ET au moins une atteinte respiratoire ET/OU hypotension/signes de mauvaise perfusion d'organes\nOU\n2. Au moins deux éléments parmi : atteinte cutanéo-muqueuse, atteinte respiratoire, hypotension/mauvaise perfusion, signes gastro-intestinaux persistants — apparaissant rapidement après exposition à un allergène probable\nOU\n3. Hypotension artérielle après exposition à un allergène connu pour ce patient\n\nAUCUNE CONTRE-INDICATION ABSOLUE à l'ADRÉNALINE en cas d'anaphylaxie (ni grossesse, ni anti-thrombotique, ni cardio-vasculaire).\n\nPRISE EN CHARGE — URGENCE ++\n- ADRÉNALINE IM : face antéro-latérale de cuisse\n  Adultes et enfants : 0,01 mg/kg, maximum 0,5 mg\n  Non dilué : prélever 1mg (1ml) dans une seringue de 1mL\n- Monitorage (PNI toutes les 1-5 min) et O2 pour SpO2 > 95%\n- VVP, NaCl 0,9% et expansion volémique rapide (20 ml/kg à adapter et renouveler selon réponse hémodynamique — 5 à 10 ml/kg dans les 5 premières minutes)\n- Position demi-assise si détresse respiratoire ; position Trendelenburg si hypotension\n\nSi persistance de gravité à 5-10 min : 2e injection d'adrénaline IM identique.\n\nEffets secondaires possibles de l'adrénaline (à ne pas confondre avec anaphylaxie persistante) : pâleur, céphalées, palpitations transitoires, tachycardie, nausées.\n\nAUTRES TRAITEMENTS\n- Atteinte voies aériennes supérieures : Adrénaline en aérosol — Adultes 2-5mg, Enfants 1mg\n- Bronchospasme : Salbutamol aérosol — Adultes 5mg, Enfants <16kg 2,5mg / ≥16kg 5mg\n- Adultes : Prednisolone PO 1-2mg/kg (prévient la réaction biphasique)\n- Enfants : Béthaméthasone 0,05% PO 15 gouttes/kg\n- Si vomissements ou Prednisolone indisponible : Methylprednisolone IV 1-2mg/kg\n- Si atteinte cutanéo-muqueuse : Dexchlorphéniramine (Polaramine) 2mg PO ou 5mg IV (IV réservé à l'enfant >30 mois) à but symptomatique"
+  },
+  {
+    "title": "Arrêt cardio-respiratoire — CAT générale au dispensaire",
+    "category": "vitales",
+    "summary": "Séquence P-A-S puis A-B-C-D, RCP, défibrillation, adrénaline.",
+    "content": "CONTEXTE\nPeut survenir au dispensaire ou en sortie MCS. Prise en charge en équipe (IDE/AS/ambulancier) avec la régulation.\n\nDIAGNOSTIC\nVérifier l'absence de respiration (oreille sur la bouche du patient, cage thoracique immobile) associée à l'absence de pouls carotidien ou fémoral pendant 10 secondes.\n\nCAT\nP-A-S : Protéger, Alerter, Secourir — appeler le 15, noter l'heure de début de prise en charge.\n\nA-B-C-D :\n- A (Airway) : libérer les voies aériennes, subluxer la mâchoire, retirer un éventuel corps étranger, mettre le masque laryngé avec BAVU et oxygénothérapie à 15L/min\n- B-C (Breathing-Circulation) : patient sur plan dur, massage cardiaque externe (100 compressions/min, rythme \"Staying Alive\", 5 cm de dépression), scoper le patient\n  - Adulte : 30 compressions / 2 insufflations\n  - Enfant : 5 insufflations puis 15 compressions / 2 insufflations\n  - Le noyé et l'enfant reçoivent 2 insufflations préalables au massage\n- D (Défibrillation) : poser le défibrillateur, suivre les instructions, interprétation du rythme toutes les 2 min\n  - Rythme NON choquable : RCP + ADRÉNALINE toutes les 4 min (tous les 2 cycles)\n  - Rythme choquable : RCP / 3 CEE de suite, puis 1mg ADRÉNALINE + 300mg CORDARONE, puis 4e et 5e CEE, puis 1mg ADRÉNALINE + 150mg CORDARONE, puis ADRÉNALINE toutes les 4 min\n\nPRÉPARATION ADRÉNALINE PÉDIATRIQUE (à diluer)\nPrélever 1mg et compléter à 10ml avec NaCl 0,9% → concentration 0,1mg/ml (100µg/ml)\nPrélever ensuite avec une seringue 1ml → soit 0,01mg/0,1ml\nPosologie : 0,01mg/kg toutes les 4 min pendant la RCP, en IVD suivi d'un flush de 5-10ml NaCl 0,9%."
+  },
+  {
+    "title": "Arthrite septique — quand y penser",
+    "category": "vitales",
+    "summary": "Impotence fonctionnelle sans signe d'orientation, souvent point de départ dermatophytique, urgence Mamoudzou.",
+    "content": "QUAND Y PENSER\nDevant une impotence fonctionnelle sans signe d'orientation évident — fréquent à Mayotte. Les points d'appel sont souvent des dermatophyties (mycoses cutanées) dans bien des cas.\n\nCAT\nÀ adresser aux urgences de Mamoudzou."
+  },
+  {
+    "title": "Asthme aigu « Pefou » — contexte épidémiologique et traitement de fond",
+    "category": "vitales",
+    "summary": "Très répandu, lié au climat et à un possible facteur génétique, prise en charge quotidienne en PDS.",
+    "content": "CONTEXTE\nUn protocole DxCare dédié est disponible pour ne pas perdre de temps sur cette prise en charge bien cadrée (cf fiche \"Asthme aigu — CAT PDS/SAU et ordonnance\" pour le détail des doses).\n\nÉPIDÉMIOLOGIE\nL'asthme est très répandu à Mayotte en raison des conditions climatiques, probablement avec une part génétique. Les crises sont prises en charge quotidiennement à la PDS, souvent en lien avec un manque de suivi et de traitement de fond.\n\nRECOMMANDATION DE TERRAIN\nNe pas hésiter à prescrire un traitement de fond pour 6 mois, avec chambre d'inhalation — y compris chez l'adulte, car les erreurs de manipulation des dispositifs sont fréquentes même à cet âge."
+  },
+  {
+    "title": "Asthme aigu — CAT PDS/SAU et ordonnance",
+    "category": "vitales",
+    "summary": "Protocole aérosols + corticoïdes + ordonnance de sortie.",
+    "content": "EXAMEN TYPE\nCardio-pulmonaire : sibilants, dyspnée, toux, ± signes de tirage. Reste de l'examen normal.\n\nCAT AU SAU/PDS\n- SOLUPRED XX mg (1-2mg/kg, max 80mg) per os\n- 1er aérosol VENTOLINE + ATROVENT\n- 2e aérosol VENTOLINE\n- 3e aérosol VENTOLINE\n- Puis réévaluation : saturation + clinique\n\nPOSOLOGIE AÉROSOL VENTOLINE\n<16 kg : 2,5 ml\n>16 kg (enfant et adulte) : 5 ml\n\nORDONNANCE DE SORTIE\n- SOLUPRED XX mg le matin, 4 jours\n- VENTOLINE 100µg : 1 bouffée/2kg (max 10) : schéma 2/4/6/8/10 bouffées, 5x/jour, 5 jours\n- Si crise à domicile : 2/4/6/8/10 bouffées si symptômes toutes les 15 min pendant 1h puis consulter\n- FLIXOTIDE 50µg matin et soir, 30 jours (rincer la bouche après, risque mycose)\n- Chambre d'inhalation taille adaptée\n- DOLIPRANE dose-poids 4x/jour si fièvre/douleur, 7 jours\n- Lavage de nez sérum physiologique\n- RDV de suivi à 6 mois\n\nALTERNATIVE\nSYMBICORT 200/6µg : 1-0-1, 30 jours\nSERETIDE 250/25 : 1-0-1, 30 jours\n\nPOSOLOGIE FLIXOTIDE PAR ÂGE (CI <1an)\n1-4 ans (léger à modéré) : 50µg, 1-2 bouffées x2/jour (max 200µg/j)\n>4 ans léger à modéré : 50-100µg x2/jour\n>4 ans sévère : 200µg x2/jour\nAdulte léger : 100-150µg x2/jour\nAdulte modéré : 150-500µg x2/jour\nAdulte sévère : 500-1000µg x2/jour"
+  },
+  {
+    "title": "Asthme grave aigu — particularités Mayotte (« Pefou »)",
+    "category": "vitales",
+    "summary": "Protocole DxCare aérosols + traitement de fond systématique vu le contexte local de rupture de suivi.",
+    "content": "CONTEXTE LOCAL\nL'asthme (« pefou » en shimaoré) est un motif de consultation incontournable à Mayotte, avec de nombreuses ruptures de suivi.\n\nPROTOCOLE DxCARE (urgence)\nAérosolthérapie VENTOLINE (1-2-3, soit 3 aérosols successifs) et ATROVENT (1er aérosol seulement), associée à une corticothérapie 1mg/kg (SOLUPRED PO, ou CELESTENE chez l'enfant 15 gouttes/kg).\n\nRECOMMANDATION DE TERRAIN\nVu la fréquence des récidives, le nombre de patients mal suivis et le manque d'accès à la médecine de ville, il est recommandé de systématiquement proposer un traitement de fond avec les molécules disponibles au dispensaire (FLIXOTIDE, SEREVENT, SYMBICORT) ainsi qu'une chambre d'inhalation — y compris pour certains adultes qui ne maîtrisent pas la technique d'inhalation seule."
+  },
+  {
+    "title": "Bronchiolite — contexte épidémiologique Mayotte",
+    "category": "vitales",
+    "summary": "Épidémies marquées en été austral et saison des pluies, score de Wang pour la gravité.",
+    "content": "ÉPIDÉMIOLOGIE\nÉpidémies souvent marquées à Mayotte, surtout durant l'été austral et la période des pluies.\n\nÉVALUATION\nLa gravité peut être évaluée par le score de Wang (cf fiche dédiée \"Bronchiolite — score de Wang et CAT\" pour le détail du score et de la prise en charge).\n\nPRISE EN CHARGE\nÉducation des parents au lavage de nez ; hospitalisation en cas de signe de gravité (besoin d'oxygénothérapie)."
+  },
+  {
+    "title": "Bronchiolite — score de Wang et CAT",
+    "category": "vitales",
+    "summary": "Score de gravité (FR, wheezing, tirage, état général) + conduite à tenir.",
+    "content": "SCORE DE WANG (gravité)\n\nFréquence respiratoire\n0 : <30/min | 1 : 31-45/min | 2 : 46-60/min | 3 : >60/min\n\nWheezing\n0 : Aucun | 1 : Fin d'expiration/ausculté | 2 : Toute l'expiration/sans stéthoscope | 3 : Inspi+expi sans stéthoscope\n\nTirage\n0 : Aucun | 1 : Intercostal seul | 2 : Sus-sternal/xiphoïdien | 3 : Sévère + battement ailes du nez\n\nÉtat général\n0 : Normal | 3 : Irritable, léthargique, difficultés alimentaires\n\nINTERPRÉTATION\n0-3 : sans gravité | 4-7 : modérée | 8-12 : sévère\n\nEXAMEN TYPE\nCardio-pulmonaire : ronchis et sibilants diffus, dyspnée, toux spastique, tirage intercostal/sus-claviculaire/xiphoïdien, balancement thoraco-abdominal.\nReste de l'examen : neuro normal, abdomen souple, ORL normal, aires ganglionnaires libres.\n\nCONDUITE À TENIR\n- Désobstruction rhinopharyngée au sérum physiologique\n- Oxygénothérapie aux lunettes si désaturation <93% avec signes de lutte\n- Essai aérosol VENTOLINE 2,5ml si >3 mois, 2e épisode avec ATCD atopie familiale, ou 3e épisode\n- Si amélioration (FR <25/min, bonne saturation) : RAD sous surveillance accrue\n- Reconsulter si difficulté respiratoire augmentée/persistante, fièvre\n\nORDONNANCE DE SORTIE\n- Lavage de nez sérum physiologique pluriquotidien, 5 jours (9g sel + 1L eau, garder au frais 72h)\n- PARACETAMOL : dose-poids toutes les 6h si fièvre/douleur, 5 jours\n- Soluté de réhydratation orale : 1 sachet/200ml, gorgée par gorgée toutes les 15 min à la demande\n- Fractionnement des repas"
+  },
+  {
+    "title": "Brûlures — critères d'orientation",
+    "category": "vitales",
+    "summary": "Réhydratation IV si >10%, transfert CHM si circulaire ou étendue.",
+    "content": "RÉHYDRATATION\nLes brûlures >10% de surface corporelle doivent être réhydratées abondamment par voie IV si nécessaire.\n\nORIENTATION\nLes brûlures circulaires ou étendues sont à adresser au CHM — consultation \"brûlés\" disponible tous les matins."
+  },
+  {
+    "title": "CVO drépanocytaire enfant — diagramme complet (vérifié, identique au document source)",
+    "category": "vitales",
+    "summary": "Confirmation terrain du protocole pédiatrique déjà digitalisé — aucune divergence constatée.",
+    "content": "Photo prise au dispensaire vérifiée et conforme à la fiche déjà présente \"Crise vaso-occlusive — diagramme de décision CHM\". Aucune mise à jour nécessaire sur ce protocole.\n\nPour rappel rapide : accueil prioritaire (carnet rouge), MEOPA 20min + EMLA, constantes, hydratation 2-2,5L/m²/j (CVO simple) ou 1-1,5L/m²/j (STA), Hémocue, antalgie par paliers selon EVA (Nalbuphine si EVA 4-6, morphine titrée IV si EVA>6), relai PCA si besoin, naloxone disponible en cas d'effet indésirable."
+  },
+  {
+    "title": "CVO drépanocytaire — effets indésirables de la morphine (complément)",
+    "category": "vitales",
+    "summary": "Conduite à tenir si nausées/vomissements ou prurit sous morphine — complète la fiche CVO adulte.",
+    "content": "Ce complément vient préciser la fiche \"CVO hyperalgique chez le drépanocytaire adulte\" (protocole CHM).\n\nEFFETS INDÉSIRABLES DE LA MORPHINE — CONDUITE À TENIR\n\nNausées-vomissements :\nRajouter du Droleptan, dose de 5% de la dose totale de morphine administrée.\n\nPrurit :\nRajouter du Nubain (nalbuphine), dose de 10% de la dose totale de morphine administrée."
+  },
+  {
+    "title": "CVO hyperalgique chez le drépanocytaire adulte",
+    "category": "vitales",
+    "summary": "Protocole CHM spécifique adulte : morphine titrée + PCA + kétamine en association systématique.",
+    "content": "SOURCE : CHM — Urgences drépanocytaires, CVO hyperalgique adulte\n\nACCUEIL\nPrioritaire au CHM (carnet de santé rouge).\n\nANALGÉSIE MULTIMODALE D'EMBLÉE\nPalier I : Paracétamol systématique\nPalier II : Néfopam (Acupan)\nAINS (Profénid) si pas de point d'appel infectieux, ou si le patient est déjà sous couverture antibiotique pour un foyer infectieux identifié.\n\nMEOPA très efficace sur la douleur drépanocytaire (séances de 15 minutes, 4 à 6 fois par jour). ⚠️ Attention aux abus : produit addictogène.\n\nSI NÉCESSAIRE : PALIER III (morphinique)\nEn titration puis PCA, en association avec une PSE de Kétamine (action d'épargne morphinique et anti-hyperalgésie).\n\nPROTOCOLE MORPHINE\n- Dose de charge : 0,1mg/kg IV\n- Puis titration : 3mg/5min jusqu'à EVA <4\n- Relai PCA : bolus de 1 à 2mg max, période réfractaire 7 à 10 min, dose maximale sur 4 heures = 25mg\n- Éviter le débit continu dans la mesure du possible ; ne l'instaurer que si le patient reste très algique, et dans ce cas débit 1 à 2mg/heure max\n\nPROTOCOLE KÉTAMINE\n- TOUJOURS en association avec le traitement morphinique\n- En continu au PSE (mais pas dans la même seringue que la morphine)\n- Dose de charge indispensable : 0,15mg/kg\n- Puis : 50mg/24h si poids ≤40kg, ou 100mg/24h si poids >40kg\n\nTRAITEMENTS ADJUVANTS\n- Anxiolytique (éviter les benzodiazépines) : Atarax 25 à 50mg/jour\n- Anticoagulation iso en prévention du risque thrombo-embolique\n- O2 aux lunettes 1,5-2L/min même si saturation à 100%\n- Hydratation IV 2L/24h avec Bionolyte\n- Traitement préventif de la constipation, qui peut être cause de douleur abdominale, météorisme, et favoriser une hypoventilation\n- Attention au globe vésical en cas de médication morphinique"
+  },
+  {
+    "title": "Cathéter intra-osseux (KT os) — technique de pose",
+    "category": "vitales",
+    "summary": "Geste de sauvetage si VVP impossible : technique, repères, volumes de flush.",
+    "content": "INDICATION\nArrêt cardiaque ou réanimation où l'abord veineux périphérique est difficile ou impossible. Geste douloureux : à réserver à l'urgence.\n\nTECHNIQUE\n1. Asepsie rigoureuse même en urgence\n2. Repérer le point d'insertion :\n   - Tibial : 2 travers de doigt sous la tubérosité tibiale antérieure, puis moitié d'une ligne horizontale du bord antérieur au bord interne du tibia\n   - Alternative : malléole interne (cheville)\n3. Choisir l'aiguille adaptée au gabarit du patient, l'adapter à la perceuse (contact magnétique) et visser\n4. Insérer à 90° par rapport à l'os, jusqu'à ressentir une moindre résistance — pression constante modérée, rotation constante sans à-coup\n5. Après passage de la corticale (perte de résistance) : désadapter la perceuse, dévisser et retirer le mandrin sans désinsérer le cathéter (le tenir à 2 doigts)\n6. Une seule tentative par os\n\nPOINTS DE VIGILANCE\n- Si main gantée : ne pas tenir l'aiguille qui en tournant peut enrouler le gant\n- Avant d'administrer un traitement : flush rapide de NaCl 0,9% pour créer un espace dans la cavité médullaire et vérifier l'absence d'infiltration sous-cutanée\n  - Nourrissons : 2 ml\n  - Enfants : 5 ml\n  - Adolescents et adultes : 10 ml\n\nLa pharmacocinétique de la voie intra-osseuse est très comparable à celle de la voie intraveineuse."
+  },
+  {
+    "title": "Colique néphrétique",
+    "category": "vitales",
+    "summary": "Bilan + antalgie IV + ordonnance de sortie.",
+    "content": "BILAN\n- BU, ACTIM CRP\n- Biologie, ECBU\n- Échographie ambulatoire\n\nPRISE EN CHARGE AU SAU\n- NaCl 1000cc/8h\n- PERFALGAN 1g IV toutes les 6h\n- PROFENID 100mg IV\n- TRAMADOL 100mg IV toutes les 8h\n- SPASFON 160mg IV\n\nORDONNANCE DE SORTIE\n- PARACETAMOL 1g : 4x/jour, 7 jours\n- NAPROXENE 550mg : 1cp/jour, 3 jours\n- ESOMEPRAZOL 20mg : 1cp/jour, 5 jours\n- TRAMADOL 50mg : 3x/jour, 3 jours"
+  },
+  {
+    "title": "Constantes vitales normales chez l'enfant par tranche d'âge",
+    "category": "vitales",
+    "summary": "Tableau de référence FC, FR, SpO2, PAS/PAD/PAM et diurèse normales — seuils d'alerte par âge.",
+    "content": "TABLEAU DE RÉFÉRENCE PAR TRANCHE D'ÂGE : 0-1 mois | 1 mois-2 ans | 2-4 ans | 4-10 ans | >10 ans\n\nFRÉQUENCE CARDIAQUE (FC/min)\nLimites normales :\n0-1 mois : 90-180 | 1 mois-2 ans : 80-155 | 2-4 ans : 70-140 | 4-10 ans : 65-125 | >10 ans : 55-105\n\nSeuil d'alerte (prévenir) :\n0-1 mois : <90 ou >190 | 1 mois-2 ans : <80 ou >170 | 2-4 ans : <70 ou >160 | 4-10 ans : <60 ou >140 | >10 ans : <50 ou >130\n\nFRÉQUENCE RESPIRATOIRE (FR/min)\nValeur normale :\n0-1 mois : 40 | 1 mois-2 ans : 30 | 2-4 ans : 20 | 4-10 ans : 18 | >10 ans : 15\n\nSeuil d'alerte :\n0-1 mois et 1 mois-2 ans : <20 ou >60 | 2-4 ans : <15 ou >40 | 4-10 ans : <15 ou >30 | >10 ans : <10 ou >30\n\nSpO2 EN AIR AMBIANT — seuil d'alerte\n0-1 mois et 1 mois-2 ans : <90% | 2-4 ans et 4-10 ans : <92% | >10 ans : <94%\n\nPRESSION ARTÉRIELLE SYSTOLIQUE (PAS mmHg)\nLimites normales :\n0-1 mois : 70-90 | 1 mois-2 ans : 85-105 | 2-4 ans : 90-110 | 4-10 ans : 95-115 | >10 ans : 110-130\n\nSeuil d'alerte :\n0-1 mois : <60 ou >100 | 1 mois-2 ans : <75 ou >110 | 2-4 ans : <80 ou >130 | 4-10 ans : <85 ou >140 | >10 ans : <90 ou >160\n\nPRESSION ARTÉRIELLE DIASTOLIQUE (PAD mmHg) — limites\n0-1 mois : 40-60 | 1 mois-4 ans : 50-65 | 4-10 ans : 55-70 | >10 ans : 65-80\n\nPRESSION ARTÉRIELLE MOYENNE (PAM mmHg)\nLimites : 0-1 mois : 45-55 | 1 mois-4 ans : 65-80 | 4-10 ans : 70-85 | >10 ans : 80-95\nSeuil d'alerte : 0-1 mois : <45 | 1 mois-2 ans : <60 | 2-4 ans : <65 | 4-10 ans : <70 | >10 ans : <80\n\nDIURÈSE (ml/kg/h)\nNormale : 0-1 mois à 1 mois-2 ans : 2-3 | 2-4 ans : 2 | 4-10 ans et >10 ans : 1-2\nSeuil d'alerte : <1 ou >4 sur 3h (nourrisson/petit enfant) ou sur 6h (grand enfant)"
+  },
+  {
+    "title": "Crise vaso-occlusive — diagramme de décision CHM",
+    "category": "vitales",
+    "summary": "Protocole complet par paliers EVA : antalgie, hydratation, MEOPA, morphine titrée, PCA.",
+    "content": "SOURCE : CHM — Urgences drépanocytaires, diagramme de décision\n\nACCUEIL ET MESURES INITIALES\n1. Accueil prioritaire au CHM (carnet de santé rouge, voir fiche de consultation)\n2. MEOPA si disponible pendant 20 minutes + mise en place patch EMLA\n3. Prendre les constantes : température, poids, SaO2, TA, pouls, FR\n4. Oxygénothérapie 2 à 3L/min aux lunettes, non systématique\n5. Hydratation per os ou IV :\n   - Enfant : 2 à 2,5L/m²/j si CVO simple, ou 1 à 1,5L/m²/j si syndrome thoracique aigu (STA)\n6. Faire un Hémocue\n7. Oxygénothérapie (non systématique) si SaO2 <94%\n\nANTALGIE DE BASE (systématique)\n- Paracétamol 1 dose-poids per os ou IV : 7,5mg/kg/6h si <10kg, 15mg/kg/6h si >10kg\n- 1 dose AINS (sauf contre-indication) : Ibuprofène 10mg/kg/8h per os, chez l'enfant de plus de 6 mois\nEnvisager transfert CHM selon réponse au traitement.\n\nPALIERS SELON L'EVA\n\nEVA <4 : poursuivre le même traitement, réévaluation toutes les 30 minutes, sortie si patient soulagé, réévaluation à 24h.\n\n4 < EVA < 6 : Nalbuphine (Nubain) chez l'enfant — 0,2mg/kg/6h IVD ou 1,2mg/kg IVSE ou 0,4-0,5mg/kg en intra-rectal. +/- Néfopam (Acupan) 1-2mg/kg chez l'enfant. +/- Tramadol 0,4mg/kg toutes les 4-6h.\n\nEVA >6 : Morphine orale à libération immédiate — dose de charge 0,4 à 0,5mg/kg (sans dépasser 20mg), puis titration 0,2 à 0,4mg/kg toutes les 30 minutes jusqu'au soulagement, sauf si sédation excessive.\n\nEVA >6 avec titration IV : Titration morphine IV sous SaO2 et naloxone (Narcan) disponible : dose de charge 0,05 à 0,1mg/kg en 3 minutes, puis titration 0,025mg/kg IVL toutes les 5 minutes jusqu'à EVA <4, puis continuer la dose totale administrée par 4h + Paracétamol (épargne morphinique). Valve anti-retour.\n\nSI DOSE DE MORPHINE NÉCESSAIRE ≥2mg/kg/jour (épargne morphinique)\n+/- Acupan IVSE (à partir de 30kg) 1,5 à 2mg/kg/j sans bolus\n+/- Kétamine IVSE sous SaO2, en association avec la morphine : 0,5 à 2mg/kg/j (max 100mg/jour) sans bolus. Valve anti-retour.\n\nRELAI PCA MORPHINE IVSE\nBolus de 0,020 à 0,050mg/kg toutes les 7 minutes avec débit basal à 0,02 à 0,04mg/kg/h (débit continu si patient difficilement soulagé avec bolus ; sans débit continu, faire un bolus d'au moins 0,03mg/kg).\n\nSI EFFET INDÉSIRABLE\n+ Naloxone (Narcan) IVSE 0,25 à 0,5µg/kg/h\n\nEN CAS D'ÉCHEC GLOBAL\nTransfusion ou échange transfusionnel à but antalgique."
+  },
+  {
+    "title": "Déshydratation aiguë pédiatrique",
+    "category": "vitales",
+    "summary": "Remplissage Ringer Lactate + relai glucosé, RHD post-épisode.",
+    "content": "CAT\n- Appel de la régulation\n- Pose VVP/IO : Ringer Lactate 20ml/kg sur 15 min\n- GDS (iono, lactate, Hb) + dextro\n- Relai par Glucidion ou 1000cc G5% + 4g NaCl + 2g KCl (soit pour 100cc : 4ml NaCl 10% + 2ml KCl 10%)\n- Coller une étiquette de traçabilité sur la poche en cas de transfert\n\nRHD APRÈS ÉPISODE\nPas de sel, pas de sucre, pas de gras, pas de boissons gazeuses. 1h d'exercice physique par jour."
+  },
+  {
+    "title": "Déshydratation sévère — protocole complet de prise en charge",
+    "category": "vitales",
+    "summary": "Choc décompensé, remplissage, hydratation IV par tranche de poids, dysnatrémies — protocole Gastro 2010/2021.",
+    "content": "SOURCE : Protocole Gastro 2010, D. Pop Jora — C. Nguyen, MAJ Août 2021\n\nEN CAS DE CHOC DÉCOMPENSÉ OU TROUBLE DE LA CONSCIENCE\n- Prise en charge au déchoc\n- Pose d'une voie d'abord rapide (intra-osseuse) + prélèvement Dextro + iono sang + gaz du sang\n- Remplissage : 1er bolus sérum physiologique 20ml/kg en 10 min (voire à la main si choc décompensé). Surveiller l'efficacité sur conscience, FC, perfusion périphérique, PA. Renouveler jusqu'à correction des signes de choc.\n- Si besoin d'un 3e bolus ou absence de diurèse : avis réanimation → transfert USI, bolus suivants au Ringer Lactate (réduit le risque d'acidose hyperchlorémique)\n- Relais des remplissages par hydratation IV continue + proposer du SRO en parallèle\n\nHYDRATATION IV : 10ml/kg/h pendant 4 heures (max 500ml/h)\n- Si insuffisance rénale connue ou suspicion de syndrome hémolytique et urémique (SHU) : perfuser avec G5% + 4g/L NaCl, adapter secondairement au résultat de l'iono\n- Si pas d'ATCD d'insuffisance rénale ni suspicion de SHU : perfuser avec B26 + 1g/L NaCl (même en l'absence de diurèse)\n- Réévaluation toutes les 2 heures (adaptation aux résultats de l'iono à H2)\n\nÀ H4 : diminution de la perfusion → apport de base /24h en IV PLUS 10-30ml/kg/j selon pertes et apports per os.\n\nBESOIN IV DE BASE SUR 24H\n1-10kg : 100ml/kg\n10-20kg : 1000ml + 50ml/kg pour chaque kilo au-delà de 10kg\n20-40kg : 1500ml + 20ml/kg pour chaque kilo au-delà de 20kg\n\nProposer l'alimentation entre H4 et H6 dès amélioration clinique.\n\nEN L'ABSENCE DE CHOC DÉCOMPENSÉ OU TROUBLE DE CONSCIENCE\n- Pose d'une sonde gastrique pour réhydratation entérale à débit continu : SRO 15ml/kg (max 400ml) en 30 minutes, puis 15ml/kg/h (max 400ml/h), évaluation toutes les 30 minutes pendant la première heure.\n- Réévaluation à H2 et H4, alimentation précoce.\n- Si bien tolérée : arrêt du gavage, poursuite alimentation en proposant du SRO après les selles liquides, surveillance en hospitalisation (lits portes)\n- Si échec : poursuite réhydratation par SRO (apports de base sur 24h + adaptation aux pertes) jusqu'à tolérance de l'alimentation, ou hydratation par voie IV selon la clinique\n\nTRAITEMENT DES DYSNATRÉMIES\nToujours proposer du SRO en parallèle.\n- Si hyperNa >150mmol/L : surveillance clinique, diurèse et contrôle iono à H4-H6\n- Si hyperNa >165mmol/L : surveillance clinique, diurèse, adapter les apports de sels selon contrôle iono à H2 (en pratique B26 + 2g/L NaCl), but : réduction de la natrémie progressive de 0,5 à 1mEq/L par heure. Discuter le passage en réanimation.\n- Si hypoNa <130mmol/L : surveillance clinique, diurèse et contrôle iono à H4\n- Si hypoNa ≤125mmol/L : RISQUE DE CONVULSION — majorer rapidement les apports en sel et discuter le passage en réanimation\n\nCALCUL DES APPORTS DE SODIUM\nApports de Na (mEq) = poids(kg) × 0,6 × (natrémie souhaitée − natrémie actuelle), à passer sur 1h en pratique pour une déshydratation sévère. La natrémie souhaitée doit être prudente : préférer des paliers de 5, et privilégier des volumes de 100 à 250cc pour ne pas passer 1000cc d'un coup chez un nourrisson.\n\nSUPPLÉMENTATION IONIQUE DE BASE\nSodium : besoins 2 à 4mEq/kg/j. 1g de NaCl = 10ml de NaCl 10% (ou 5ml de NaCl 20%)\nPotassium : besoins 1 à 2mEq/kg/j. 1g de KCl = 13ml de KCl 7,46%\n\nNB : les solutés usuels sont du type G5% + 4g/L NaCl + 2g/L KCl (soit pour 100cc : 4ml NaCl 10% ampoule + 2ml KCl 10%). Coller une étiquette de traçabilité sur la poche en cas de transfert.\n\nCAT TÉLÉPHONIQUE\nAppel de la régulation. Pose VVP/IO 20ml/kg Ringer Lactate/15min. GDS + iono + lactate + Hb + Dextro."
+  },
+  {
+    "title": "Envenimation poissons tropicaux et coraux (poisson-pierre, vive, physalie)",
+    "category": "vitales",
+    "summary": "Douleur vive avec risque de choc, traitement par chaleur + antalgie + antibioprophylaxie selon localisation.",
+    "content": "ESPÈCES EN CAUSE\nPoisson-pierre, vive, et autres poissons à piqûre douloureuse. Également les physalies (\"galères portugaises\") dont les filaments sont venimeux.\n\nCLINIQUE\nDouleur vive, œdème inflammatoire dans les 2 heures. Possible malaise, anxiété, lipothymie, choc. Surinfection locale fréquente, risque de nécrose.\n\nPRISE EN CHARGE PRAGMATIQUE\n- Parage, retrait de corps étranger, désinfection appuyée\n- Source de chaleur (le venin est parfois thermolabile) : 40°C, jusqu'à 50°C sur les points de contact — particulièrement utile pour les piqûres de raie et de poisson-pierre\n- À défaut de moyen médical : exposer l'orifice de piqûre à la chaleur d'une cigarette maintenue à environ 10mm, puis bain froid pour créer un choc thermique\n- Antalgiques palier I + II\n- Anesthésie loco-régionale par Xylocaïne\n- Antibiothérapie par Augmentin +/- Flagyl + antihistaminique + thromboprophylaxie selon la localisation\n\nPIQÛRE D'OURSIN\nPansement compressif au macrogol ou avec un corps gras (vaseline) pendant une nuit, avant le retrait du piquant.\n\nPLAIES SUR CORAIL\nRéaliser un parage important — ces plaies sont souvent urticariennes et laissent des cicatrices pouvant durer plusieurs mois."
+  },
+  {
+    "title": "Envenimation scolopendre",
+    "category": "vitales",
+    "summary": "Douleur intense, traitement antalgique simple + chaleur locale (venin thermolabile).",
+    "content": "CLINIQUE\nMorsure très douloureuse, avec érythème et œdème locorégional.\n\nPRISE EN CHARGE\nAntalgie palier I et II.\nLe venin est thermolabile : un sèche-cheveux est à disposition au dispensaire pour réchauffer la zone de morsure.\n\nÀ DOMICILE\nL'application d'eau chaude sur la zone est préconisée comme premier geste."
+  },
+  {
+    "title": "Fièvre du nourrisson <3 mois — CAT",
+    "category": "vitales",
+    "summary": "Suspicion systématique d'infection materno-fœtale, prise en charge directe en néonatologie.",
+    "content": "PRINCIPE\nToute fièvre chez un nourrisson de moins de 3 mois doit faire suspecter une infection materno-fœtale, en l'absence de diagnostic évident.\n\nÀ NE PAS OUBLIER\nBandelette urinaire systématique. Penser aux abcès qui peuvent passer inaperçus.\n\nCAT\nPrise en charge directe par le service de néonatologie, après contact téléphonique avec le pédiatre de garde (poste 70194)."
+  },
+  {
+    "title": "HTA grade 3 — protocole spécifique et thérapeutique d'urgence",
+    "category": "vitales",
+    "summary": "TAs>180/TAd>110 : recherche pathologie aiguë associée, bilan complet, thérapeutique selon l'étiologie.",
+    "content": "DÉFINITION\nTAs >180mmHg et/ou TAd >110mmHg.\n\nDANS TOUS LES CAS\nRépéter les mesures aux deux bras, brassard adapté (à l'avant-bras si patient obèse). Mesure au calme, antalgie si besoin. Examen clinique complet.\n\nRECHERCHER UNE PATHOLOGIE AIGUË ASSOCIÉE\nIDM, dissection aortique, insuffisance cardiaque aiguë, AVC.\n\nRECHERCHER UNE HTA MALIGNE\nAEG + atteinte diffuse d'organes d'évolution subaiguë : rétinopathie, microangiopathie thrombotique, encéphalopathie, insuffisance rénale, insuffisance cardiaque aiguë.\n\nSI HTA GRADE 3 ASSOCIÉE À UNE PATHOLOGIE AIGUË OU SUSPICION D'HTA MALIGNE :\n\nEn urgence : appel du SAMU pour avis et transfert aux urgences.\n\nBilan à faire : ECG, troponine, BNP, NFS/plaquettes/fibrinogène/créatinine/iono/LDH/haptoglobine/schizocytes, ECBU, protéinurie et créatininurie sur échantillon. Si femme enceinte : bilan hépatique. Fond d'œil ou rétinographie si disponible.\n\nThérapeutique (dans tous les cas : VVP + scope) :\n- Si AVC : objectif tensionnel <220/120mmHg, garde-veine NaCl\n- Si OAP : Furosémide IV +/- Risordan IVSE, posologie à adapter à chaque situation, garde-veine glucosé\n- Si HTA maligne : Nicardipine IVSE dans du glucosé 5%, vitesse 4mg/h à adapter, hydratation NaCl\n\nSi HTA grade 3 isolée bien tolérée : se référer au protocole thérapeutique standard de l'HTA.\n\n⚠️ ATTENTION : la Nicardipine 20mg per os n'est JAMAIS indiquée, du fait d'un effet rebond important."
+  },
+  {
+    "title": "Hypoglycémie — protocole de prise en charge complet",
+    "category": "vitales",
+    "summary": "Définition, conduite selon gravité, resucrage et recontrôle systématique.",
+    "content": "DÉFINITION\nDextro <0,80g/L.\n\nSI GLYCÉMIE <0,60g/L AVEC SIGNE GRAVE D'HYPOGLYCÉMIE\n(malaise, somnolence, confusion, désorientation, perte de connaissance, coma)\n→ URGENCE : prévenir IMMÉDIATEMENT le médecin.\n\nSI GLYCÉMIE <0,60g/L AVEC SIGNE NON GRAVE\n(patient conscient, bien orienté, sueurs, pâleur, tremblement, nausées, sensation de faim)\n→ Resucrage : 15g de glucides per os = 3 sucres ou 5 ampoules de G30 pur\n\nSI GLYCÉMIE ENTRE 0,60 ET 0,80g/L\n→ Resucrage léger : 5g de glucides per os = 1 sucre ou 2 ampoules de G30 pur\n\nDANS TOUS LES CAS DE RESUCRAGE : recontrôle de la glycémie 20 à 30 minutes après.\n\nSI TOUJOURS <0,80g/L après recontrôle : redonner 15g de glucides ET prévenir le médecin.\n\nSI >0,80g/L après recontrôle :\n- Faire la dose de Lantus en la diminuant de 2U\n- Si le prochain repas est prévu dans plus de 2h : donner un sucre lent (un pain de 30g)"
+  },
+  {
+    "title": "Hypokaliémie — recharge potassique adulte et enfant",
+    "category": "vitales",
+    "summary": "Règles de sécurité KCl injectable + tables de dilution par poids (enfant) et par dose (adulte) — ANSM et fiche SAMU 976.",
+    "content": "⚠️ DANGER MORTEL : le KCl injectable doit TOUJOURS être dilué pour éviter le risque de décès par arrêt cardiaque. JAMAIS d'IV directe, ni SC, ni IM.\n\nADULTE — RÈGLES DE PRESCRIPTION (ANSM)\n- Privilégier la voie orale pour hypokaliémies légères à modérées\n- Réserver la voie IV aux hypokaliémies sévères (K+ <3mmol/L) ou voie orale impossible\n- Calculer l'apport total en KCl, vérifier les médicaments hyperkaliémiants (association déconseillée)\n- Mentions obligatoires sur la prescription : posologie en gramme (enfants en mmol/kg), volume total de diluant (NaCl 0,9% ou G5%, sans dépasser 1g KCl/250mL ou 13,4mmol/250mL), débit (NE JAMAIS DÉPASSER 1g/heure de KCl ou 13,4mmol/h), voie IV lente uniquement\n\nPRÉPARATION\n- Solution à diluer systématiquement, sans interruption de tâche\n- Concentration maximale finale : 4g/L de KCl ou 53,6mmol/L\n- Étiqueter la préparation (dose + volume total), double contrôle de la préparation et de l'étiquetage si possible\n\nADMINISTRATION\n- Perfusion IV lente uniquement, vérifier concordance prescription/médicament/patient, perfuser lentement (1g/h max)\n- Surveiller paramètres cliniques et biologiques, monitoring cardiovasculaire si nécessaire\n- Stockage dédié et distinct, à distance des autres électrolytes, étiquetage d'alerte\n\nQUANTITÉ DE POTASSIUM PAR AMPOULE\n1g KCl = 13,4mmol K+ (250mL minimum de dilution, perfusion minimale 1h)\n2g KCl = 26,8mmol K+ (500mL, 2h)\n3g KCl = 40,2mmol K+ (1000mL, 3h)\n4g KCl = 53,6mmol K+ (1000mL, 4h)\n\nENFANT — STRATIFICATION (Fiche magnégné SAMU/Déchocage 976, Dr M.Tapia)\nHypokaliémie <3,5mmol/L\n\nKaliémie <2,5mmol/L = SÉVÈRE :\n- ECG (rechercher onde T aplatie, onde U)\n- Recharge potassique IV 1mmol/kg\n- Corriger une hypomagnésémie associée : sulfate de magnésium 50mg/kg (max 2g) dilué dans 50mL sérum physiologique, à passer sur 2h\n\nKaliémie 2,5-3,5mmol/L = MODÉRÉE :\n- Privilégier les apports sur 24h (besoins normaux 2-5mmol/kg)\n- Privilégier recharge potassique per os si voie digestive disponible\n- Sinon recharge IV 0,5mmol/kg\n\nRÈGLES RECHARGE IV CHEZ L'ENFANT\n- Concentration max sur VVP : 0,1mmol/mL\n- Débit max : 0,5mmol/kg/h, sans dépasser 13mmol/h\n- Rechercher et corriger systématiquement une hypomagnésémie associée\n\nAMPOULES DISPONIBLES AU CHM\n1 ampoule KCl 10% = 10mL = 13mmol K+ = 1g KCl\n1 ampoule sulfate de magnésium 10% = 10mL = 1g sulfate de magnésium\n\nTABLE RECHARGE PO (1mEq/kg) — exemples\n5kg : 7,5mL (5mmol) | 10kg : 15mL (10mmol) | 15kg : 23mL (15mmol) | 20kg : 31mL (20mmol)\n25-30kg : Diffu K 1gel=8mmol, 3-4 gélules selon poids\n\nTABLE RECHARGE SUR VVP (concentration max 0,1mEq/mL, vitesse max 0,5mEq/kg/h, max 13mEq/h)\nSchéma 1mEq/kg — 5kg : KCl10% 4mL + G5% 46mL = 50mL total, débit 25mL/h\n10kg : KCl10% 8mL + G5% 92mL = 100mL, débit 50mL/h\n15kg : KCl10% 12mL + G5% 138mL = 150mL, débit 75mL/h\n20kg : KCl10% 15mL + G5% 185mL = 200mL, débit 100mL/h\n25kg : KCl10% 20mL + G5% 230mL = 250mL, débit 125mL/h\n30kg : KCl10% 23mL + G5% 277mL = 300mL, débit 125mL/h\n(Schéma 0,5mEq/kg disponible également, débits proportionnellement réduits — cf tableau complet affiché en dispensaire pour le détail par kg)"
+  },
+  {
+    "title": "Intoxication au « Chimique » — cannabinoïdes de synthèse",
+    "category": "vitales",
+    "summary": "Drogue locale très répandue depuis 2015, composition variable et dangereuse, CAT = surveillance simple.",
+    "content": "CONTEXTE LOCAL\nDe nombreux jeunes hommes consomment cette drogue par voie inhalée — très peu chère et très répandue depuis 2015. Il s'agit de cannabinoïdes de synthèse, bien plus concentrés que le \"Bangué\" classique (cannabis local), mélangés à diverses autres substances : mort-aux-rats, serpentins, white-spirit, lessive...\n\nSpécificité à Mayotte uniquement, ce produit est très peu étudié, sa composition varie énormément, et il a provoqué plusieurs décès récents.\n\nPRISE EN CHARGE\nLes patients en intoxication aiguë sont régulièrement vus aux urgences. En l'absence de signe de gravité, la prise en charge consiste en une surveillance simple."
+  },
+  {
+    "title": "Intoxications — centre antipoison de référence",
+    "category": "vitales",
+    "summary": "Intoxications fréquentes au pétrole/javel, avis du centre antipoison de Marseille.",
+    "content": "CONTEXTE\nIntoxications fréquentes au pétrole, à la javel, et autres produits ménagers/industriels.\n\nCAT\nPrendre l'avis du Centre Antipoison de Marseille (référent pour Mayotte) : 04 91 75 25 25."
+  },
+  {
+    "title": "MPOX — bionettoyage de la salle et CAT si cas positif",
+    "category": "vitales",
+    "summary": "Procédure de désinfection post-consultation et démarches obligatoires si confirmation.",
+    "content": "BIONETTOYAGE DE LA SALLE D'EXAMEN\nUtiliser un détergent virucide norme NF EN 14476.\n- En jour ouvrable : prévenir la cadre du service\n- En week-end ou nuit : prévenir la cadre de garde\n\nSI CAS POSITIF CONFIRMÉ\n\n1. Déclaration du cas :\n- À la direction médicale des urgences : directiomedicale.urgences@chmayotte.fr\n- À l'ARS Mayotte : poste 06 39 99 00 13\n\n2. Renseigner et adresser à l'ARS la fiche de Maladie à Déclaration Obligatoire \"Orthopoxvirose\".\n\n3. Autorisation de retour à domicile (RAD) à faire valider par l'ARS.\n\n4. Couverture par des pansements de l'ensemble des lésions avant le RAD.\n\n5. RAD en transport seul ; si impossible, demander un transport sanitaire au 14 (régulation).\n\n6. Remise de la fiche patient (cf fiche patient virus MPOX COREB) avec explications.\n\n7. Isolement jusqu'à chute de l'ensemble des croûtes — durée 21 jours.\n\n8. Bilan IST systématique associé si signes génitaux présents."
+  },
+  {
+    "title": "Masque laryngé — alternative à l'intubation",
+    "category": "vitales",
+    "summary": "Libération des voies aériennes en urgence sans intuber.",
+    "content": "CONTEXTE\nEn situation d'urgence (notamment arrêt cardiaque), la libération des voies aériennes supérieures est primordiale. L'intubation n'est pas un geste à viser en MG isolée — complexe, source de stress, chronophage.\n\nALTERNATIVE RECOMMANDÉE : LE MASQUE LARYNGÉ\n- Pose simple et rapide\n- À insérer après libération d'un éventuel obstacle\n- Pas besoin de lubrifier la sonde sur un patient en arrêt\n- Pas de ballonnet à gonfler sur les modèles utilisés\n- La taille de la sonde dépend du poids du patient, indiqué sur le modèle"
+  },
+  {
+    "title": "Prise en charge des patients psychiatriques aux urgences — algorithme",
+    "category": "vitales",
+    "summary": "Protocole équipe psychiatrie/psychologie : agitation, sédation, bilan somatique, orientation.",
+    "content": "SOURCE : protocole réalisé par l'équipe de psychiatres et psychologues, pour la prise en charge aiguë et la prise de rendez-vous de suivi.\n\nPREMIÈRE QUESTION : AGITATION ?\n\nSI OUI\nSédation (posologie habituelle) : Loxapac 2 ampoules + Valium 1 ampoule, en IM.\nOrganiser le transfert en SMUR aux urgences du CHM.\nPrévenir l'équipe de crise au poste 4848.\n\nSI NON → BILAN SOMATIQUE\n⚠️ La psychiatrie est un diagnostic d'élimination.\n- Clinique\n- ECG +++ (pré-thérapeutique, avant toute prescription de psychotrope)\n- Bio standard + TSH\n- Imagerie obligatoire (sans urgence) pour les premiers épisodes\n\nÉVALUATION PSYCHIATRIQUE PAR L'URGENTISTE EN PREMIÈRE INTENTION\nÉvaluer : demande de soins/compliance aux soins, velléités suicidaires ou hétéro-agressives.\n\nSI PATIENT NON COMPLIANT, 1ER ÉPISODE PSYCHOTIQUE RÉCENT, OU DOUTE SUR VELLÉITÉ SUICIDAIRE/HÉTÉRO-AGRESSIVE\n- Le lundi : possibilité d'avis téléphonique au 06 39 09 15 45\n- Les autres jours : TRANSFERT AU CHM\n\nSI PATIENT CALME ET COMPLIANT, DEMANDE OU ACCEPTE LES SOINS, SANS RISQUE SUICIDAIRE\nPossibilité de prescrire un anxiolytique (exemple : Lysanxia 10mg x2/jour).\nAppeler le 02 69 66 58 33 pour un rendez-vous en consultation, ou pour rapprocher un RDV si le patient est déjà connu du service.\nDélais habituels : RDV infirmier < 1 semaine ; consultation psychiatrique entre 1 et 2 mois."
+  },
+  {
+    "title": "Protocole suspicion MPOX (variole du singe) — CMR",
+    "category": "vitales",
+    "summary": "Conduite à tenir complète : isolement, prélèvement, orientation selon gravité, déclaration ARS.",
+    "content": "SOURCE : Protocole suspicion MPOX CMR, 06/02/2026\n\nACCUEIL\nAttente à l'EXTÉRIEUR du CMR : port de masque, pas de contact physique.\nPatient dirigé vers le lieu d'isolement défini sur chaque CMR.\n\nEN ATTENTE DES RÉSULTATS — 3 POSSIBILITÉS\n\n1. RETOUR À DOMICILE\nPour toute personne pouvant bénéficier de conditions d'isolement adaptées : couvrir les lésions cutanées visibles, donner un masque chirurgical, vérifier qu'un numéro de téléphone permet de rappeler la personne, relever l'adresse.\n\n2. MAINTIEN SUR SITE EN SALLE D'ISOLEMENT\nPour les personnes ne pouvant pas bénéficier d'un isolement adapté à domicile. Mêmes conditions de protection (EPI) + pansement sur les lésions cutanées. Pas d'hospitalisation pour ces patients : ils attendent la réception des résultats avant d'être réorientés.\nSi négatif : retour à domicile (RAD). Si positif : appeler le 15 et l'ARS.\n\n3. TRANSFERT VERS LE CHM URGENCES\nPour les patients présentant une altération de l'état général (AEG), des signes de gravité, ou un risque avéré de forme grave (grossesse, enfant en bas âge, immunodéprimé dont VIH+), et un tableau clinique fortement évocateur.\n\n⚠️ L'astreinte DéSUS ARS ne doit être appelée que lorsque vous avez une CONFIRMATION du test positif.\n\nEXAMEN CLINIQUE\nRéalisation par le médecin, recherche de signes de gravité (cf fiche COREB-MPOX-Soignant).\n\nPRÉLÈVEMENT — 1 ou 2 écouvillons de virologie (eswab rose)\n- Contenu vésiculaire (percer la vésicule au bistouri, bien frotter le fond)\n- Croûte\n- Vésicule intrabuccale\n\nTube(s) à identifier avec l'identité du patient, à mettre successivement dans 2 sachets de prélèvements puis dans la boîte plastique prévue à cet effet. Ne pas oublier d'identifier les tubes et la prescription.\n\nTransport de la boîte de prélèvement au laboratoire, récupérer une nouvelle boîte vide (possibilité d'en demander une 2e en supplément).\n\nPRÉVENIR LE BIOLOGISTE de l'envoi du prélèvement :\n- Poste 4100/4150 ou 4530/4600 les jours ouvrables (10h-18h)\n- Biologiste de garde de nuit et week-end : poste 70146\n\nSi personne accompagnante : isolement avec le patient le temps du diagnostic."
+  },
+  {
+    "title": "Urgence hypertensive — algorithme complet de prise en charge",
+    "category": "vitales",
+    "summary": "PAS>180/PAD>120 : bilan systématique, recherche de gravité, PEC spécifique selon l'étiologie — référence ESC/ESH 2018.",
+    "content": "SOURCE : ESC/ESH guidelines 2018, Rubin S et al. Hypertens 2018\n\nDÉFINITION ET PREMIÈRE ÉTAPE\nPAS >180 et/ou PAD >120mmHg → répéter la mesure au calme, aux 2 bras, patient au repos assis ou allongé, brassard de taille adaptée.\n\nBILAN SYSTÉMATIQUE\nExamen clinique + interrogatoire, ECG, iono/urée/créatinine/protides, LDH/haptoglobine/schizocytes, protéinurie/créatininurie. Selon le contexte : fond d'œil, troponine, BNP. Si grossesse : BHCG (PEC spécifique, ajouter transaminases).\n\nRECHERCHE ET CORRECTION DES FACTEURS DÉCLENCHANTS\nDouleur, attaque de panique, rétention aiguë d'urine, prise de toxique.\n\nRECHERCHE DE SIGNES DE GRAVITÉ\n\nAtteinte d'organe : AVC, OAP/dissection aortique/SCA, IRA (cause ou conséquence)\nHTA maligne : AEG associée à une atteinte diffuse subaiguë (rétinopathie, microangiopathie thrombotique, encéphalopathie, insuffisance rénale, protéinurie modérée)\n\nSI ABSENCE DE GRAVITÉ → patient asymptomatique sans atteinte d'organe\n- Contrôle après 30 min\n- Pas de traitement à demi-vie courte type Loxen 20\n- Explication RHD (film YouTube Cardiomayotte)\n- Majorer ou introduire un traitement de fond (suivre protocole HTA classique avec contrôle externe TA et bio)\n\nSI SIGNE DE GRAVITÉ → URGENCE VITALE\nCible : baisse de 25% de la TA (sauf AVC ischémique : objectif <220/120 ; AVC hémorragique : objectif 185/110)\nVVP et traitement antihypertenseur IV :\n- Nicardipine (Loxen) inhibiteur calcique : 50mg/50cc, 2 à 6mg/h (vitesse V2 à V6)\nOU\n- Urapidil (Eupressyl) alpha-bloquant : 250mg/50cc, 5 à 30mg/h (V1 à V6)\nOU\n- Labétalol (Trandate) bêta-bloquant : 0,1 à 0,3mg/kg/h\n\nRemplissage vasculaire sauf si signe congestif. PEC du facteur favorisant (douleur, anxiété, globe vésical).\n\nPEC SPÉCIFIQUE SELON L'ÉTIOLOGIE\n- OAP : Risordan + Lasilix\n- Dissection aortique : privilégier bêtabloquant, prévenir et organiser l'évasan au plus vite\n- Éclampsie : urgences gynéco (poste 5541), Magnésium IV\n- Microangiopathie thrombotique (MAT) : avis réanimation/interniste, fond d'œil pour diagnostic étiologique\n- Atteinte rénovasculaire : avis néphrologie (poste 71111)"
+  },
+  {
+    "title": "État de mal épileptique — adulte non obèse",
+    "category": "vitales",
+    "summary": "Protocole en 3 paliers avec posologies précises, intubation si détresse respiratoire soutenue.",
+    "content": "DÉFINITION\nConvulsions ≥5min OU ≥2 crises sans reprise de conscience (pas de réponse aux ordres simples).\n\nPENDANT TOUTE LA PRISE EN CHARGE\nLutter contre tout facteur d'agression cérébrale : libération des voies aériennes, oxygénation, PLS, correction d'une hypoglycémie, correction exceptionnelle d'une HTA.\nCertaines étiologies sévères (TC grave, HIC) nécessitent une intubation d'emblée.\n\nT=0 min — mesures initiales\nVVP, NaCl 0,9% + bilan standard. Éliminer un diagnostic différentiel de l'EME.\n\nT=5 min — Palier 1 (si persistance des convulsions ≥5min)\n- Clonazépam IVD ou\n- Midazolam 0,15mg/kg IM (en l'absence de voie d'abord)\n\nT=10 min — 2e dose Palier 1 (si persistance ≥5min)\n- Clonazépam IVD\n\nT=15 min — Palier 2 (si persistance ≥5min)\nDoses calculées sur le poids total, à injecter même si arrêt des convulsions :\n- Fosphénytoïne 20mg/kg (équivalent phénytoïne) en 15-20min (CI cardiovasculaire) OU\n- Lévétiracétam 60mg/kg en 10min (max 4g) OU\n- Phénobarbital 15mg/kg en 15min OU\n- Valproate 40mg/kg en 15min (âge de procréer : max 3g)\n\nT=45 min — Palier 3 (si persistance 30min après début perfusion de l'antiépileptique du palier 2)\nOu changement de classe avec un autre Palier 2 (en injectant la totalité de la dose même si arrêt des convulsions).\nSi toujours persistant : Palier 3 = Anesthésie générale 24h + intubation\n- ISR : Kétamine 2-3mg/kg + Célocurine 1mg/kg\n- Puis sédation : Midazolam ou Propofol au pousse-seringue électrique\n- EEG dès que possible\n- Maintien ou introduction d'un antiépileptique de fond\n\nINTUBATION si détresse respiratoire soutenue, à tout moment de la séquence.\n\nSITUATION À L'ARRÊT DES CONVULSIONS\nEEG +/- imagerie dès que possible.\nA. Régression de l'EME +/- réveil rapide → couverture par benzodiazépine, puis discuter un éventuel traitement antiépileptique de fond\nB. Coma persistant → EEG rapide + prise en charge réanimatoire\nC. Reprise des convulsions → reprise du traitement selon l'algorithme"
+  },
+  {
+    "title": "État de mal épileptique — pédiatrique (algorithme M0-M25)",
+    "category": "vitales",
+    "summary": "Protocole Neuro 2013 (validation PL. Leger) : séquence temporelle complète avec posologies par ligne de traitement.",
+    "content": "SOURCE : Protocole Neuro 2013, N. de Suremain — S. Riviere, MAJ Août 2019, validation PL. Leger.\n\nDÉFINITION\nConvulsions >5 min OU ≥2 crises sans reprise de conscience → Dextro n°1 immédiat.\n\nPRISE EN CHARGE INITIALE\nPLS + fonctions vitales ABCDE, réévaluation permanente.\nPose 2 VVP (ou IO), bilan étiologique (ne doit pas retarder le traitement), perfusion B26 (besoin de base).\n\nM0\nSi absence de voie d'abord : Midazolam Buccolam/Hypnovel 0,3mg/kg (max 10mg) — buccal, intra-jugal, intra-rectal ou IM.\nSi voie IV présente : Clonazépam Rivotril 0,03mg/kg IV en 2-3 min (max 1mg).\n\nDistinguer étiologie : fébrile (encéphalite, méningite, paludisme, hyperthermique) vs non fébrile (métabolique hypoglycémie/Na/Ca, toxique CO/cannabis/ADP, HTIC, HTA, anoxie) → traitement étiologique en parallèle.\n\nM5 — si persistance des convulsions >5min\nClonazépam Rivotril 0,03mg/kg IV en 2-3min (max 1mg).\n\nM10 — si persistance >5min = traitement de 2e ligne\nABCDE, O2, PAM, Dextro. Au choix :\n- Phénytoïne Dilantin 15mg/kg IVL 15min (max 1g) — diluer dans sérum physiologique, ne PAS associer avec G5% (précipite)\nOU\n- Phénobarbital Gardénal : >2 ans 15mg/kg, <2 ans 20mg/kg, IVL 15min (max 600mg)\n\nM25 — si persistance 15min après début de la 2e ligne\nPassage en réanimation pour état de mal réfractaire. Débuter une 3e ligne avec une molécule différente de la 2e ligne. Dextro n°2 + traitement ACSOS.\nOptions 3e ligne : Phénytoïne Dilantin 15mg/kg IVL 15min (max 1g) OU Phénobarbital Gardénal (mêmes doses qu'en 2e ligne) OU Lévétiracétam Keppra 40mg/kg IVL 10min (max 2,5g).\n→ Transfert en réanimation.\n\nÀ L'ARRÊT DES CONVULSIONS\n- Réveil rapide ou progressif → discuter traitement d'entretien (benzodiazépine, Dilantin ou Gardénal)\n- Coma persistant → passage en réa, arrêt des sédations si pas d'EME, prévoir EEG\n- Réapparition des convulsions → reprise du traitement selon l'algorithme depuis le début"
+  },
+  {
+    "title": "Œdème aigu du poumon (OAP) — prise en charge",
+    "category": "vitales",
+    "summary": "Position, oxygène, dérivés nitrés, diurétique : protocole complet avec posologies.",
+    "content": "PRISE EN CHARGE\n- Position demi-assise\n- Oxygène : masque haute concentration (MHC) 15L/min\n\nDÉRIVÉS NITRÉS (Risordan)\nSi TA systolique > 110mmHg, en dehors des contre-indications (rétrécissement aortique serré, inhibiteur de la 5-phosphodiestérase).\nBolus : 2-4mg IVD toutes les 5 min si TAS > 140 (ou TNT 2 bouffées si absence de VVP).\nEntretien : IVSE 1mg/h puis augmentation de 1mg/h toutes les 5 min tant que TAS > 110.\n\nDIURÉTIQUE (Furosémide)\n40mg IVD (ou 0,5mg/kg pour les poids extrêmes).\nSi ICC décompensée : donner en IV la dose matinale habituelle per os, sans dépasser 120mg.\nAdapter la dose de Furosémide à la diurèse, objectif > 800mL/6h.\n\nVENTILATION\nOxygénothérapie adaptée à la saturation."
+  },
+  {
+    "title": "Abcès dentaire / phlegmon / gingivite / stomatite / parotidite",
+    "category": "courantes",
+    "summary": "Antibiothérapie + bain de bouche + RDV dentiste.",
+    "content": "TRAITEMENT\n- AMOXICILLINE + ACIDE CLAVULANIQUE 1g x3/jour, 5 jours\nOU\n- BIRODOGYL (>15 ans, spiramycine+métronidazole) : 1cp x3/jour, 5 jours\n- CHLOREHEXIDINE bain de bouche x3/jour\n- DOLIPRANE CODEINE 500/20mg : 2cp toutes les 6h si douleur\n- RDV dentiste : 0801902537"
+  },
+  {
+    "title": "Abcès à Mayotte — particularité locale",
+    "category": "courantes",
+    "summary": "Antibiothérapie plus précoce qu'en métropole, organisation de l'incision.",
+    "content": "PARTICULARITÉ LOCALE\nLe recours aux antibiotiques (AUGMENTIN) doit être plus précoce qu'en métropole, les conditions tropicales favorisant l'apparition et la complication des abcès.\n\nORGANISATION DE L'INCISION\nUn abcès collecté peut être incisé en chirurgie ambulatoire tous les matins sauf le dimanche : à jeun, sans RDV, à 7h, avec un accompagnateur, après douche bétadinée la veille au soir et le matin si possible.\nÀ la PDS (permanence de soins), possibilité d'inciser directement."
+  },
+  {
+    "title": "Angine — adulte et enfant",
+    "category": "courantes",
+    "summary": "Amoxicilline 6 jours, posologie selon âge.",
+    "content": "ADULTE\n- AMOXICILLINE 1g matin et soir, 6 jours\n- DOLIPRANE dose-poids 4x/jour, 7 jours\n\nENFANT\n- AMOXICILLINE 50mg/kg/j en 2 prises, 6 jours\n- DOLIPRANE dose-poids 4x/jour, 7 jours\n- Sérum physiologique : laver le nez, 7 jours\n\nReconsulter si persistance des symptômes ou prise orale impossible."
+  },
+  {
+    "title": "Angines à Mayotte — particularité locale",
+    "category": "courantes",
+    "summary": "Pas de TDR, antibiothérapie systématique du fait de l'endémie de RAA.",
+    "content": "PARTICULARITÉ LOCALE\nLes tests de détection rapide (streptotests/TDR) ne doivent PAS être utilisés à Mayotte, du fait de la forte endémie de rhumatisme articulaire aigu (RAA). Toute angine est donc traitée systématiquement par antibiotiques (cf fiche \"Angine — adulte et enfant\" pour la posologie amoxicilline)."
+  },
+  {
+    "title": "Antalgiques — posologies de référence",
+    "category": "courantes",
+    "summary": "Paracétamol, tramadol, naproxène, ibuprofène : posologies standards du dispensaire.",
+    "content": "- PARACETAMOL sirop : dose-poids toutes les 6h si fièvre/douleur, 3 jours\n- PARACETAMOL comprimé : XXmg toutes les 6h si fièvre/douleur, 3 jours\n- TRAMADOL 50mg : 1 gélule toutes les 8h si douleur intense, 3 jours\n- TRAMADOL 100mg LP : 1 gélule matin et soir si douleur intense, 3 jours\n- NAPROXENE 550mg : 1cp/jour si douleur, 3 jours\n- IBUPROFENE sirop 2% : dose-poids toutes les 8h si douleur/fièvre résistante au paracétamol, 3 jours\n- IBUPROFENE 200mg : 1cp/jour, 2 jours"
+  },
+  {
+    "title": "Antibiothérapies — posologies de référence",
+    "category": "courantes",
+    "summary": "Amoxicilline, Augmentin, Ofloxacine et autres : posologies standards.",
+    "content": "- AMOXICILLINE 500mg : 2 gélules matin/midi/soir (toutes les 8h), durée selon indication\n- AUGMENTIN 1g/125mg : 1 dose-poids 3x/jour (toutes les 8h) ou 1 sachet matin/midi/soir, durée selon indication\n- OFLOXACINE 200mg : matin et soir, 10 jours\n- PRISTINAMYCINE 500mg : 2cp matin/midi/soir, 7 jours\n- OFLOXACINE auriculaire : 1 unidose dans l'oreille matin et soir, 7 jours\n\nANTIHISTAMINIQUE — AERIUS sirop\n1-5 ans : 2,5ml (1,25mg) une fois/jour\n6-11 ans : 5ml (2,5mg) une fois/jour"
+  },
+  {
+    "title": "Aphtes / Muguet",
+    "category": "courantes",
+    "summary": "Antifongique buccal selon âge + antalgie.",
+    "content": "TRAITEMENT\n- DAKTARIN : 1,25ml (4-24 mois) ou 2,5ml (≥2 ans), 4x/jour, 7-15 jours\nOU\n- Solupred 5mg orodispersible : 1cp à faire fondre en bain de bouche, 3x/jour, 3-5 jours\n- PARACETAMOL 1g toutes les 6h si douleur/fièvre\n- DOLIPRANE dose-poids 4x/jour, 7 jours\n\nSELON ÂGE\n>6 ans : PAROEX bain de bouche 3x/jour\n<6 ans : DOLODENT 2-3 applications/jour"
+  },
+  {
+    "title": "Balanite",
+    "category": "courantes",
+    "summary": "Toilette antiseptique + antalgie.",
+    "content": "TRAITEMENT\n- Dakin dilué (1/4 + 3/4 eau) pour laver gland et prépuce, 3x/jour, 7 jours\n- DOLIPRANE dose-poids 4x/jour, 7 jours"
+  },
+  {
+    "title": "Balanite — protocole Kahani",
+    "category": "courantes",
+    "summary": "Bains de Dakin/chlorhexidine et antalgie.",
+    "content": "DESCRIPTION\nŒdème en chou-fleur du prépuce et du gland.\n\nTRAITEMENT\nBains de Dakin ou chlorhexidine pluriquotidiens + antalgie.\n\n(Voir aussi la fiche \"Balanite\" du premier lot DxCare pour la posologie détaillée du Dakin dilué.)"
+  },
+  {
+    "title": "Biologie — liste de référence des examens disponibles",
+    "category": "courantes",
+    "summary": "Liste des analyses prescriptibles au dispensaire/SAU.",
+    "content": "NFS, plaquettes, TP/TCA, réticulocytes, haptoglobine\nIonogramme : Na, K, urée, créatinine, DFG\nCa, calcium corrigé, phosphore, parathormone\nASAT, ALAT, gGT, PAL, bilirubine conjuguée/non conjuguée, LDH\nFerritine, CFT, lipase, albumine, préalbumine\nBNP, ProBNP, troponine, D-dimères\nCRP, procalcitonine, fibrinogène, CPK\nHbA1c, glycémie, EAL\nVitamine B9, B12\nÉlectrophorèse des protéines sériques, immunofixation\nÉlectrophorèse de l'hémoglobine\nRecherche déficit G6PD et pyruvate kinase\nHémocultures (anaérobie, aérobie, mycotique)\nECBU, coproculture (Clostridium), parasitologie des selles\nGroupe, Rhésus, RAI, Kell\nSérologies VIH, VHB, VHC, TPHA/VDRL\nPCR chlamydia, gonocoque\nFrottis, goutte épaisse\nPrélèvement urétral, vaginal\nParvovirus B19, CMV, EBV, toxoplasmose\nASLO (antistreptolysine), PSA\nTSH, anticorps anti-peroxydase, anti-thyroglobuline, anti-CCP, TRAK\nTest synacthène, test aldostérone"
+  },
+  {
+    "title": "Chikungunya et fièvre de la vallée du Rift",
+    "category": "courantes",
+    "summary": "Repères cliniques rapides, deux arboviroses du syndrome dengue-like.",
+    "content": "CHIKUNGUNYA\nPas de cas recensé depuis plusieurs années à Mayotte, mais reste une arbovirose possible, transmise par Aedes aegypti ou Aedes albopictus (moustiques silencieux, volant au ras du sol).\nSignes principaux : fièvre >38,5°C, arthralgies invalidantes, myalgies, céphalées. Exanthème morbilliforme parfois associé.\n\nFIÈVRE DE LA VALLÉE DU RIFT\nNon endémique à Mayotte. Zoonose, sans transmission interhumaine sauf éventuellement par les Aedes.\n\nPour ces deux pathologies, le diagnostic biologique est confirmé par PCR en biologie moléculaire ; le laboratoire se charge de la déclaration obligatoire. Un traitement par amoxicilline (80mg/kg/j pendant 7 jours) est instauré en attendant les résultats devant tout syndrome dengue-like, pour limiter les formes graves d'une éventuelle leptospirose associée. Aspirine et AINS contre-indiqués devant ce tableau."
+  },
+  {
+    "title": "Circoncision — complications et CAT",
+    "category": "courantes",
+    "summary": "Hémorragie → chirurgien. Infection → soins locaux + Sterdex.",
+    "content": "CONTEXTE\nLa plupart des circoncisions à Mayotte sont réalisées par des \"foundi\" — personnes du secteur non médical, ayant reçu un enseignement traditionnel.\n\nCIRCONCISION HÉMORRAGIQUE\nÀ adresser aux chirurgiens sans délai.\n\nINFECTION POST-CIRCONCISION\nSoins locaux, associés éventuellement à l'application de Sterdex (pommade cortico-antibiotique)."
+  },
+  {
+    "title": "Conjonctivite, orgelet/chalazion, coup d'arc",
+    "category": "courantes",
+    "summary": "Traitement selon étiologie + contact ophtalmo.",
+    "content": "CONJONCTIVITE BACTÉRIENNE\nAZYTER x2/jour, 3 jours OU RIFAMYCINE 1 goutte x4/jour, 5 jours, dans les 2 yeux\n\nCONJONCTIVITE ALLERGIQUE\nAcide cromoglicique (Opticron) 1 goutte x2/jour, 7 jours OU Zalerg 1 goutte x2/jour (>3 mois)\n\nORGELET / CHALAZION\nSTERDEX pommade ophtalmique (cortico+cycline) : 1 application x2/jour, 7 jours\n\nCOUP D'ARC\nAZYTER unidose matin et soir, 3 jours + vitamine A pommade ophtalmique x3/jour, 4 jours\n\nCONTACT\nCentre des tortues (référence ophtalmo locale) — Bandrélé : 0269 62 74 11"
+  },
+  {
+    "title": "Constipation — adulte et enfant",
+    "category": "courantes",
+    "summary": "Forlax en schéma dégressif + laxatif rectal + antispasmodique.",
+    "content": "ADULTE\n- FORLAX 10g : 2 sachets le matin, 7 jours, puis 1 sachet le matin, 15 jours\n- EDUCTYL : 1 suppositoire/jour, 7 jours\n- SPASFON 80mg : 2cp toutes les 8h si douleur abdominale\n- PARACETAMOL 1g toutes les 6h si douleur/fièvre\n\nENFANT\n- FORLAX 4g : 1 sachet le matin, 7 jours, puis 1 sachet le matin, 15 jours\n- EDUCTYL enfant suppositoire : 1/jour, 7 jours\n- SPASFON 80mg : 1cp toutes les 8h\n- DOLIPRANE dose-poids 4x/jour, 7 jours\n- ± traitement antiparasitaire à discuter"
+  },
+  {
+    "title": "Dengue — repères cliniques",
+    "category": "courantes",
+    "summary": "Transmission, red flags, complications, hydratation.",
+    "content": "TRANSMISSION\nMoustique Aedes (tigre), diurne, intérieur et extérieur des maisons. 4 sérotypes (DEN 1, 2, 3, 4), immunité au sérotype acquis à vie. Incubation : 8-12 jours chez le moustique + 3-14 jours chez l'humain.\n\nRED FLAGS (signes d'alarme)\nDouleur/tension abdominale, vomissements itératifs, hémorragies muqueuses, œdèmes, léthargie, hépatomégalie, augmentation de l'hématocrite, baisse des plaquettes, oligo-anurie.\n\nCOMPLICATIONS\nQuasi toujours lors d'une 2e infection (sérotype différent) : hémorragies, œdèmes, détresse respiratoire (OAP), choc.\n\nPRISE EN CHARGE\n- Hydratation isotonique : 50-100ml/kg/24h\n- Antalgie SANS AINS (risque hémorragique)\n- Reconnaître les signes d'urgence et orienter rapidement si red flag"
+  },
+  {
+    "title": "Dermite du siège du nourrisson",
+    "category": "courantes",
+    "summary": "Antifongique local + protection cutanée.",
+    "content": "TRAITEMENT\n- KETODERM 2% crème : 1 application le soir, 15 jours (antimycotique)\n- COLD CREAM : 1 application matin et soir, 10 jours"
+  },
+  {
+    "title": "Diarrhée aiguë (GEA) — évaluation de la gravité",
+    "category": "courantes",
+    "summary": "Protocole Gastro 2010/2021 : définition, facteurs de risque, score OMS de déshydratation.",
+    "content": "SOURCE : Protocole Gastro 2010, D. Pop Jora — C. Nguyen, MAJ Août 2021\n\nDÉFINITION\nDiminution de consistance des selles et/ou augmentation de fréquence >3/jour (>6/j si allaitement), avec ou sans fièvre, avec ou sans vomissement, depuis moins de 7 jours et ne dépassant pas 14 jours.\n\nÉVALUATION DE LA GRAVITÉ\n\nTerrain à risque : âge <4 mois (notamment si alimentation artificielle) ; maladie sous-jacente (RCIU, dénutrition, déficit immunitaire, mucoviscidose, Hirschsprung, MICI, cancer pour le clostridium difficile) ; enfant en institution ; contexte psycho-social défavorisé.\n\nÀ l'interrogatoire : diarrhées liquidiennes >6/j ou >5 jours ; selles glairo-sanglantes ; vomissements associés (>5/j ou >2/j) ; fièvre mal tolérée ; notion de voyage (paludisme, fièvre typhoïde...).\n\nClinique : rechercher les signes de déshydratation ET le pourcentage de perte de poids — les deux doivent être concordants (plus la perte de poids est rapide, plus c'est grave). Attention au \"3e secteur\" : pas de perte de poids visible mais abdomen ballonné, mat et douloureux (séquestration liquidienne).\n\nSCORE OMS DE DÉSHYDRATATION\n\nSigne clinique | Légère | Modérée | Sévère\nPerte de poids | <5% | 5-10% | >10%\nConscience | normale | irritable | apathique, stuporeux\nSoif | non | réclame | assoiffé\nYeux | normaux, larmes présentes | cernés, enfoncés, absence de larmes | creux, hypotoniques, absence de larmes\nPeau | rose et chaude | pâle | froide, marbrée\nMuqueuses | humides | lèvres sèches | langue rappeuse\nFontanelle | normale | déprimée | creuse\nPli cutané | absent | absent | persistant\nFC et TRC | normaux | tachycardie | tachycardie + hypoperfusion\nPouls | normaux | rapides | rapides, faibles\nPression artérielle | normale | normale | abaissée\nFréquence respiratoire | normale | normale | polypnée\nUrines | normales | diminuées, foncées | oligurie, anurie\n\nINDICATIONS DES EXAMENS COMPLÉMENTAIRES\n- Ionogramme/urée/bicarbonate : si discordance histoire/clinique, déshydratation sévère avant réhydratation IV, erreur de reconstitution du SRO\n- Glycémie : intolérance alimentaire totale, diarrhée profuse chez nourrisson, suspicion de diabète\n- Virologie des selles et coproculture : maladie chronique, retour de voyage, GEA extrêmement sévère ou symptômes >7 jours, diarrhée glairo-sanglante, suspicion TIAC, signes neurologiques (shigelle, rotavirus)\n- PAS d'indication systématique à CRP, PCT, NFS (sauf enfant septique ou suspicion de SHU)\n\nPRINCIPES GÉNÉRAUX DU TRAITEMENT\nNE PAS LAISSER À JEUN. La réhydratation orale par SRO doit toujours être prescrite en première intention. Même en cas de réhydratation IV, le SRO bien toléré permet une correction plus rapide et plus sûre des anomalies ioniques. La réalimentation doit être précoce, la plus normale possible. Les autres traitements sont optionnels."
+  },
+  {
+    "title": "Diarrhée aiguë — algorithme de traitement selon la sévérité",
+    "category": "courantes",
+    "summary": "Arbre décisionnel complet légère/modérée/sévère avec réévaluations à H2/H4 — protocole Gastro 2017/2021.",
+    "content": "SOURCE : Protocole Gastro 2017, C. Nguyen, MAJ Août 2021\n\nDÉSHYDRATATION LÉGÈRE (<5%)\nDébâcle diarrhéique + intolérance alimentaire → si non : RAD avec prescription et feuille de conseils SRO\nSi besoin d'essai SRO en salle d'attente (1h) et succès → RAD avec feuille de conseils\n\nDÉSHYDRATATION MODÉRÉE (5-10%)\nSRO en salle d'attente pendant 1h.\n- Échec → HTCD (hospitalisation de très courte durée) et pose d'une SNG (sonde naso-gastrique), réhydratation entérale par voie SRO. Réévaluation à H2 puis H4.\n  - Amélioration clinique → proposer alimentation per os à H4 → bonne tolérance = RAD ; refus/échec = hydratation par voie IV après iono\n  - Pas d'amélioration → hydratation IV après iono\n\nDÉSHYDRATATION SÉVÈRE (>10%) = HOSPITALISATION\nSi choc décompensé ou trouble de conscience :\n- Voie d'abord rapide en IO, remplissage par voie IV. Réévaluation à H2 puis H4, adaptation de la perfusion à H4.\nSi pas de choc décompensé :\n- Pose SNG, réhydratation par voie entérale à débit plus important qu'en déshydratation modérée. Réévaluation à H2 puis H4.\n  - Amélioration clinique → proposer alimentation per os à H4 → bonne tolérance = hospitalisation pour surveillance de la tolérance alimentaire ; refus/échec = hospitalisation et poursuite SRO par SNG\n  - Pas d'amélioration → hospitalisation et poursuite SRO par SNG ou hydratation IV selon clinique"
+  },
+  {
+    "title": "Diarrhées infectieuses bactériennes — traitement probabiliste",
+    "category": "courantes",
+    "summary": "Indication de l'azithromycine devant syndrome cholériforme/dysentérique fébrile.",
+    "content": "CONTEXTE\nLes syndromes cholériformes et dysentériques sont très fréquents à Mayotte.\n\nINDICATION DU TRAITEMENT PROBABILISTE\nAZITHROMYCINE devant toute diarrhée hydrique fébrile (>38,5°C) depuis plus de 3 jours, ou toute diarrhée glairo-sanglante fébrile.\n\nNe pas hésiter à demander coprocultures et panel digestif pour documenter."
+  },
+  {
+    "title": "Déshydratation légère-modérée — protocole détaillé de réhydratation",
+    "category": "courantes",
+    "summary": "Modalités pratiques SRO, prise en charge à domicile, traitements adjuvants, surveillance.",
+    "content": "SOURCE : Protocole Gastro 2010, D. Pop Jora — C. Nguyen, MAJ Août 2021\n\nRÉHYDRATATION ORALE RAPIDE EN 4 HEURES\nDiluer 1 sachet de SRO dans 200ml d'eau. Proposer 30ml toutes les 10-15 minutes en salle d'attente : expliquer aux parents l'importance de donner de petites quantités (graduer les biberons et/ou proposer une seringue). Si bien toléré, poursuivre à domicile après chaque selle liquide/molle, ad libitum (200 à 250ml/kg/jour).\n\nCAUSES POSSIBLES D'ÉCHEC DU SRO\n- Refus car non déshydraté : clinique normale → RAD avec conseils et SRO\n- Refus dans une déshydratation légère/modérée : proposer à la seringue\n- Refus car très déshydraté : clinique très anormale → réhydratation par gavage voire IV\n- Intolérance alimentaire totale : vomissement ou débâcle diarrhéique\n\nPRISE EN CHARGE D'UNE DÉSHYDRATATION LÉGÈRE\n- RAD avec SRO et feuille de conseils\n- Poursuite de l'allaitement maternel et du lait habituel (y compris <3 mois)\n- Réalimentation précoce adaptée à l'âge et à la faim de l'enfant\n\nPRISE EN CHARGE D'UNE DÉSHYDRATATION MODÉRÉE\n- SRO proposé pendant au moins 1h aux urgences → si bonne tolérance, RAD (cf légère)\n- En cas d'échec (persistance vomissements ou diarrhée profuse) → réhydratation entérale continue par SNG avec SRO\n- Hospitalisation en HTCD, pas d'indication systématique à un ionogramme sanguin\n- Réhydratation entérale par SRO : 15ml/kg/h (max 400ml/h) pendant 4 heures\n- Lors des 15 premières minutes : surveiller l'apparition d'une toux (si toux : arrêt immédiat du gavage, vérification de la position de la sonde et radio de thorax)\n- Réévaluation à H2 et H4 de la tolérance (vomissements, diarrhées, iléus abdominal — ballonnement et douleurs)\n\nÀ H4 : RÉÉVALUATION CLINIQUE\n- Amélioration (disparition signes déshydratation, diminution franche diarrhées, reprise alimentaire tolérée) → RAD (cf légère)\n- Refus alimentation per os → poursuite nutrition entérale + SRO adapté aux pertes\n- Échec réhydratation entérale (majoration déshydratation, intolérance au gavage, diarrhées profuses, distension/iléus, ou >2 sondes arrachées) → indication de réhydratation IV (apports de base B26 + 1g/L NaCl) +/- cf protocole déshydratation sévère\n\nTRAITEMENTS ADJUVANTS (optionnels, en complément du SRO si bien toléré)\n- Antiémétique : Ondansétron (Zophren) — pas d'indication au retour à domicile, peut être prescrit en hospitalisation. Attention aux diarrhées très profuses (risque d'aggravation). Faire un ECG avant.\n- Probiotiques : Ultra-levure (AMM >2 ans), Lactéol, Biogaia — efficacité possible en association avec le SRO\n- Racécadotril (Tiorfan) : diminuerait légèrement durée et quantité des selles ; prescription non systématique\n- Diosmectite (Smecta) : CONTRE-INDIQUÉ chez l'enfant <2 ans (ANSM 2019)\n\nSURVEILLANCE AU DOMICILE\n- Remettre et expliquer la feuille de recommandation SRO\n- Signaler que la diarrhée peut se majorer ; expliquer aux parents les signes d'alerte nécessitant un recours hospitalier"
+  },
+  {
+    "title": "Eczéma pédiatrique",
+    "category": "courantes",
+    "summary": "Dermocorticoïde en schéma dégressif + émollient.",
+    "content": "TRAITEMENT\n- LOCAPRED 0,1% crème : 1 application le soir, 7 jours, puis 1 application un soir sur deux, 14 jours. Réappliquer si nouvelle crise.\n- Pain dermatologique surgras sans savon\n- DEXERYL : 1 application le matin, 30 jours, AR 5 fois"
+  },
+  {
+    "title": "Entorse de cheville",
+    "category": "courantes",
+    "summary": "Antalgie, attelle, cannes, kiné précoce.",
+    "content": "PHARMACIE\n- DOLIPRANE 1g : 4x/jour, 7 jours\n- NAPROXENE 550mg : 1cp/jour, 3 jours\n- Atèle BOA Dynastab, 3 semaines\n- Cannes anglaises\n\nKinésithérapie dès que les douleurs sont supportables."
+  },
+  {
+    "title": "Examen clinique type — normal (référence DxCare)",
+    "category": "courantes",
+    "summary": "Trame d'examen normal à adapter selon le motif, adulte et pédiatrique.",
+    "content": "EXAMEN NORMAL — ADULTE\nÉtat général conservé, pas de signe de déshydratation, apyrétique, hémodynamique stable, TRC <2sec.\n\nCardio-pulmonaire : bruits du cœur normaux réguliers, pas de souffle, pas de signe d'IC, auscultation pulmonaire libre et symétrique, pas de sibilant, pas de dyspnée, pas de toux.\n\nNeurologique : conscient, pas de déficit sensitivo-moteur, paires crâniennes normales, pas de syndrome méningé.\n\nAbdomino-pelvien : abdomen souple, dépressible, indolore, BHA+, orifices herniaires libres, pas de nausée/vomissement/trouble du transit, pas de masse, pas d'organomégalie, pas d'ictère, pas de signe fonctionnel urinaire.\n\nORL : otoscopie normale tympans transparents bilatéraux, gorge saine.\n\nAires ganglionnaires libres.\n\nEXAMEN NEURO PÉDIATRIQUE (nourrisson)\nTonus normal pour l'âge, fontanelle normo-tendue, réactivité normale. État général conservé, calme, éveillé, apyrétique, hémodynamique stable.\n\nCONSIGNES DE RECONSULTATION (à adapter)\nEnfant mou, pâle, difficilement réveillable.\nSignes de lutte : tirage costal/sus-sternal/xiphoïdien, battement des ailes du nez.\nRéévaluation en dispensaire dans X jours."
+  },
+  {
+    "title": "Gale",
+    "category": "courantes",
+    "summary": "Ivermectine ou Topiscab selon le poids, RHD obligatoires.",
+    "content": "RÈGLES HYGIÉNO-DIÉTÉTIQUES (RHD)\nLaver vêtements et draps à 60°C. Cas contacts à voir en consultation. Couper les ongles courts.\n\nTRAITEMENT\n- BISEPTINE 1 flacon : désinfection des lésions\n\nOption 1 — IVERMECTINE 3mg (dose selon poids, à renouveler à J8) :\n15-24 kg : 1 cp\n25-35 kg : 2 cp\n36-50 kg : 3 cp\n51-65 kg : 4 cp\n66-79 kg : 5 cp\n≥80 kg : 6 cp\n\nOption 2 — TOPISCAB crème 5% (enfants ≥2 mois) : 2 applications à 8-14 jours d'intervalle. Laisser poser 12h le soir.\nAdulte/enfant >12 ans : 1 tube 30g\n6-12 ans : ½ tube\n1-5 ans : ¼ tube (taille de 2 noix)\n2 mois-1 an : 3,75g (taille d'une noix)"
+  },
+  {
+    "title": "Gastro-entérite aiguë virale (enfant)",
+    "category": "courantes",
+    "summary": "Réhydratation + Tiorfan/Vogalène selon le poids.",
+    "content": "EXAMEN TYPE\nÉtat général conservé, apyrétique, hémodynamique stable, TRC <2sec.\nAbdomen souple, sensible, BHA+, diarrhée, nausées, vomissements. Reste de l'examen normal.\n\nTRAITEMENT\n- Soluté de réhydratation orale : 1 sachet/200ml, gorgée par gorgée toutes les 15 min\n- PARACETAMOL : dose-poids toutes les 6h si fièvre/douleur, 5 jours (3 jours si formulation sirop)\n\nSELON LE POIDS (si diarrhée)\n<9 kg : TIORFAN 10mg — 3x/jour, 3 jours\n9-13 kg : TIORFAN 10mg — 2 sachets x3/jour, 3 jours\n13-27 kg : TIORFAN 30mg — 1 sachet x3/jour, 3 jours\n>27kg : TIORFAN 100mg — 1 sachet x3/jour, 3 jours\n\nSi vomissements : VOGALENE sirop, dose-poids toutes les 8h, 3 jours\n\nCONSEILS\nPriorité à l'hydratation, puis fractionnement des repas si reprise alimentaire possible (bouillon, légumes cuits, bananes mûres, riz/pain/pâtes blancs — éviter cru, gras, acide).\nReconsulter si difficulté à s'hydrater ou fièvre persistante élevée."
+  },
+  {
+    "title": "Gynécologie pédiatrique — coalescence des petites lèvres et prolapsus urétral",
+    "category": "courantes",
+    "summary": "Deux situations fréquentes chez la petite fille, traitement par Colpotrophine.",
+    "content": "COALESCENCE DES PETITES LÈVRES\nRéassurance des parents. Traitement par Colpotrophine, 2 fois par jour pendant 15 jours.\n\nPROLAPSUS URÉTRAL\nSe présente avec saignements, œdème framboisé et douleurs pelviennes.\nMême traitement (Colpotrophine) + traitement laxatif + déparasitage associé."
+  },
+  {
+    "title": "Herpès labial / génital",
+    "category": "courantes",
+    "summary": "Aciclovir à introduire précocement (<72h).",
+    "content": "TRAITEMENT\nACICLOVIR 200mg : applications/jour, 5 jours (labial ou génital). À introduire dans les 72h suivant le début des symptômes.\nPARACETAMOL dose-poids 4x/jour, 7 jours."
+  },
+  {
+    "title": "Hémorroïdes",
+    "category": "courantes",
+    "summary": "Traitement local + antalgie.",
+    "content": "TRAITEMENT\n- SEDORRHOIDE crème + suppositoire : 3x/jour, 7 jours\n- PARACETAMOL 1g : 4x/jour, 7 jours"
+  },
+  {
+    "title": "Impétigo",
+    "category": "courantes",
+    "summary": "Antiseptique local + antibiothérapie, éviction scolaire.",
+    "content": "TRAITEMENT\n- HIBISCRUB\n- BETADINE dermique + compresses\n- AUGMENTIN, 7 jours\n\nÉviction scolaire."
+  },
+  {
+    "title": "Leptospirose — repères cliniques",
+    "category": "courantes",
+    "summary": "Endémique à Mayotte, transmission, complications, prévention.",
+    "content": "ÉPIDÉMIOLOGIE\nEndémique à Mayotte, avec recrudescence environ 1 mois après le début de la saison des pluies (pic mars-mai). Transmission par contact avec l'urine de rats infectés ou indirectement par l'eau souillée (plaies ou ingestion). Réservoir animal diversifié : rongeurs, bovins, chiens. Plus de 200 sérotypes. Incubation 2-20 jours.\nÀ Mayotte : enfants principalement infectés en se baignant en rivière, adultes lors d'activités agricoles/jardinage.\n\nCLINIQUE\nExpression polymorphe, début souvent brutal : fièvre + polyalgies + altération de l'état général. L'atteinte poly-viscérale secondaire apparaît souvent après une brève amélioration initiale : ictère, insuffisance rénale aiguë, hémorragies, signes cardiaques et pulmonaires. Diagnostic clinique difficile (symptômes peu spécifiques).\n\nBIOLOGIE\nThrombopénie, anémie, hyperleucocytose à PNN, hyperbilirubinémie mixte, transaminases élevées, créatininémie élevée, hématurie, leucocyturie.\n\nDIAGNOSTIC\nPCR de préférence (diagnostic direct dès J1, se négative dès J10).\n\nCOMPLICATIONS\nInsuffisance hépatique, ictère, hémorragies, IRA, méningite, troubles de conscience, myocardite, hypovolémie, choc, hémorragie pulmonaire, syndrome hémorragique.\n\nTRAITEMENT\nAmoxicilline en première intention, à mettre en place précocement. Formes graves : hospitalisation (épuration extra-rénale et assistance ventilatoire possibles).\n\nPRÉVENTION\n- Javel pour désinfection (pas le savon)\n- Éviter de se baigner en eau douce en cas de plaies, limiter le contact des muqueuses avec l'eau\n- Port de bottes et gants pour les activités à risque (agriculture, élevage)\n- Lutte contre les rongeurs\n\nDÉCLARATION\nSignalement obligatoire de tout diagnostic confirmé à la CVAGS (Cellule de Veille, d'Alerte et de Gestion Sanitaire) de l'ARS Océan Indien, qui mène une investigation des facteurs d'exposition."
+  },
+  {
+    "title": "Lumbago",
+    "category": "courantes",
+    "summary": "Antalgie + myorelaxant + IPP.",
+    "content": "PHARMACIE\n- PARACETAMOL 1000mg toutes les 6h si douleur/fièvre, 7 jours\n- NAPROXENE 550mg : 1cp/jour si douleur, 5 jours\n- ESOMEPRAZOL 20mg le soir, 7 jours\n- THIOCOLCHICOSIDE 8mg matin et soir, 5 jours"
+  },
+  {
+    "title": "Mycose auriculaire et otites",
+    "category": "courantes",
+    "summary": "Otite externe, OMA, syndrome otite-conjonctivite, bouchon de cérumen.",
+    "content": "MYCOSE AURICULAIRE\nAURICULARUM 5-10 gouttes en bain d'oreille x2/jour, 7 jours.\n\nOTITE MOYENNE AIGUË — ADULTE\n- AMOXICILLINE 1g x3/jour, 5 jours (ou ORELOX 200mg matin/soir 5j ou Bactrim 800/160mg matin/soir 5j)\n- PARACETAMOL 1g toutes les 6h si douleur/fièvre\n- OTIPAX 4 gouttes 2-3x/jour si douleur (CI si tympan perforé)\n\nOTITE MOYENNE AIGUË — ENFANT\n- AMOXICILLINE 80mg/kg/j en 2 prises, 5 jours (ou ORELOX 8mg/kg/j ou Bactrim SMX 30mg/kg/j + TMP 6mg/kg/j en 2 prises)\n- PARACETAMOL dose-poids 4x/jour, 7 jours\n\nSYNDROME OTITE-CONJONCTIVITE\nAUGMENTIN 1g dose-poids x3/jour (couverture Haemophilus influenzae, vérifier vaccination)\n3 mois-2 ans : 10 jours | >2 ans : 5 jours | <3 mois : prélèvement bactério + avis spécialisé hospitalier\nParacentèse si <3 mois, hyperalgique sous antalgique, immunodéprimé, ou complication (paralysie faciale, mastoïdite, thrombophlébite sinus latéral, méningite, abcès cérébral).\n\nOTITE EXTERNE\n- OFLOXACINE 1,5mg/0,5ml auriculaire x2/jour, 7 jours (remplir le CAE, laisser agir 10 min, ne pas rincer)\nOU POLYDEXA (CI si tympan perforé)\nOU PANOTILE 5 gouttes matin/soir, 6 jours (contient lidocaïne, CI si tympan perforé)\n- OTIPAX 4 gouttes 3x/jour, 5 jours\n\nBOUCHON DE CÉRUMEN\nCERULYSE 5 gouttes matin/soir, 3 jours, sinon savon + eau à chaque douche."
+  },
+  {
+    "title": "Mycose buccale",
+    "category": "courantes",
+    "summary": "Fungizone selon poids/âge, 15 jours.",
+    "content": "ADULTE OU >30 KG\nFUNGIZONE 10% susp buvable : 1 cuillère-mesure en bain de bouche, 3x/jour, 15 jours\n+ Bicarbonate solution 1,4/1000 en bain de bouche x3/jour, 15 jours\n\nENFANT <30 KG\nFUNGIZONE 10% susp buvable : 50mg/kg/j en 2 prises (1ml/2kg/24h)\n\nReconsulter si persistance des symptômes ou prise orale impossible."
+  },
+  {
+    "title": "Mycoses cutanées (intertrigo, onychomycose, herpès circiné)",
+    "category": "courantes",
+    "summary": "Traitement selon localisation et atteinte matricielle.",
+    "content": "INTERTRIGO DES GRANDS PLIS\nÉCONAZOLE local, vêtements en coton, éviter macération, bien sécher.\n\nONYCHOMYCOSE SANS ATTEINTE MATRICIELLE\nCICLOPIROX 8% vernis à ongle : 6 jours/7, le 7e jour laver l'ongle au dissolvant. Durée totale 3-6 mois, réévaluer à 3 mois.\n\nPÉRIONYXIS / ONIXIS (avec atteinte matricielle)\nFLUCONAZOLE per os OU TERBINAFINE 250mg 1cp à midi, 3 mois, associé à amycor onychoset sur l'ongle infecté (recouvrir 24h, puis bain de pied tiède, éliminer l'ongle ramolli au grattoir).\n\nHERPÈS CIRCINÉ (centre sain, bordure érythémato-vésiculo-squameuse évocatrice)\nÉCONAZOLE 1 application x2/jour, 4 semaines."
+  },
+  {
+    "title": "Paludisme — protocole Mayotte",
+    "category": "courantes",
+    "summary": "Test systématique devant fièvre, traitement Riamet selon poids, hospitalisation des formes graves.",
+    "content": "CONTEXTE\nMayotte est en zone impaludée ; la plupart des cas observés sont importés. Test optimal recommandé devant toute fièvre >38,5°C. Un nouveau test doit être refait en cas de nouvelle consultation fébrile (>38°C). Devant tout test positif ou forte suspicion : compléter par frottis et goutte épaisse.\n\nTRAITEMENT SELON L'ESPÈCE\n\nP. vivax, ovale, malariae : chloroquine (Nivaquine) per os, ou IM si vomissements.\n\nP. falciparum :\n- Enfant <5kg et femme enceinte : hospitalisation pour quinine (IV ou PO)\n- Accès palustre simple, le plus fréquent, sans vomissement : traitement ambulatoire par Riamet pendant 3 jours avec suivi en dispensaire. Absorption améliorée en prenant le traitement pendant un repas gras.\n- Accès palustre grave : traitement au CHM par quinine IV.\n\nPOSOLOGIE RIAMET (CoArtem) — comprimés pendant le repas, schéma H0/H8/H24/H36/H48/H60\nAdulte : 4cp à chaque prise (6 prises)\n25-35kg : 3cp à chaque prise\n15-24kg : 2cp à chaque prise\n5-14kg : 1cp à chaque prise\n\nDÉCLARATION\nLe paludisme est une maladie à déclaration obligatoire — formulaire disponible dans le dossier infectiologie du Kit Remplaçant."
+  },
+  {
+    "title": "Panaris",
+    "category": "courantes",
+    "summary": "Dakin + antibiothérapie, drainage si collecté.",
+    "content": "TRAITEMENT\n- DAKIN dilué (1/4 + 3/4 eau), 7 jours\n- AUGMENTIN, 7 jours (discuter fucidine locale)\n\nSi forme collectée : drainage chirurgical."
+  },
+  {
+    "title": "Parasitose digestive — Mayotte",
+    "category": "courantes",
+    "summary": "Fluvermal en cure simple, traiter les cas contacts.",
+    "content": "QUAND Y PENSER\nDyspepsies, douleurs abdominales, ballonnements, ou prurit anal/vaginal — notamment chez la petite fille.\n\nTRAITEMENT\nFLUVERMAL pendant 3 jours, avec seconde prise à 2 semaines. Traiter également les cas contacts de l'entourage."
+  },
+  {
+    "title": "Parasitoses digestives (oxyurose, ascaris, ankylostomose)",
+    "category": "courantes",
+    "summary": "Zentel ou Fluvermal selon le parasite, traiter l'entourage.",
+    "content": "HYPERÉOSINOPHILIE ISOLÉE / PRURIT ANAL\nZENTEL 400mg : une dose, à répéter à 15 jours\n\nOXYUROSE\nFLUVERMAL 100mg (1cp ou 1 cuillère-mesure) en prise unique, à renouveler à 15-20 jours (éviter auto-réinfestation)\n\nASCARIDIASE, TRICHOCÉPHALOSE, ANKYLOSTOMIASE\nFLUVERMAL 100mg matin et soir, 3 jours\n\nL'entourage doit également être traité pour éviter une réinfestation."
+  },
+  {
+    "title": "Pityriasis versicolor",
+    "category": "courantes",
+    "summary": "Kétoconazole shampoing, traitement long.",
+    "content": "TRAITEMENT\nKETOCONAZOL shampoing 2% : 3 jours de suite, puis 2x/semaine pendant 6 semaines.\n\nÀ EXPLIQUER AU PATIENT\nLevure normalement présente sur la peau, non contagieuse. La guérison se poursuit après la fin du traitement ; disparition des lésions sur plusieurs semaines à mois.\nÉviter application d'huile et vêtements occlusifs."
+  },
+  {
+    "title": "Plaie de pied par clou — particularité Mayotte",
+    "category": "courantes",
+    "summary": "Motif fréquent, risque de corps étranger résiduel, antibiothérapie non systématique.",
+    "content": "CONTEXTE\nÀ Mayotte, les plaies de pied avec motif \"a marché sur un clou\" sont un classique de consultation.\n\nPIÈGES\nCes plaies punctiformes s'infectent facilement — se méfier d'un corps étranger resté en place.\n\nCAT\nL'antibiothérapie n'est pas systématique, mais rester vigilant devant une plaie perforante profonde. Pansement au gel bétadiné envisageable en option."
+  },
+  {
+    "title": "Rattrapage vaccinal >6 ans",
+    "category": "courantes",
+    "summary": "Schéma en 3 rendez-vous : DTPCa, VHB, ROR, Prevenar, Neisvac.",
+    "content": "M0 — 1er RDV médical\n- TETANOTOP : si négatif → DTPCa 1ère dose ; si positif → reprendre schéma selon l'âge\n- VHB 1ère dose (Engerix B10 jusqu'à 15 ans inclus, B20 si >16 ans)\n- ROR 1ère dose\n- PREVENAR 13 1ère dose (jusqu'à 6 ans seulement)\nPrescrire NEISVAC 1 dose pour le 2e RDV.\n\nM1 — 2e RDV (infirmier)\n- Bilan sanguin VHB\n- NEISVAC 1 dose\n\nM2 — 3e RDV médical (avec bilan VHB préalable)\n- TETANOTOP : si positif → reprise schéma selon âge ; si négatif → DTPCa (puis rappel à M8, reprise schéma selon âge)\n- Sérologie VHB : si positive (Ac>100mUI/ml) → pas de rappel ; si négative → rappel à M2 et M8\n- Rappel ROR 2e dose\n- Rappel PREVENAR 13\n\nPHARMACIE\n- NEISVAC 1 dose\n- PREVENAR 13 1ère dose"
+  },
+  {
+    "title": "Rhinopharyngite virale",
+    "category": "courantes",
+    "summary": "Lavage de nez + paracétamol, conseils de surveillance.",
+    "content": "EXAMEN TYPE\nÉtat général conservé, apyrétique, hémodynamique stable, TRC <2sec.\nCardio-pulmonaire normal (toux possible). Neuro normal. Abdomen souple.\nORL : pas d'otite, pas d'angine, rhinite avec rhinorrhée postérieure, toux. Aires ganglionnaires libres.\n\nTRAITEMENT\n- Lavage de nez au sérum physiologique pluriquotidien, 5 jours (9g sel + 1L eau, garder au frais 72h)\n- PARACETAMOL : une dose-poids toutes les 6h si fièvre/douleur, 5 jours\n- Soluté de réhydratation orale si besoin : 1 sachet/200ml, gorgée par gorgée toutes les 15 min\n- Mesures physiques contre la fièvre : découvrir, hydrater\n\nReconsulter si symptômes ou fièvre persistante."
+  },
+  {
+    "title": "Sinusites (frontale, maxillaire, sphénoïdale)",
+    "category": "courantes",
+    "summary": "Amoxicilline ± acide clavulanique selon localisation, 7 jours.",
+    "content": "SINUSITE FRONTALE ET SPHÉNOÏDALE\n- AMOXICILLINE + ACIDE CLAVULANIQUE 1g x3/jour, 7 jours\n- PARACETAMOL 1g toutes les 6h si douleur/fièvre, 7 jours\n- Sérum physiologique : laver le nez, 7 jours\n\nSINUSITE MAXILLAIRE\n- AMOXICILLINE 1g x3/jour, 7 jours\n- PARACETAMOL 1g toutes les 6h si douleur/fièvre, 7 jours\n- Sérum physiologique : lavage nasal x4/jour, 7 jours"
+  },
+  {
+    "title": "Syndrome dengue-like — algorithme diagnostique complet",
+    "category": "courantes",
+    "summary": "Arbre décisionnel TROD/CRP/BU devant fièvre <7j sans point d'appel : dengue, leptospirose, chikungunya, FVR.",
+    "content": "DÉFINITION\nFièvre ≥38,5°C + pas de point d'appel infectieux + au moins 1 symptôme parmi : myalgies, arthralgies, pétéchies/purpura/saignement, céphalées frontales, asthénie, signes digestifs, douleur rétro-orbitaire, éruption maculopapuleuse. Fièvre évoluant depuis moins de 7 jours.\n\nALGORITHME\n1. TROD dengue (Ag + IgM/IgG)\n\nSi TROD POSITIF → Déclaration obligatoire ARS !\n→ Actim CRP < 40 : RAD + paracétamol, bien boire, répulsif 2x/jour + moustiquaire + suppression des gîtes larvaires, reconsulter si aggravation\n\nSi TROD NÉGATIF :\n→ Actim CRP > 40 : BU (protéinurie et/ou GR+) → bilan sanguin complet (voir ci-dessous) → traiter comme une leptospirose en attendant les résultats\n→ Actim CRP < 40 : BU négative → RAD + paracétamol, contrôle à 48-72h si persistance des symptômes\n\nBILAN SANGUIN SI CRP > 40 (TROD- ou TROD+)\n- NFS (dengue : thrombopénie, lympho/neutropénie ; leptospirose : neutrophilie, thrombopénie, anémie hémolytique)\n- Iono (dengue : déshydratation et trouble ionique ; leptospirose : hyperkaliémie)\n- Fonction rénale (dengue et leptospirose : IRA)\n- Fonction hépatique et biliaire\n- Coagulation (dengue : risque hémorragique)\n- Sérologies : dengue, chikungunya, leptospirose, fièvre de la vallée du Rift\n- Test paludisme si voyage\n- Gaz du sang si sévère\n\nTRAITEMENT PROBABILISTE EN ATTENDANT LES RÉSULTATS (traiter comme une leptospirose)\nAmoxicilline 1g 3x/jour pendant 1 semaine (enfant : 50mg/kg/j)\nSi allergie : Doxycycline 100mg 2x/jour pendant 1 semaine\n\nEN ÉPIDÉMIE\n- Justifier la recherche des autres arboviroses auprès du labo\n- Si absence de TROD disponible : PCR uniquement pour les CRP > 40"
+  },
+  {
+    "title": "Teignes",
+    "category": "courantes",
+    "summary": "Terbinafine selon poids + antifongique local + RHD.",
+    "content": "TRAITEMENT — TERBINAFINE 250mg (1 mois)\n10-20 kg : ¼ comprimé (à broyer juste avant prise, mélanger compote/yaourt)\n20-40 kg : ½ comprimé\n>40 kg : 1 comprimé\n\nANTIFONGIQUE LOCAL\nÉCONAZOLE lait 1% 2x/jour (OK <12 ans) OU KÉTOCONAZOLE 2% shampoing 2x/semaine 1 mois (non OK <12 ans)\n\nALTERNATIVE (rasage)\nRaser les cheveux + kétoconazole shampoing 1 sachet 4x/semaine 4 semaines + griséofulvine 250mg ½cp x2/jour 2 mois (broyer finement).\n30-40kg : griséofulvine 250mg 1cp matin et soir 2 mois.\nAdulte : griséofulvine 500mg x2/jour 5 semaines.\n\nRHD\nLaver vêtements/draps à 60°C, défaire les tresses, couper les cheveux courts."
+  },
+  {
+    "title": "Traumatologie — fractures et limites du plateau technique",
+    "category": "courantes",
+    "summary": "Pas de radiologie sur place : bons de radio vers Mamoudzou, immobilisation de fortune si fracture évidente.",
+    "content": "CONTEXTE\nLe dispensaire ne dispose pas de plateau radiologique sur place — les patients sont adressés via des bons de radio vers Mamoudzou.\n\nFRACTURES MANIFESTES\nÀ envoyer par leurs propres moyens vers Mamoudzou, après :\n- Prise en charge antalgique\n- Immobilisation avec les moyens du bord"
+  },
+  {
+    "title": "Ulcères gastriques et dyspepsie — dépistage H. pylori",
+    "category": "courantes",
+    "summary": "Dépistage par Helikit en ambulatoire, orientation gastro si besoin.",
+    "content": "CONTEXTE\nDyspepsies, pyrosis et symptômes d'ulcères sont fréquents à Mayotte, avec parfois un usage d'IPP au long cours.\n\nDÉPISTAGE\nLe dépistage d'Helicobacter Pylori est à réaliser fréquemment, si possible par HELIKIT (test respiratoire) en l'absence de traitement IPP depuis au moins 2 semaines, pour les patients affiliés à la Sécurité Sociale en ambulatoire.\nSinon, prendre rendez-vous avec le gastro-entérologue.\n\nORIENTATION\nOrienter les patients mahorais vers La Réunion ou la métropole pour accélérer leur prise en charge si nécessaire."
+  },
+  {
+    "title": "Urétrite",
+    "category": "courantes",
+    "summary": "Ceftriaxone + azithromycine, dépistage IST et partenaire.",
+    "content": "CAT\n- CEFTRIAXONE 500mg IM ou IV (selon volonté IDE), une fois au SAU\n\nPHARMACIE\n- AZYTHROMYCINE 1g per os, une fois\n- DOLIPRANE 1g : 4x/jour, 7 jours\n- Préservatifs\n\nSUIVI\n- RDV bilan sanguin IST (PCR chlamydia/gonocoque + VIH + VHB + TPHA/VDRL)\n- Rapport protégé jusqu'au résultat du bilan\n- Prévenir le/la partenaire pour dépistage"
+  },
+  {
+    "title": "Urétrites — protocole Mayotte",
+    "category": "courantes",
+    "summary": "Traitement probabiliste systématique vu la forte prévalence gonocoque/chlamydiae.",
+    "content": "CONTEXTE\nForte prévalence de gonocoque et chlamydiae à Mayotte → traitement direct des patients symptomatiques sans attendre les résultats.\n\nTRAITEMENT\nCEFTRIAXONE 1000mg IM + AZYTHROMYCINE 1g per os.\n\nSUIVI\n- Bilan sanguin sérologique à distance\n- Dépistage des partenaires\n- Prescrire des préservatifs\n\nÀ NOTER\nL'hépatite B est endémique, de nombreux patients ne sont pas vaccinés — penser à vérifier/proposer la vaccination. File active VIH d'environ 300 patients sur le territoire, majoritairement des femmes. Un protocole DxCare dédié est disponible."
+  },
+  {
+    "title": "Varicelle",
+    "category": "courantes",
+    "summary": "Soins locaux, antihistaminique, antipyrétique.",
+    "content": "TRAITEMENT\n- Lavage de nez au sérum physiologique pluriquotidien, 5 jours\n- PARACETAMOL sirop : dose-poids toutes les 6h si fièvre/douleur, 5 jours\n- Mesures physiques contre la fièvre : découvrir, hydrater\n- AERIUS : 2,5ml (1,25mg) une fois par jour, 7 jours\n- Couper les ongles courts (limiter le grattage)\n- BISEPTINE 1 flacon + compresses non stériles\n\nReconsulter si symptômes ou fièvre persistante."
+  },
+  {
+    "title": "Vertige",
+    "category": "courantes",
+    "summary": "Acétylleucine, posologie simple.",
+    "content": "TRAITEMENT\nTANGANIL 500mg : 2cp x3/jour."
+  },
+  {
+    "title": "Équivalence des sirops en dose-poids — pédiatrie",
+    "category": "courantes",
+    "summary": "Table de conversion rapide en mL selon le poids : Paracétamol, Augmentin, Zithromax, Atarax, Motilium.",
+    "content": "TABLE DE CONVERSION POIDS → VOLUME EN ML\n\nParacétamol (15mg/kg/jour), Augmentin (80mg/kg/jour), Zithromax (20mg/kg/jour), Atarax (1mg/kg/jour), Motilium — volumes en mL par prise selon le poids de l'enfant.\n\nPoids (kg) : Paracétamol | Augmentin | Zithromax | Atarax | Motilium\n3 : - | - | 0,5 | 1 | -\n4 : - | 0,5 | 1 | 2 | 1\n5 : 3,2 | 1,3 | 2,5 | 5 | 1,25\n6 : 3,8 | 1,5 | 3 | 6 | 1,5\n7 : 4,4 | 1,8 | 3,5 | 7 | 1,75\n8 : 5 | 2,1 | 4 | 8 | 2\n9 : 5,6 | 2,4 | 4,5 | 9 | 2,25\n10 : 6,2 | 2,6 | 5 | 10 | 2,5\n11 : 6,8 | 2,9 | 5,5 | 11 | 2,75\n12 : 7,4 | 3,2 | 6 | 12 | 3\n13 : 8 | 3,5 | 6,5 | 13 | 3,25\n14 : 8,8 | 3,75 | 7 | 14 | 3,5\n15 : 9,4 | 4 | 7,5 | 15 | 3,75\n16 : 10 | 4,3 | 8 | 16 | 4\n17 : 10,6 | 4,5 | 8,5 | 17 | 4,25\n18 : 11,2 | 4,8 | 9 | 18 | 4,5\n19 : 11,8 | 5 | 9,5 | 19 | 4,75\n20 : 12,5 | 5,4 | 10 | 20 | 5\n21 : - | 5,6 | 10,5 | 21 | 5,25\n22 : - | 5,9 | 11 | 22 | 5,5\n23 : - | 6,2 | 11,5 | 23 | 5,75\n24 : - | 6,4 | 12 | 24 | 6\n25 : - | 6,7 | 12,5 | 25 | 6,25\n26 : - | 7 | - | 26 | 6,5\n27 : - | 7,2 | - | 27 | 6,75\n28 : - | 7,5 | - | 28 | 7\n29 : - | 7,8 | - | 29 | 7,25\n30 : - | 8 | - | 30 | 7,5\n\nAu-delà de 20kg pour le paracétamol et de 25kg pour le Zithromax, passer aux formes comprimés. L'Atarax et le Motilium restent calculables jusqu'à 34kg (Atarax) sur ce tableau (8,5mL à 34kg)."
+  },
+  {
+    "title": "Érysipèle de membre inférieur",
+    "category": "courantes",
+    "summary": "Augmentin + soins locaux.",
+    "content": "TRAITEMENT\n- AMOXICILLINE + ACIDE CLAVULANIQUE : dose-poids x3/jour, 7 jours\n- DOLIPRANE dose-poids 4x/jour, 7 jours\n- BETADINE 1 flacon + compresses : désinfection"
+  },
+  {
+    "title": "Adaptation insuline — schéma basal-bolus (3 injections pré-prandiales)",
+    "category": "chronique",
+    "summary": "Protocole d'adaptation de l'insuline rapide pré-prandiale selon le dextro.",
+    "content": "SCHÉMA BASAL + BOLUS PRÉ-PRANDIAUX, 3 FOIS PAR JOUR\nProtocole d'adaptation de la dose d'insuline rapide pré-prandiale.\n\nMODALITÉS\nNécessite la réalisation de 3 dextros par jour, avant chacun des repas.\nX = dose d'insuline rapide prescrite.\n\nADAPTATION DE LA DOSE SELON LE DEXTRO\nDextro <0,80g/L : prise en charge de l'hypoglycémie + faire la dose X-2U\nDextro entre 0,80 et 1,50g/L : faire la dose prescrite X\nDextro entre 1,50 et 2,00g/L : faire X+2U\nDextro entre 2,00 et 2,50g/L : faire X+4U\nDextro entre 2,50 et 3,00g/L : faire X+6U\nDextro >3g/L : faire BU ou acétonémie, puis X+8U"
+  },
+  {
+    "title": "Adaptation insuline — schéma à 1 injection/jour (Lantus ou Umuline NPH)",
+    "category": "chronique",
+    "summary": "Protocole d'ajustement pour insuline lente seule, durée d'action 16-24h.",
+    "content": "SCHÉMA À 1 INJECTION D'INSULINE LENTE PAR JOUR\nLANTUS ou UMULINE NPH (durée d'action de l'insuline : 16 à 24h)\n\nMODALITÉS\n- 1 dextro/jour minimum, avant l'injection quotidienne d'insuline\n- Adaptation de la dose selon le résultat\n\nRÈGLES D'ADAPTATION\nDextro <0,80g/L : prise en charge de l'hypoglycémie + diminuer la LANTUS de 2U le jour même\nDextro entre 0,80 et 1,20g/L : ne pas changer la dose de LANTUS\nDextro >1,20g/L durant 3 jours successifs : augmenter la LANTUS de 2U\nDextro >2,50g/L : faire BU ou bandelette d'acétonémie et appeler le médecin"
+  },
+  {
+    "title": "Adaptation insuline — schéma à 2 injections/jour (Umuline Profil 20/30/50)",
+    "category": "chronique",
+    "summary": "Protocole d'ajustement matin/soir pour insuline mixte, durée d'action 12h.",
+    "content": "SCHÉMA À 2 INJECTIONS D'INSULINE MIXTE PAR JOUR\nUMULINE PROFIL 20/30/50 (durée d'action de l'insuline : 12h)\n\nMODALITÉS\n2 dextros/jour : un le matin, un le soir, avant chaque injection.\n\nLE DEXTRO DU MATIN REFLÈTE L'ACTION DE L'INSULINE FAITE LA VEILLE AU SOIR\nDextro du matin <0,80g/L : prise en charge de l'hypoglycémie + diminuer la dose du SOIR de 2U tout de suite\nDextro du matin entre 0,8 et 1,20g/L : laisser la dose du soir identique\nDextro du matin >1,20g/L durant 3 matins successifs : augmenter la dose du SOIR de 2U\nDextro du matin >2,50g/L : faire BU ou bandelette d'acétonémie et appeler le médecin\n\nLE DEXTRO DU SOIR REFLÈTE L'ACTION DE L'INSULINE FAITE LE MATIN\nDextro du soir <0,80g/L : prise en charge de l'hypoglycémie + diminuer la dose du LENDEMAIN MATIN de 2U\nDextro du soir entre 0,80 et 1,20g/L : laisser la dose du matin identique\nDextro du soir >1,20g/L durant 3 soirs successifs : augmenter la dose du MATIN de 2U\nDextro du soir >2,50g/L : faire BU ou bandelette d'acétonémie et appeler le médecin"
+  },
+  {
+    "title": "Antidiabétiques oraux — tableau comparatif par classe",
+    "category": "chronique",
+    "summary": "Mécanisme, risque hypoglycémique, effet sur le poids, sécurité CV, ajustement rénal par classe (biguanides, SH, glinides, IDPP4, AGLP1, acarbose).",
+    "content": "METFORMINE (Biguanide)\nMécanisme : diminue la production hépatique de glucose. Bénéfice et sécurité CV prouvés. Pas de risque d'hypoglycémie. Effet neutre sur le poids. Baisse HbA1c 1-2%. Demi-dose si clairance entre 30-60, arrêt si <30. CI : IR stade 4-5, insuffisance cardiaque sévère avec FEVG<30%, insuffisance hépatique sévère.\n\nSULFAMIDES (Glibenclamide/Daonil, Gliclazide/Diamicron, Glimépiride/Amarel)\nMécanisme : augmente l'insulinosécrétion (fermeture canaux potassiques → ouverture canaux calciques → libération d'insuline). Pas de bénéfice CV démontré (même délétère pour le glibenclamide). Risque d'hypoglycémie OUI, avec hypoglycémies prolongées (demi-vie longue 5-7h, durée d'action 12-24h). Plutôt prise de poids. Baisse HbA1c 1-2%. CI : insuffisance cardiaque, coronaropathie, IR stade 3-4-5, insuffisance hépatique.\n\nGLINIDES (Répaglinide/Novonorm)\nMécanisme identique aux sulfamides mais demi-vie plus courte (1h) et durée d'action réduite (4-6h) → hypoglycémies moins longues et moins profondes. Baisse HbA1c 0,5-1%. Possible à pleine dose même si IR (à différence des SH). CI : pancréatite.\n\nINHIBITEURS DPP-4 / GLIPTINES (Sitagliptine/Xelevia/Januvia, Vildagliptine/Galvus)\nMécanisme : augmente la sécrétion d'insuline et diminue le glucagon (action sur la cellule bêta). Pas de bénéfice CV prouvé mais sécurité démontrée (pas d'augmentation du risque d'IC). Pas de risque d'hypoglycémie isolé. Perte de poids modérée par satiété et ralentissement du bol alimentaire. Baisse HbA1c environ 1%. Demi-dose si clairance <50, arrêt si <30 (sauf vildagliptine, à vérifier). CI : pancréatite, IR stade 4-5.\n\nAGONISTES DU RÉCEPTEUR GLP-1 (Liraglutide/Victoza, Exénatide/Byetta, Dulaglutide/Trulicity)\nMécanisme identique aux IDPP4 mais effet plus puissant. Efficacité avec baisse de 13% des accidents CV et 22% des décès par accident CV (sécurité démontrée, bénéfices démontrés pour liraglutide/dulaglutide/sémaglutide). Pas de risque d'hypoglycémie isolé. Perte de poids importante (+++) par satiété. Baisse HbA1c environ 1%. Demi-dose si clairance <50, arrêt si <30 (à vérifier selon molécule). CI : pancréatite, IR stade 4-5.\nPosologies : Liraglutide 1 injection/jour 0,6mg pendant 1 semaine puis 1,2mg/jour. Exénatide 2 injections/jour 5µg matin et soir. Dulaglutide 1 injection/semaine 0,75 à 1,5mg/semaine.\n\nINHIBITEUR DES ALPHA-GLUCOSIDASES (Acarbose/Glucor)\nMécanisme : baisse l'absorption du sucre au niveau du tube digestif. Baisse HbA1c environ 0,5%. Effet plutôt négatif sur le poids (effets digestifs limitant).\n\nÉDUCATION THÉRAPEUTIQUE\nLes patients diabétiques ou obèses peuvent être inscrits à l'EMET (Équipe Mobile Éducation Thérapeutique), qui organise des sessions dédiées. Contact EMET : 0269618000 poste 5034 / 0639222172 (code 71154) / emet@chmayotte.fr"
+  },
+  {
+    "title": "Antidiabétiques — comparatif détaillé (hypoglycémie, poids, effets indésirables, voie d'administration)",
+    "category": "chronique",
+    "summary": "Tableau récapitulatif par classe : efficacité, risque hypoglycémique, effet poids, sécurité CV/rénale, effets indésirables principaux.",
+    "content": "METFORMINE\nEfficacité baisse glycémie : forte. Risque hypoglycémie : non. Effet poids : neutre (ou légère baisse). Modalité : comprimés 2-3 prises/jour. Bénéfice CV (IDM/AVC/décès) : sécurité démontrée. Effets indésirables fréquents : troubles digestifs (diarrhées, douleurs abdominales).\n\nSULFAMIDES ET GLINIDES\nEfficacité : forte. Risque hypoglycémie : oui (glibenclamide ++). Effet poids : prise de poids modérée. Modalité : comprimés 1-4 prises/jour. Bénéfice CV : sécurité démontrée pour le glimépiride. Effets indésirables : hypoglycémies, prise de poids.\n\nINHIBITEURS DES ALPHA-GLUCOSIDASES\nEfficacité : faible/modérée. Pas de risque d'hypoglycémie isolé. Effet poids : neutre. Modalité : comprimés 3-4 prises/jour. Effets indésirables très fréquents : troubles digestifs (flatulences).\n\nINHIBITEURS DE LA DPP-4 (GLIPTINES)\nEfficacité : modérée. Pas de risque d'hypoglycémie. Effet poids : neutre. Modalité : comprimés 1-2 prises/jour. Bénéfice CV : sécurité démontrée pour sitagliptine, risque potentiel pour saxagliptine (attention insuffisance cardiaque). Effets indésirables : rare mais risque de pancréatite aiguë et d'arthralgies.\n\nINHIBITEURS DU SGLT2 (GLIFLOZINES)\nEfficacité : forte. Pas de risque d'hypoglycémie isolé. Effet poids : baisse de poids. Modalité : comprimés 1 prise/jour. Bénéfice CV/rénal : bénéfices démontrés sur la fonction rénale et l'albuminurie. Effets indésirables : mycoses génitales, polyurie, déplétion volémique, risque rare d'acidocétose euglycémique (notamment canagliflozine), risque exceptionnel de gangrène de Fournier — RISQUE À CONNAÎTRE ABSOLUMENT.\n\nAGONISTES DES RÉCEPTEURS DU GLP-1\nEfficacité : très forte. Pas de risque d'hypoglycémie isolé. Effet poids : forte baisse de poids. Modalité : injections sous-cutanées, 2/jour à 1/semaine selon la molécule. Bénéfices CV démontrés pour liraglutide/dulaglutide, doute pour sémaglutide à faible dose. Effets indésirables très fréquents : troubles digestifs (nausées, vomissements, diarrhées).\n\nANALOGUES LENTS DE L'INSULINE\nEfficacité : très forte (la plus puissante). Risque hypoglycémie : oui ++. Effet poids : prise de poids. Modalité : injections sous-cutanées 1/jour. Sécurité CV démontrée pour la glargine (si insuffisance cardiaque stade I-II) et le degludec (si stade I-III)."
+  },
+  {
+    "title": "Arthropathie microcristalline — Goutte",
+    "category": "chronique",
+    "summary": "Colchicine en schéma dégressif + allopurinol différé.",
+    "content": "TRAITEMENT CRISE\n- PARACETAMOL 1g : 1 prise toutes les 6h, max 4/jour\n- COLCHICINE 1mg : 1-2cp/jour 3 jours, puis 1cp le soir 3 jours, puis ½cp le soir 3 jours (durée totale max 9 jours)\n\nFOND (à distance de la crise)\n- ALLOPURINOL 100mg : 1cp/jour pendant 3 mois\n- Poursuivre colchicine 0,5mg/jour au moins 1 mois en plus\n\nSUIVI\nRDV bilan sanguin (BS) et kiné rénale orientée (KRO) dans 3 mois."
+  },
+  {
+    "title": "Avis pédiatrique spécialisé — procédure d'orientation",
+    "category": "chronique",
+    "summary": "Endocrino/digestif/rhumato pédiatrique : prise de RDV par mail au secrétariat pôle enfant.",
+    "content": "INDICATIONS\nPrises en charge spécialisées : endocrinologie pédiatrique, digestif, rhumatologie (pied bot, genou varum/valgum, etc.).\n\nPROCÉDURE\nAdresser les enfants en consultation spécialisée via une demande par mail au \"secrétariat pôle enfant\" (Outlook).\nMettre en copie l'infirmière spécialisée : b.assani-madi@chmayotte.fr\n\nÀ PRÉCISER DANS LE MAIL\nMotif de la demande, IPP, nom du ou des parents, numéro de téléphone."
+  },
+  {
+    "title": "Béri-Béri — carence en vitamine B1, formes neurologique et cardiaque",
+    "category": "chronique",
+    "summary": "Endémique à Mayotte (« lalavi »/« Pamandzi »), formes cliniques et test diagnostique-thérapeutique à la thiamine.",
+    "content": "DÉFINITION\nCarence en vitamine B1 (thiamine).\n\nFORME NEUROLOGIQUE\nPolynévrite : faiblesse brutale des membres inférieurs, ataxie, aréflexie, paresthésies distales. Endémique à Mayotte, connue localement sous le nom de \"lalavi\" ou \"Pamandzi\" (fourmillements). Fréquente chez les femmes enceintes, nouvelles accouchées ou allaitantes, mais aussi chez les patients en situation précaire dont l'alimentation est à base de riz et de boissons sucrées.\n\nFORME CARDIAQUE (shoshin béri-béri)\nÀ évoquer, quel que soit l'âge, devant : une défaillance cardiovasculaire sans cause évidente, une acidose lactique inexpliquée, l'absence d'effet des drogues vasoactives.\nTest diagnostique ET thérapeutique : injection de 50mg de thiamine IVL ou intra-osseuse — apporte une amélioration spectaculaire si béri-béri.\n\nCONTEXTE ÉPIDÉMIOLOGIQUE LOCAL\nMayotte a connu une épidémie en 2004 chez des nouveau-nés de mères carencées, nourris exclusivement au sein. Un protocole de supplémentation systématique a été instauré depuis cet épisode."
+  },
+  {
+    "title": "Calendrier de surveillance du diabète — HAS 2014",
+    "category": "chronique",
+    "summary": "Suivi trimestriel : interrogatoire, examen clinique, bilan biologique, suivi spécialisé.",
+    "content": "SOURCE : HAS 2014\n\nÀ CHAQUE TRIMESTRE (M3, M6, M9, M12)\nInterrogatoire : tabagisme, consommation d'alcool, activité physique/sportive, alimentation, symptômes, suivi de l'observance et de la tolérance des traitements, suivi de l'auto-surveillance glycémique (ASG) si indiquée, évaluation des besoins en éducation thérapeutique (ETP).\n\nÀ M12 UNIQUEMENT\nSuivi de la vulnérabilité sociale.\n\nÉVALUATION CLINIQUE (à chaque trimestre)\nPoids et calcul de l'IMC (à chaque consultation), auscultation des vaisseaux, pouls jambiers et mesure de l'IPS, examen neurologique, examen des pieds.\n\nEXAMENS COMPLÉMENTAIRES\n- HbA1c : 2 à 4 fois par an (à M6 systématique, M3/M9 optionnel selon équilibre, M12 systématique)\n- EAL (exploration anomalie lipidique) : à M12\n- Créatininémie avec estimation du DFG : à M12\n- Albuminurie/créatininurie : à M12\n- ECG de repos (par MG ou cardiologue) : à M12\n\nSUIVI SPÉCIALISÉ SYSTÉMATIQUE (annuel)\n- Ophtalmologue : à M12\n- Dentiste : à M12"
+  },
+  {
+    "title": "Cardiopathie congénitale et acquise — signes d'alerte",
+    "category": "chronique",
+    "summary": "Se méfier devant 1ère crise d'asthme >6 ans ou souffle ; étiologies acquises Beri-Beri et RAA.",
+    "content": "QUAND S'EN MÉFIER\nDevant des tableaux de \"première crise d'asthme\" chez un enfant de plus de 6 ans, ou devant la découverte d'un souffle cardiaque.\n\nÉTIOLOGIES ACQUISES À NE PAS RATER\nLes deux grandes causes locales : le Beri-Beri et le RAA (rhumatisme articulaire aigu) — tous deux nettement plus fréquents à Mayotte qu'en métropole."
+  },
+  {
+    "title": "Contraception — enjeux spécifiques à Mayotte",
+    "category": "chronique",
+    "summary": "Forte natalité, méconnaissance culturelle, Implanon largement utilisé — besoin d'information claire.",
+    "content": "CONTEXTE\nAvec un taux de natalité très élevé et une culture traditionnelle où la contraception reste souvent méconnue et peu utilisée, l'information claire, loyale et appropriée est une priorité.\n\nPOINT CULTUREL IMPORTANT\nL'absence de règles est vécue ici comme une source de grande souffrance — un point essentiel à anticiper et expliquer avant la prescription, notamment des progestatifs.\n\nL'Implanon est largement prescrit à Mayotte et nécessite une information claire sur son mode d'action (notamment l'aménorrhée possible)."
+  },
+  {
+    "title": "Diabète type 1 — quand y penser et bilan",
+    "category": "chronique",
+    "summary": "Signes d'orientation et bilan immunologique à demander.",
+    "content": "QUAND Y PENSER\n- Début rapide ou explosif\n- Syndrome cardinal : polyuro-polydipsie\n- Amaigrissement avec polyphagie\n- Troubles visuels transitoires (anomalies de réfraction)\n\nBILAN À RÉALISER\nPeptide C, anticorps anti-insuline, anti-GAD, anti-îlot, anti-ZnT8, et IA2."
+  },
+  {
+    "title": "Diabète type 2 — algorithme décisionnel complet SFD 2021",
+    "category": "chronique",
+    "summary": "Arbre décisionnel pas-à-pas Metformine → bithérapie → insuline, sourcé Cardiomayotte/SFD.",
+    "content": "SOURCE : SFD 2021, MAJ 04/2023, Cardiomayotte (M. Angue, J. Larue, B. Speckhann, O. Pointeau)\n\nPRINCIPE GÉNÉRAL\nNe se substitue pas au bon sens : l'hypoglycémie tue vite, l'hyperglycémie tue lentement.\n\nCIBLES HbA1c\n7%, voire 6,5% en général. 8% si clairance <20 ou patient fragile. 9% si espérance de vie limitée.\n\nÉTAPE 1 — SI HbA1c > CIBLE (hors grossesse)\nMETFORMINE : 500mg x3/jour pendant 10 jours, puis 1g x2/jour. Demi-dose si clairance entre 30 et 45. Contre-indiquée si clairance <30.\n\nSI HbA1c > 9% D'EMBLÉE : bithérapie d'emblée = Metformine + un 2e agent.\n\nAPRÈS 3 MOIS, SI HbA1c TOUJOURS > CIBLE : évaluer le profil du patient.\n\nSI PAS D'OBÉSITÉ NI MALADIE RÉNALE NI INSUFFISANCE CARDIAQUE NI HAUT RISQUE CV → ajouter IDPP4 :\n- Sitagliptine 100mg/j (Januvia) ou Vildagliptine 100mg/j (Galvus)\n- Demi-dose si clairance <50, arrêt (sitagliptine) si clairance <30\n\nSI OBÉSITÉ, MALADIE RÉNALE, INSUFFISANCE CARDIAQUE OU HAUT RISQUE CV → deux options :\n\nOption AR-GLP1 :\n- Dulaglutide 1,5mg SC/semaine (Trulicity) ou Sémaglutide 0,5-2mg SC/semaine (Ozempic)\n- Introduction progressive, arrêt si clairance <15\n\nOption ISGLT2 :\n- Dapagliflozine 10mg/j (Forxiga) ou Empagliflozine 10mg/j (Jardiance)\n- Arrêt si clairance <20 (empa) ou <25 (dapa)\n\nAPRÈS 3 MOIS, SI HbA1c TOUJOURS > CIBLE\n- Si sous IDPP4 : relais par AR-GLP1\n- Si sous AR-GLP1 : ajout d'ISGLT2\n- Si sous ISGLT2 : ajout d'AR-GLP1 ou d'IDPP4\n\nAPRÈS 3 MOIS, SI TOUJOURS HORS CIBLE\nAjout d'une insulinothérapie lente : LANTUS, début à 8UI SC/jour, adaptation par palier de 2UI toutes les 48h jusqu'à obtention de glycémies à jeun correctes. ⚠️ Risque d'hypoglycémie : arrêter le sulfamide si association.\n\nCLASSES MOINS RECOMMANDÉES\nSulfamides et glinides : Daonil 5mg/j, Diamicron 60mg/j (stop si clairance <30), Novonorm 0,5-1mg x3/j. ⚠️ Risque d'hypoglycémie.\n\nPENSE-BÊTE\n- RHD (alimentation et activité physique) systématiques\n- Penser aux associations de médicaments\n- Bilan annuel : complications (ECG, biologie, fond d'œil, pied), autres facteurs de risque CV\n- Si protéinurie : néphroprotection avec IEC + ISGLT2\n\nPOINTS D'ATTENTION\n- Risque d'acidose lactique sous Metformine si hypovolémie\n- Ne pas associer IDPP4 et AGLP1 (redondants)\n- AGLP1 est plus efficace qu'IDPP4\n- Hypoglycémies à surveiller sous glinide, sulfamide, insuline\n- Les médicaments disponibles au CHM sont identifiables (notés en gras dans le document source)"
+  },
+  {
+    "title": "Diabète type 2 — mesures hygiéno-diététiques et prévention cardiovasculaire",
+    "category": "chronique",
+    "summary": "RHD fondamentales, statines et IEC en prévention primaire/secondaire.",
+    "content": "MESURES HYGIÉNO-DIÉTÉTIQUES (toujours revenir à ces 2 éléments fondamentaux pour diminuer l'insulinorésistance)\n- Perte de la graisse abdominale\n- Activité physique régulière : exercice d'intensité modérée, 30 minutes x3/semaine\n\nPRÉVENTION CARDIOVASCULAIRE PRIMAIRE\n- Statine : Simvastatine ou Atorvastatine\n- IEC : Ramipril si HTA ET microalbuminurie (effet néphroprotecteur)\n\nPRÉVENTION CARDIOVASCULAIRE SECONDAIRE\n- Aspirine"
+  },
+  {
+    "title": "Diabète type 2 — schémas thérapeutiques selon antécédent CV",
+    "category": "chronique",
+    "summary": "Escalade thérapeutique différenciée avec/sans antécédent cardiovasculaire.",
+    "content": "SCHÉMA CHEZ DT2 SANS ANTÉCÉDENT CARDIOVASCULAIRE\n1. Monothérapie : RHD + Metformine\n2. Si échec : Metformine + SH (si mince, pas de risque d'hypoglycémie) OU + IDPP4 (si surpoids, risque d'hypoglycémie)\n3. Si échec, trithérapie par Metformine + SH + IDPP4\n   OU mieux : Metformine + AGLP1 (surpoids, risque CV, risque d'hypoglycémie, cible de perte d'HbA1c autour de 1%)\n   OU Metformine + Insuline (peu de surpoids, pas de risque d'hypoglycémie, IR, CI aux autres thérapeutiques, pas de difficulté d'éducation)\n4. Si échec Metformine + insuline : ajouter un bolus ou un AGLP1\n\nSCHÉMA CHEZ DT2 AVEC ANTÉCÉDENT CARDIOVASCULAIRE\n1. Monothérapie : Metformine\n2. Si échec : Metformine + AGLP1\n3. Si échec : Metformine + AGLP1 + Insuline basale\n4. Si échec : Metformine + AGLP1 + basal/bolus\n\nDERNIÈRE CLASSE : INHIBITEURS DU SGLT2 (GLIFLOZINES)\nMécanisme : fait uriner le sucre. Baisse HbA1c de 0,5 à 1% (équivalent glinide), baisse la TA, baisse le poids, baisse la mortalité CV. Utilisable à tous les stades thérapeutiques chez le DT2.\nMais : augmente le risque d'AVC et d'ischémie (CI en cas d'AOMI), augmente le LDL et le risque d'infections urinaires et vaginales. CI si DFG <45ml/min."
+  },
+  {
+    "title": "Diabète type 2 — stratégie de choix thérapeutique (insuline vs AGLP1)",
+    "category": "chronique",
+    "summary": "Critères de choix entre les associations thérapeutiques selon le profil du patient.",
+    "content": "ASSOCIATIONS POSSIBLES (selon objectif HbA1c, contre-indications notamment IR, et risque d'hypoglycémie)\n- Metformine + Sulfamide(SH)/Glinide\n- Metformine + IDPP4\n- Metformine + SH/Glinide + IDPP4\n- Metformine + SH/Glinide + AGLP1\n- Metformine + SH/Glinide + insuline basale\n\nSI ÉCHEC DES TRAITEMENTS PER OS : choix entre insuline ou AGLP1\n\nEN FAVEUR DE L'INSULINE BASALE\nSi peu/pas de surcharge pondérale, si HbA1c >9%, si insuffisance rénale avec DFG <30.\n\nCONTRE L'INSULINE\nPatient à risque d'hypoglycémie (personne âgée, diabète ancien), difficulté d'éducation et d'adaptation des doses.\n\nEN FAVEUR DES AGLP1\nObésité, HbA1c <8,5%, patient à risque d'hypoglycémie, éducation difficile.\n\nCONTRE LES AGLP1\nPancréatite, insuffisance rénale avec DFG <30ml/min.\n\nSI MAUVAIS ÉQUILIBRE SOUS BASALE SEULE\n2 possibilités : basal/bolus OU basale/AGLP1 — améliore le profil glycémique, diminue l'HbA1c d'environ 2%, moins de risque d'hypoglycémie, perte de poids.\n\nFACTEURS À ÉVALUER EN PRATIQUE POUR ORIENTER LE CHOIX\nMotivation du patient, risque d'hypoglycémie, comorbidités, poids, complications CV, espérance de vie, ancienneté du diabète."
+  },
+  {
+    "title": "Diabète à Mayotte — contexte et objectifs HbA1c",
+    "category": "chronique",
+    "summary": "Prévalence élevée, objectifs individualisés selon profil du patient.",
+    "content": "CONTEXTE ÉPIDÉMIOLOGIQUE\nPrévalence estimée à 10% chez les plus de 30 ans et 20% chez les plus de 60 ans à Mayotte. Conséquence pratique : avoir le dextro facile en consultation.\nLes patients diabétiques sous insuline sont souvent suivis le matin au dispensaire. L'éducation se fait majoritairement au dispensaire ; des infirmiers libéraux existent pour les patients en ALD.\n\nDIABÈTE DE TYPE 2 — GÉNÉRALITÉS\nDéfaut d'action de l'insuline (insulinorésistance) et déclin progressif de la sécrétion d'insuline ; facteurs génétiques et environnementaux importants. Sujet d'âge mûr : 50% des DT2 ont >50 ans, 22% ont >75 ans. Prise en charge globale indispensable : glycémie ET tous les autres facteurs de risque CV (HTA, dyslipidémie, obésité, tabac).\nUne baisse d'1 point d'HbA1c réduit de 35% les complications microvasculaires, de 14% le risque d'IDM, de 14% la mortalité cardiovasculaire.\n\nSUIVI\nÉvaluation du traitement par HbA1c tous les 3 mois. Objectif et prise en charge individualisés selon le rapport bénéfice/risque du patient.\n\nOBJECTIF HbA1c <6,5% — TRAITEMENT INTENSIF\nIndiqué si : DT2 récent, sans comorbidité, sans antécédent de maladie cardiovasculaire.\nCible glycémique : glycémie à jeun <1g/L et postprandiale <1,40g/L.\n\nOBJECTIF HbA1c ~8% (entre 7,5 et 8,5%) — TRAITEMENT NON INTENSIF\nIndiqué si : diabète ancien, antécédent CV, sujet âgé, comorbidités multiples.\nCible glycémique : glycémie à jeun entre 0,90 et 1,30g/L, postprandiale <1,80g/L.\n\nAVEC LE FREESTYLE (CGM) — TEMPS PASSÉ DANS LA CIBLE\nTraitement intensif : cible 0,70-1,40g/L\nTraitement moins intensif : cible 0,70-1,80g/L\nHypoglycémie sévère <0,54g/L, hypoglycémie <0,70g/L"
+  },
+  {
+    "title": "Drépanocytose — présentation et suivi à Mayotte",
+    "category": "chronique",
+    "summary": "Physiopathologie, traitement de fond, filière de suivi, carnet rouge.",
+    "content": "PHYSIOPATHOLOGIE\nMaladie génétique plus fréquente dans la population à peau noire. Ne touche que les patients homozygotes SS, dépistés au test de Guthrie. L'hémoglobine S remplace l'hémoglobine A et déforme les hématies, qui obstruent les capillaires — ischémie appelée crise vaso-occlusive (CVO), responsable de douleurs sévères. Les hématies falciformes sont aussi plus fragiles, provoquant une anémie chronique.\n\nTRAITEMENT DE FOND\nAntibiotique (Oracilline) + vitamine B9.\n\nSUIVI À MAYOTTE\n- Enfants : suivi régulier en pédiatrie lors de missions spécifiques\n- Adultes : suivi par le Dr Garou à l'hôpital de Mamoudzou\n- Le carnet de santé des patients drépanocytaires est ROUGE (à repérer)\n\nVACCINATIONS SPÉCIFIQUES À RÉALISER\nTyphoïde, pneumocoque, hépatite B.\n\nAUX URGENCES (en crise vaso-occlusive)\nHémocue systématique, antalgie selon EVA (MEOPA inclus), hydratation correcte, antalgiques de palier I à III. Un arbre décisionnel selon l'intensité et la persistance de la douleur est affiché aux urgences (cf fiches dédiées CVO enfant et CVO adulte)."
+  },
+  {
+    "title": "Découverte d'HTA",
+    "category": "chronique",
+    "summary": "Trois options thérapeutiques de première intention.",
+    "content": "PHARMACIE (au choix)\n- AMLODIPINE 10mg : 0-0-1, 30 jours, AR 2 fois\n- NATRIXAM 10mg/1,5mg : 0-0-1, 30 jours, AR 2 fois\n- PERINDOPRIL 4mg : 1-0-0, 30 jours, AR 2 fois\n\nCAT\nPrendre RDV bilan sanguin (BS) et KRO dans 3 mois."
+  },
+  {
+    "title": "Déficit en G6PD (favisme) — présentation clinique",
+    "category": "chronique",
+    "summary": "Transmission liée à l'X, formes d'hémolyse, situations déclenchantes.",
+    "content": "TRANSMISSION\nMaladie génétique récessive liée au chromosome X. Touche surtout les hommes ; les femmes, rarement atteintes, sont transmettrices.\n\nPHYSIOPATHOLOGIE\nLa G6PD joue un rôle essentiel dans la réduction des agents oxydants et est indispensable à la survie des hématies. L'activité enzymatique est diminuée chez les porteurs : entre 40% (déficits modérés) et 1-2% (déficits sévères). Le déficit total n'existe pas.\n\nL'hémolyse peut être déclenchée par certains aliments (notamment les fèves — origine du nom \"favisme\") et par des médicaments \"oxydants\" (cf liste des contre-indications dans la fiche dédiée).\n\nFORMES CLINIQUES DE L'HÉMOLYSE\n- Anémie hémolytique aiguë : après ingestion d'aliments/médicaments déclenchants. Intensité variable : fièvre, ictère, pâleur, asthénie, anorexie, céphalées, douleurs abdominales et lombaires, urines foncées. Peut entraîner une insuffisance rénale dans les formes sévères.\n- Anémie hémolytique chronique : rare, peut entraîner un ictère récidivant et parfois une lithiase biliaire.\n- Ictère néonatal : débute vers J2-J3 de vie, plus intense et plus durable que l'ictère physiologique, peut entraîner des séquelles neurologiques.\n\nDIAGNOSTIC\nTest spécifique de dosage de l'activité G6PD, à demander sur les biologies de routine."
+  },
+  {
+    "title": "Déficit en G6PD — liste des médicaments contre-indiqués et déconseillés",
+    "category": "chronique",
+    "summary": "Tableau de référence à vérifier avant toute prescription chez un patient porteur connu.",
+    "content": "LÉGENDE\n🔴 Contre-indiqués (risque d'hémolyse aiguë) — ⚠️ Déconseillés (sous réserve de posologie strictement respectée) — 🙂 Utilisables\n\nCONTRE-INDIQUÉS (risque d'hémolyse)\n- Acide nalidixique\n- Bleu de méthylène (voie injectable)\n- Dapsone\n- Métamizole sodique / Noramidopyrine\n- Nitrofurantoïne\n- Primaquine\n- Rasburicase\n- Sulfadiazine (voie orale)\n- Sulfafurazole\n- Sulfaguanidine\n- Sulfaméthizol\n- Sulfaméthoxazole\n- Sulfasalazine\n\nDÉCONSEILLÉS (sous réserve de posologie strictement respectée)\n- Acide ascorbique (vitamine C) — déconseillé à forte dose\n- Acide pipémidique\n- Antipyrine (phénazone)\n- Carbutamide, Glibenclamide, Gliclazide, Glimépiride, Glipizide, Gliburnide (sulfamides hypoglycémiants)\n- Chloroquine\n- Ciprofloxacine\n- Dimercaprol\n- Enoxacine, Fluméquine, Lévofloxacine, Loméfloxacine, Moxifloxacine, Norfloxacine, Ofloxacine, Péfloxacine (quinolones)\n- Hydroxychloroquine\n- Phénazone (voie cutanée et nasale)\n- Phytoménadione / Vitamine K1\n- Prilocaïne\n- Quinine\n- Spiramycine\n- Streptokinase\n- Sulfacétamide\n- Sulfadiazine (voie cutanée)\n- Sulfadoxine\n\nUTILISABLES (sous réserve du respect strict de la posologie)\n- Acide acétylsalicylique (Aspirine)\n- Acide ascorbique (vitamine C) à dose normale\n- Paracétamol\n- Triméthoprime\n\nRÈGLE PRATIQUE\nTOUJOURS vérifier cette liste avant toute prescription chez un patient connu porteur d'un déficit en G6PD, en particulier avant antibiothérapie (sulfamides, quinolones), antipaludéens (chloroquine, primaquine, quinine) ou antalgiques."
+  },
+  {
+    "title": "Dépistage cancer du col et du sein — Mayotte",
+    "category": "chronique",
+    "summary": "Via Redeca sans RDV, campagnes de dépistage, ou sages-femmes ambulatoires.",
+    "content": "Le dépistage du cancer du col et du sein est réalisé par Redeca, sans rendez-vous, ou lors de campagnes de dépistage (à Mamoudzou, à côté de Jacaranda), ou via les sages-femmes ambulatoires."
+  },
+  {
+    "title": "Dépistage de la malnutrition aiguë — algorithme CHM",
+    "category": "chronique",
+    "summary": "Périmètre brachial, œdèmes, classification MAS/MAM et orientation — chez tout enfant de 6 mois à 5 ans.",
+    "content": "SOURCE : CHM, Dr A. Vernaz, janvier 2019\n\nQUI DÉPISTER\nTous les enfants de 6 mois à 5 ans consultant en PMI, dispensaire, urgences ou pédiatrie.\n\nMESURES\nMesurer le périmètre brachial (PB, = MUAC). Rechercher des œdèmes bilatéraux prenant le godet.\n\nSI ŒDÈMES → KWASHIORKOR (quel que soit le poids/taille)\nStades de gravité :\n+ : pieds\n++ : pieds et tibias\n+++ : pieds, tibias et visage\n→ Œdèmes = MALNUTRITION AIGUË SÉVÈRE (MAS) d'emblée\n\nSI PAS D'ŒDÈMES ET PB < 125mm → suspicion de MARASME\nMesurer le poids et la taille, calculer le Z-score Poids/Taille (P/T) :\n- Si PB <115mm OU P/T <-3DS → MALNUTRITION AIGUË SÉVÈRE (MAS)\n- Si 115mm < PB < 125mm OU -3DS < P/T < -2DS → MALNUTRITION AIGUË MODÉRÉE (MAM)\n\nSI MAS → APPELER LE PÉDIATRE DE GARDE DU CHM : poste 70194\nOrientation possible : urgences CHM, hospitalisation programmée en pédiatrie, consultation externe pédiatrie (poste 5170), ou suivi ambulatoire selon avis.\n\nSI MAM → ÉVALUER LE CONTEXTE\n1. Pathologie chronique connue non suivie ou fortement suspectée ? → Si OUI : appeler le pédiatre de garde (70194)\n2. Si NON : complication médicale aiguë ? → Si OUI : appeler le pédiatre de garde\n3. Si NON : test d'appétit → Si NÉGATIF : appeler le pédiatre de garde ; si POSITIF : suivi ambulatoire\n\nSUIVI AMBULATOIRE (MAM)\nDurée 8 à 12 semaines, objectif P/T > -2DS. Suivi par la PMI de secteur (suivi clinique du poids).\n\nCRITÈRES DE RÉ-ORIENTATION VERS LE PÉDIATRE PENDANT LE SUIVI\n- Poids stagnant pendant 3 semaines\n- Poids cible non atteint à 8 semaines\n- Complication médicale aiguë"
+  },
+  {
+    "title": "ECG du sportif et certificat de non contre-indication",
+    "category": "chronique",
+    "summary": "Algorithme de dépistage de mort subite, classification ECG normal/borderline/anormal de l'athlète noir.",
+    "content": "SOURCES : International recommendations for electrocardiographic interpretation in athletes, S. Sharma et al., European Heart Journal 2018 ; Recommandations concernant le contenu du bilan cardiovasculaire de la visite de non contre-indication au sport en compétition entre 12 et 35 ans.\n\nOBJECTIF\nPrévention de la mort subite du sportif lors de la délivrance d'un certificat de non contre-indication.\n\n1. RECHERCHE DE CONTRE-INDICATION À L'INTERROGATOIRE ET À L'EXAMEN CLINIQUE\nInterrogatoire + examen clinique + PA, recherchant : symptômes (douleur, syncope), antécédents personnels (cardiopathie, facteurs de risque CV), antécédents familiaux de mort subite <50 ans ou cardiopathie.\n\nSi bilan normal → ECG\nSi symptômes, ATCD personnels/familiaux, ou ECG anormal → avis spécialisé\n\nINDICATIONS DE L'ECG DE REPOS\nSi asymptomatique : ECG systématique annuel pour tous les sportifs inscrits sur liste de Haut Niveau ; avant toute délivrance d'une licence de compétition (12-35 ans) puis tous les 3 ans jusqu'à 20 ans, tous les 5 ans après 35 ans ; chez les sujets désirant reprendre une activité physique régulière ; en cas de facteurs de risque cardiovasculaire.\n\n⚠️ Après 35 ans, la cause la plus fréquente de mort subite est la cardiopathie ischémique. Toujours rechercher et traiter les facteurs de risque, expliquer au patient les symptômes devant amener à consulter (douleur thoracique, syncope, dyspnée).\n\n2. INTERPRÉTATION DE L'ECG DE L'ATHLÈTE\nL'ECG peut se modifier avec une pratique sportive importante. L'origine ethnique est un déterminant majeur de l'adaptation cardiaque à l'effort : 2/3 des athlètes noirs présentent des troubles de repolarisation. Si le patient n'est PAS sportif, ces troubles ECG ne doivent PAS exister.\nDéfinition d'un athlète : élite ≥10h/semaine, \"compétition\" ≥6h/semaine, \"récréatif\" >4h/semaine.\n\nTracés NORMAUX (aucun examen supplémentaire si asymptomatique, sans ATCD familiaux) :\nBradycardie sinusale, HVG électrique, BBD incomplet, repolarisation précoce/sus-ST non systématique, sus-ST avec ondes T négatives V1-V4 chez les athlètes noirs, onde T négative V1-V3 si <16 ans, rythme ectopique atrial ou jonctionnel (normalisation à l'effort), BAV1, BAV2 Mobitz1 (normalisation à l'effort).\n\nTracés BORDERLINE (adresser au cardiologue si ≥2 critères, sinon aucun examen si 1 seul) :\nDéviation axiale droite ou gauche, hypertrophie atriale, BBD complet.\n\nTracés ANORMAUX (adresser systématiquement au cardiologue pour recherche de pathologie cardiovasculaire) :\nOndes T négatives (sauf AVR, D3, V1), sous-ST, ondes Q, BBG, QRS >140ms, onde delta/pré-excitation, allongement QT, Brugada, bradycardie <30bpm, PR >400ms, BAV haut degré, FA/flutter ou autre TV.\n\n3. ÉDUCATION DU PATIENT (essentielle)\n- Respect des symptômes devant amener à consulter\n- Respect des règles de pratique sportive (10 règles d'or, cf annexe)\n- Connaissance des gestes de secours en cas de mort subite\n\n4. REPRISE DU SPORT CHEZ LE CARDIOPATHE (IDM, myocardite...)\nAccord du cardiologue obligatoire avant la reprise."
+  },
+  {
+    "title": "Filariose lymphatique",
+    "category": "chronique",
+    "summary": "À évoquer devant hydrocèle/orchite chez patient âgé n'ayant pas quitté le territoire.",
+    "content": "CONTEXTE\nQuelques cas d'éléphantiasis des membres inférieurs ou du scrotum, chez des patients âgés n'ayant jamais quitté le territoire.\n\nQUAND Y PENSER\nDevant une hydrocèle ou une orchite chez ce profil de patient.\n\nDIAGNOSTIC\nRecherche de microfilaires dans le sang."
+  },
+  {
+    "title": "Filière cardiologique — prise de rendez-vous et orientation",
+    "category": "chronique",
+    "summary": "Demandes via DxCare, pas d'angiologie/chirurgie vasculaire sur place.",
+    "content": "CONTEXTE\nEn raison de l'absence ponctuelle de cardiologue et du nombre élevé de consultations, les patients sont adressés pragmatiquement via des demandes sur DxCare. Il n'existe pas de consultation d'angiologie ni de chirurgie vasculaire sur le territoire — peu de patients présentant une AOMI du fait du faible tabagisme local.\n\nCOMMENT FAIRE UNE DEMANDE\nDans DxCare : Recueil médical → onglet Questionnaire → Consultation cardio → Évaluation CS Cardio. Préciser le numéro du patient ; les cardiologues réalisent leur tri à partir de ces demandes."
+  },
+  {
+    "title": "Gynécologie — organisation du suivi à Mayotte",
+    "category": "chronique",
+    "summary": "Filières PMI, sages-femmes, libéral. Urgences gynéco poste 5591, obstétricales 5580.",
+    "content": "ORGANISATION GÉNÉRALE\nLe suivi gynécologique peut se faire par : les sages-femmes en PMI, en libéral, en médecine générale, ou par les deux gynécologues libéraux du territoire.\n\nLes sages-femmes du dispensaire n'ont pas vocation à faire de consultation gynécologique systématique, mais leur avis peut être sollicité.\n\nURGENCES\nUrgences gynécologiques : poste 5591\nUrgence obstétricale : poste 5580\n\nRÔLE DE LA PMI (gratuite)\nSuivi des femmes enceintes et volet gynécologique général : contraception (bilan et prescription), frottis cervico-vaginaux, IVG médicamenteuses. Certaines sages-femmes sont formées au suivi de grossesse (avec échographie) et à la pose de contraception (en PMI ou en ville).\n\nCANCÉROLOGIE GYNÉCO\nFaute d'organisation de consultation dédiée actuellement, adresser les patientes aux urgences gynéco pour la première consultation — le suivi sera ensuite assuré en gynécologie."
+  },
+  {
+    "title": "HTA — particularités et prise en charge à Mayotte",
+    "category": "chronique",
+    "summary": "Très fréquente, apparaît jeune, préférence pour inhibiteurs calciques et thiazidiques selon profil ethnique.",
+    "content": "CONTEXTE\nL'HTA est très fréquente à Mayotte, apparaît facilement dès 30 ans. Le patient comprend souvent mal le caractère chronique de la maladie. Au dispensaire, les HTA sont vues en consultation \"chronique\" le matin, mais aussi découvertes de façon inopinée ou via une mauvaise observance du traitement. Des chiffres >180/90mmHg sont courants en routine.\n\nCHOIX THÉRAPEUTIQUES PRÉFÉRENTIELS (livret CHM)\n- AMLODIPINE préférée à la NICARDIPINE : demi-vie longue, prise unique quotidienne\n- INDAPAMIDE préféré à l'HYDROCHLOROTHIAZIDE : meilleure tolérance (diabète, dysfonction érectile) et meilleure efficacité\n- IEC (PERINDOPRIL) plus efficaces que les ARA2 : à privilégier en 1ère intention, à changer en cas de toux. Contre-indication à vie des deux classes en cas d'angioedème sous IEC\n- On préfère les inhibiteurs calciques en 1ère intention et les diurétiques thiazidiques chez le patient d'ethnie noire, du fait de spécificités physiopathologiques\n\nEN PRATIQUE DEVANT UNE DÉCOUVERTE D'HTA\n- Prendre RDV via les secrétaires : bilan sanguin et kiné rénale orientée (chronique)\n- Bilan OMS minimal : ECG, iono, créatinine, urée, EAL, glycémie, protéinurie et créatininurie sur échantillon\n- Introduire de l'AMLODIPINE\n\nRESSOURCES\nDes vidéos YouTube en shimaoré faites par les cardiologues du CHM sont disponibles et à diffuser aux patients : https://www.youtube.com/@cardiomayotte4450"
+  },
+  {
+    "title": "Hépatite B — interprétation sérologique et CAT complète",
+    "category": "chronique",
+    "summary": "Tableau d'interprétation Ag HBs/AC anti-HBs/AC anti-HBc + suivi du portage chronique + dépistage entourage.",
+    "content": "MARQUEURS À DEMANDER SYSTÉMATIQUEMENT\nAg HBs / AC anti-HBs / AC anti-HBc\n\n- Ag HBs : marqueur de portage du virus. Portage chronique si positif ≥6 mois.\n- AC anti-HBs : se positive après vaccination ou après guérison.\n- AC anti-HBc : se positive si l'organisme a été en contact avec le VHB (hépatite guérie ou chronique).\n\nINTERPRÉTATION\nAg HBs(-) AC anti-HBs(-) AC anti-HBc(-) → Sujet indemne et non vacciné → Vaccination à faire\nAg HBs(-) AC anti-HBs(+) AC anti-HBc(-) → Sujet indemne et vacciné → Rien à faire\nAg HBs(-) AC anti-HBs(+) AC anti-HBc(+) → Hépatite B ancienne guérie → Rien à faire\nAg HBs(+) AC anti-HBs(-) AC anti-HBc(+) → Hépatite B chronique → À bilanter\nAg HBs(-) AC anti-HBs(-) AC anti-HBc(+) → HB guérie (95%) ou chronique (5%) → Contrôle PCR HB : si positif, recontrôler Ag HBs ; si négatif, fin des investigations\n\nL'Ag HBe/AC HBe sont réservés au spécialiste (pré-traitement). La charge virale (PCR VHB) n'est demandée que devant un portage Ag HBs ≥6 mois (suivi de l'hépatite chronique).\n\nCAT DEVANT UN Ag HBs POSITIF\n\n1. Bilan initial de découverte\n- NFS, plaquettes, TP, ASAT, ALAT, gGT, albumine\n- Alpha-foetoprotéine\n- Fibrotest (degré de fibrose F0-F4 ; si fibrose → indication de PBH)\n- Sérologies VIH et hépatite C\n- Charge virale PCR HB\n- Échographie hépatique\n\n2. Suivi du portage chronique (hépatite non active, patient non traité)\nÀ 6 mois : ASAT/ALAT/gGT, charge virale PCR HB\nÀ 1 an : ASAT/ALAT/gGT, TP, alpha-foetoprotéine, charge virale\nPuis tous les 2 ans : NFS plaquettes, TP, ASAT/ALAT/gGT, albumine, alpha-foetoprotéine, fibrotest, charge virale + échographie abdominale\n\n3. Hépatite B chronique active (charge virale +, cytolyse, fibrotest +, anomalie échographique)\nAdresser aux consultations Hépatite B du CHM (poste 5060)\n\n4. Dépistage et vaccination de l'entourage\nBilan (Ag HBs + AC anti-HBs + AC anti-HBc) à faire chez le/la conjoint(e) et tous les enfants, même vaccinés.\n\n5. Suivi des enfants nés de mère Ag HBs+\nContrôle sérologique à partir de 12 mois (minimum 6 mois après la dernière injection), même si vacciné à la naissance, pour évaluer l'efficacité de la sérovaccination. Bilan : Ag HBs + AC anti-HBs + AC anti-HBc."
+  },
+  {
+    "title": "IVG — circuit de prise en charge à Mayotte",
+    "category": "chronique",
+    "summary": "Service d'orthogénie Mamoudzou (poste 2844), bilan préthérapeutique à anticiper.",
+    "content": "CIRCUIT\nEn cas de demande d'IVG, le service d'orthogénie à Mamoudzou (poste 2844) prend en charge rapidement les patientes, même sans rendez-vous le matin.\n\nEN CONSULTATION\nDevant une demande d'IVG, adresser la patiente à la sage-femme de la maternité, qui réalisera une échographie et un bilan préthérapeutique.\n\nPOUR AVANCER LA PRISE EN CHARGE, VOUS POUVEZ DÉJÀ PRESCRIRE\nNFS, TP/TCA, Groupe + Rhésus + RAI, sérologies VHB/VIH/VHC/syphilis, + PCR chlamydia et gonocoque (écouvillon bouchon rouge)."
+  },
+  {
+    "title": "Infarctus — territoires coronaires et critères ECG du sus-décalage",
+    "category": "chronique",
+    "summary": "Critères diagnostiques du sus-décalage ST et correspondance territoire coronaire/dérivations ECG.",
+    "content": "CRITÈRES DIAGNOSTIQUES DU SUS-DÉCALAGE ST\nDans un contexte de douleur thoracique, un sus-décalage doit faire évoquer un infarctus si :\nSus-décalage dans 2 dérivations contiguës d'un même territoire coronaire :\n- ST ≥2mm chez l'homme ou ≥1,5mm chez la femme en V2-V3\n- OU ≥1mm dans les autres dérivations\n(en l'absence d'HVG ou de BBG, qui peuvent fausser l'interprétation)\n\nCORRESPONDANCE TERRITOIRE / ARTÈRE / DÉRIVATIONS\n- Territoire inférieur (D2, D3, aVF) → artère coronaire droite (CD)\n- Territoire antérieur (V1-V4 environ) → IVA (interventriculaire antérieure)\n- Territoire latéral (D1, aVL, V5-V6) → CX (circonflexe) ou IVA selon le cas\n- Territoire tronc commun → atteinte étendue, souvent D1/aVL + antérieur\n\nCAUSES DE MORT SUBITE CHEZ LE SPORTIF (Maron BJ, Epstein SE, Roberts WC, J Am Coll Cardiol 1989;7:204-214)\n\nChez les ≤35 ans : cardiomyopathie hypertrophique (48%), hypertrophie ventriculaire gauche idiopathique (18%), anomalies coronaires (14%), rupture aortique (7%), coronaropathie (10%), inexpliqué (3%)\n\nChez les >35 ans : coronaropathie (80% — cause largement dominante), cardiomyopathie hypertrophique (5%), valvulopathie (5%), prolapsus valve mitrale (5%), inexpliqué (5%)"
+  },
+  {
+    "title": "Lèpre — repères et orientation",
+    "category": "chronique",
+    "summary": "Reste endémique à Mayotte, signes d'appel et filière de consultation spécialisée.",
+    "content": "CONTEXTE\nReste endémique à Mayotte (infection à Mycobacterium leprae). Rare, retrouvée parfois chez des populations venues d'Anjouan. Atteint la peau, les muqueuses et le système nerveux périphérique. Transmission par gouttelettes buccales/nasales lors de contacts étroits et fréquents avec un sujet infecté non traité.\n\nQUAND Y PENSER\nToute lésion en plaque hypochromique ou hypoesthésique, ou lésion cutanée papulo-noduleuse persistante. Toujours rechercher une hypertrophie nerveuse en cas de doute.\n\nDEUX FORMES\n- Paucibacillaire : lésions hypoesthésiques/anesthésiques, atteinte nerveuse précoce, localisée et sévère (75% des formes tuberculoïdes)\n- Multibacillaire : la plus fréquente à Mayotte (100% des formes lépromateuses, 25% des formes tuberculoïdes). Lésions hypo/normo-esthésiques, atteinte nerveuse plus discrète et tardive. Forme lépromateuse contagieuse.\n\nORIENTATION\nEn cas de suspicion : adresser à la consultation de léprologie (tél. 6082), tous les jeudis matin à Action Santé, dispensaire de Jacaranda."
+  },
+  {
+    "title": "Malnutrition aiguë modérée — prise en charge ambulatoire complète",
+    "category": "chronique",
+    "summary": "Interrogatoire, examen, traitement systématique, aliments thérapeutiques, suivi et critères de guérison — enfants 6 mois-5 ans.",
+    "content": "SOURCE : CHM, Dr A. Vernaz, janvier 2019\n\nINTERROGATOIRE\nContexte socio-économique, naissance, antécédents, alimentation/diversification, vaccinations, courbes poids et taille.\n\nEXAMEN CLINIQUE\nŒdèmes, complications aiguës (infections : OMA, pneumopathie, infection cutanée, PNA ; hypoglycémie, hypothermie, diarrhée avec déshydratation), pathologie sous-jacente, carences (rachitisme, béribéri, xérophtalmie).\n\nSi complication ou doute : appeler le pédiatre de garde du CHM (poste 70194).\n\nTRAITEMENT SYSTÉMATIQUE (délivré par la pharmacie du CHM : dispensaires de référence ou Mamoudzou)\n- ALBENDAZOLE en prise unique : <8kg = 200mg ; >8kg = 400mg\n  OU FLUVERMAL 100mg x2/jour pendant 3 jours, puis 2e cure de 3 jours 3 semaines plus tard\n- HYDROSOL POLYVITAMINE :\n  <1 an : 10 gouttes/jour en 1 prise, pendant 1 mois\n  1-3 ans : 15 gouttes/jour en 1 prise, pendant 1 mois\n  3-5 ans : 20 gouttes/jour en 1 prise, pendant 1 mois\n- ACIDE FOLIQUE : 1 dose unique de 5mg, quel que soit le poids ou l'âge\n- Si indication de supplémentation en fer : attendre 2 semaines de prise en charge avant de débuter, puis supplémenter pendant 3 mois minimum\n\nPRISE EN CHARGE NUTRITIONNELLE\n\nRègles hygiéno-diététiques :\n- Repas fréquents (5-6/jour), donner le temps, ne pas forcer, portions individuelles\n- Ordre de priorité : sein, puis aliment thérapeutique, puis repas familial enrichi\n- Préférer la tasse au biberon. Lavage des mains. Eau et aliments dans récipients fermés.\n\nAliment thérapeutique :\n- 1 sachet de Plumpy Nut/jour, délivré tous les 15 jours dans les points relais de la Croix-Rouge\nOU selon âge/poids :\n  <1an et <8kg : INFATRINI 80ml/kg/j\n  ≥1an et ≥8kg : NUTRIDRINK Smoothie 2/jour, ou INFATRINI 80ml/kg/j\n  >3ans : FORTIMEL Compact ou Juicy 2/jour\n  (délivré tous les 15 jours par la pharmacie du CHM : Mamoudzou, Jacaranda, Petite-Terre, Dzoumogné, Kahani, Mramadoudou)\n\nSUIVI (8 à 12 semaines)\nRemplir la fiche de liaison médicale (à agrafer dans le carnet de santé) ET la fiche de liaison Croix-Rouge (à envoyer par mail à malnutrition.mayotte@croix-rouge.fr).\n\nSuivi médical et paramédical : consultation médicale initiale puis à 3 mois ; consultation infirmière PMI 1x/semaine (poids, œdèmes, appétit, observance médicament et aliment thérapeutique, diarrhée, vomissements, fièvre, toux).\n\nSuivi social : distribution du Plumpy Nut, bon alimentaire de 3 mois systématique pour les familles d'enfants malnutris, accompagnement des familles dans certaines localités.\n\nCRITÈRES DE GUÉRISON\n- P/T > -2DS pendant 2 semaines consécutives\n- Absence d'œdèmes depuis au moins 7 jours\n- Courbe ascendante sur les 2 dernières semaines\n- Au moins 21 jours de prise en charge dans le protocole\n- Rattrapage vaccinal fait ou en cours\n- Absence de pathologie aiguë en cours de traitement\n\nCONTACTS ÉQUIPE MALNUTRITION CROIX-ROUGE\nSecteurs Nord : Ousseni Zakaria Rizik, 0639 27 99 16\nSecteurs Mamoudzou/Petite-Terre : Hassani Moina, 0639 40 28 72\nSecteur centre : Antoy Natydja, 0639 27 02 61\nSecteur Koungou/Kawéni : Naouda Sikina, 06 39 29 10 50\n\nFiche de liaison à envoyer (scannée ou photographiée) à : malnutrition.mayotte@croix-rouge.fr\n⚠️ Toute fiche incomplète ou remise sur place par le bénéficiaire ne sera pas prise en compte."
+  },
+  {
+    "title": "Malnutrition — coordination des acteurs et logique de filière",
+    "category": "chronique",
+    "summary": "Répartition des rôles Croix-Rouge / dispensaire / PMI.",
+    "content": "RÉPARTITION IDÉALE DES RÔLES\n\nCROIX-ROUGE\n- Reçoit toutes les fiches de liaison MAM et MAS\n- Distribue le Plumpy Nut (+ laits + aide alimentaire)\n- Éducation des familles (selon disponibilité locale)\n\nCENTRES DE CONSULTATION (DISPENSAIRE)\n1ère et dernière consultation médicale :\n- Test d'appétit\n- Prescription de l'aliment thérapeutique\n- Prescription et délivrance du traitement systématique\n\nPMI — suivi hebdomadaire\n- Suivi pondéral, dépistage des complications\n- Conseils hygiéno-diététiques\n\nÀ SAVOIR\nLes enfants malnutris peuvent être adressés en PMI sans rendez-vous, tous les jours de la semaine. Les infirmiers de PMI sont formés au suivi du poids, de la prise de l'aliment thérapeutique et des vitamines ; ils renvoient l'enfant en cas de stagnation de poids >3 semaines ou de maladie aiguë.\nLes malnutritions sont systématiquement à adresser aux PMI pour le suivi.\nLa guérison est attestée à -2ET ou lors d'une prise de poids de 15% (ce critère permet de réunir les enfants diagnostiqués par périmètre brachial et par la table de référence poids-taille)."
+  },
+  {
+    "title": "Malnutrition — recettes locales enrichies (diététique Mayotte)",
+    "category": "chronique",
+    "summary": "Idées de recettes enrichies en protéines/lipides à base d'ingrédients locaux, à proposer aux familles.",
+    "content": "SOURCE : Noussoura Nouroulhoudah, Diététicienne, Centre Hospitalier de Mayotte, juillet 2015\n\nIDÉES POUR LE PETIT-DÉJEUNER ET LA COLLATION\n- Bouillie de riz, manioc, farine de blé ou maïs, au lait entier, avec 1 càc bien remplie de beurre ou 1 càs d'huile + 3 càs de lait en poudre du commerce\n- Bouillie de vermicelles au lait en poudre (3 càs) + 1 cuillère d'huile ou lait entier\n- Bouillie de riz/manioc/farine enrichie avec 200ml de lait de coco\n\nIDÉES POUR LE DESSERT\n- 1 yaourt enrichi avec fruit mixé (ananas, mangue, papaye...)\n- Compote enrichie\n\nIDÉES POUR LE DÉJEUNER OU DÎNER\n- Papaye mûre au lait de coco + riz enrichi à l'huile (1 càs)\n- Romazava de brèdes mouroungue avec sardine et huile (2 càs) + riz\n- Riz au coco + lait entier de vache (≈200ml)\n- Tsoutsouboui (manioc séché et pillé) au lait de coco\n- Mhogo (manioc séché et pillé) piqui au poisson et au lait de coco\n- Gratin de pomme de terre ou de fruit à pain, sauce béchamel + 20g de gruyère/emmental râpé\n- Songe (majimbi) au coco, à la viande ou au poisson\n- Papaye verte au lait de coco et poisson + riz\n- Trovie ya nadzi (banane au coco) à la viande ou au coco\n- Moutsolola (fruit à pain + manioc + huile) à la viande ou au poisson\n- Soupe de légumes (2 càs d'huile ou de beurre)\n- Romazava de brèdes au poisson ou à la viande + riz\n- Oubou wa ndrimou (riz, citron, tomate, oignon, poisson ou bigorneau) — adaptable dès 5 mois en enlevant le poisson\n\nEXEMPLE DE MENU TYPE PAR ÂGE\n\nMatin (7h-8h) : bouillie de riz + beurre/huile + lait en poudre, OU vermicelles au lait en poudre + huile, OU compote de pomme + beurre\n\nCollation (10h) : bouillie de farine/maïs au lait en poudre, ou tartine pain de mie + fromage + fruit\n\nDéjeuner (12h) : oubou wa ndrimou, ou purée pomme de terre/manioc enrichie + viande hachée sauce tomate, ou riz + romazava de brèdes au poisson, ou mtsolola + viande/poisson sauce tomate. Suivi de compote + fromage blanc/yaourt + beurre.\n\nCollation (15h-16h) : bouillie de farine + lait en poudre, smoothie de fruits mixés au lait, compote enrichie\n\nDîner (19h) : songe au lait de coco (poisson ou viande), ou riz + omelette fromage + rougail tomate, ou yaourt sucré + mangue mûre/pomme cuite + beurre\n\nREPÈRES D'ADAPTATION SELON L'ÂGE\n- À partir de 5 mois : préparations marquées 🟦\n- À partir de 7-8 mois : préparations marquées 🔺\n- Après 12 mois : préparations marquées ⚫\nAdapter la quantité d'huile selon l'âge : 1 càc avant 4 mois, à augmenter progressivement ensuite.\nUtiliser le lait adapté à l'âge (1er âge, 2e âge, croissance, puis lait entier).\nCàs = cuillère à soupe, càc = cuillère à café."
+  },
+  {
+    "title": "Patient polyvasculaire / antécédent d'infarctus — comprendre et suivre",
+    "category": "chronique",
+    "summary": "Définitions (sténose/SCA ST-/SCA ST+), déroulé de la consultation de suivi sans cardiologue, dépistage des autres localisations.",
+    "content": "QU'EST-CE QU'UN INFARCTUS ?\nSouffrance myocardique liée à une sténose/occlusion d'une artère coronaire. La séquelle dépend de la durée de la douleur et de la localisation de la lésion. La troponine est intracytoplasmique (myocytes) : sa présence dans le sang signe la mort de myocytes.\n\nTROIS SITUATIONS\n- Sténose = angor d'effort stable. Le périmètre de marche sans douleur définit la sévérité ; l'évolutivité et la durée traduisent sa stabilité.\n- Artère sub-occluse = SCA ST- (si troponine+) ou angor instable (si troponine-) — de novo, crescendo, ou à moindre effort.\n- Artère occluse = SCA ST+ — souvent dû à une rupture de plaque, donc NON précédé de sténose ou d'angor connu (anticipation impossible par test d'effort).\n\nCOMMENT SUIVRE CES PATIENTS SANS CARDIOLOGUE — DÉROULÉ DE CONSULTATION\n\nSpécifique infarctus :\n- Vérifier que le CR de coronarographie est bien dans \"document externe\" du dossier DxCare (impératif et utile pour tous)\n- Si FEVG altérée : se référer au protocole de suivi de l'insuffisance cardiaque\n\nExamen clinique :\n- Rechercher douleur thoracique à l'effort, palpitations, dyspnée\n- Si présence d'un signe : renforcement du traitement anti-ischémique + épreuve d'effort si cardiologue présent ; en son absence, prendre avis à La Réunion\n\nDépistage des autres localisations :\n- Auscultation des carotides (recherche de souffle)\n- Recherche d'AOMI : interrogatoire, palpation des pouls, IPS (indice de pression systolique)\n- En cas d'anomalie : référer à un angiologue (à défaut un radiologue), ou directement au chirurgien vasculaire à La Réunion si urgent\n\nExamens complémentaires de suivi :\n- ECG annuel (recherche ischémie aiguë, trouble du rythme). Si doute ou absence de cardiologue : avis via Omnidoc.\n- Biologie facteurs de risque cardiovasculaire annuelle (bon pré-coché disponible au CHM, réf. C1-LAB-ENR40-V1)"
+  },
+  {
+    "title": "Patient sous insuline — CAT devant un dextro anormal (règles générales)",
+    "category": "chronique",
+    "summary": "5 règles de base avant toute adaptation de dose.",
+    "content": "1. DEXTRO NORMAL À JEUN\nCompris entre 0,80g/L et 1,20g/L.\n\n2. TOUJOURS RECHERCHER UNE EXPLICATION AU DÉSÉQUILIBRE\nPatient non à jeun, repas exceptionnel, alimentation insuffisante, oubli de traitement, etc. Une explication retrouvée ne nécessite pas forcément une adaptation des doses.\n\n3. SI DEXTRO > 1,20g/L\nAttendre 3 jours successifs pour confirmer la tendance à l'hyperglycémie avant de modifier la dose d'insuline.\n\n4. SI DEXTRO < 0,80g/L\nPrendre en charge l'hypoglycémie ET modifier la dose d'insuline le jour même. En cas d'épisodes répétitifs (au moins 3 dans la semaine), prévenir le médecin.\n\n5. DANS TOUS LES CAS\nNe jamais supprimer la dose d'insuline."
+  },
+  {
+    "title": "Pied bot — filière de prise en charge",
+    "category": "chronique",
+    "summary": "Pris en charge en MPR, RDV au 02 69 61 86 59 ou poste 4300.",
+    "content": "Les pieds bots sont pris en charge en MPR (médecine physique et de réadaptation).\nPrise de rendez-vous : 02 69 61 86 59, ou poste 4300."
+  },
+  {
+    "title": "Protocole Lantus — ajustement insuline lente",
+    "category": "chronique",
+    "summary": "Ajustement de dose selon la glycémie à jeun.",
+    "content": "AJUSTEMENT SELON GLYCÉMIE À JEUN\n<0,6 g/l : diminuer de 4 unités\n<0,8 g/l : diminuer de 2 unités\n0,8-1,2 g/l : ne pas changer\n1,2-1,60 g/l : augmenter de 2 unités\n>1,60 g/l : augmenter de 4 unités\n\nALERTE CÉTONÉMIE\nSi glycémie >2g/l → contrôler cétonémie\nSi cétonémie >0,8 mmol/l → avis médical\n\nORDONNANCE\nLANTUS XX UI le matin, 30 jours, AR 2 fois\nLecteur de glycémie, bandelettes, lancettes, coton, alcool modifié"
+  },
+  {
+    "title": "RAA (Rhumatisme Articulaire Aigu) — quand y penser",
+    "category": "chronique",
+    "summary": "Arthrite migratrice + ATCD angine/streptocoque, terrain 4-25 ans, bilan et prophylaxie au long cours.",
+    "content": "QUAND Y PENSER\nDevant une arthrite migratrice avec antécédent d'angine ou d'infection streptococcique, mais aussi souffle cardiaque, fièvre, altération de l'état général. Concerne les patients entre 4 et 25 ans.\n\nC'est notamment pour cette raison qu'une antibiothérapie est proposée facilement devant toute angine à Mayotte (cf fiche \"Angines à Mayotte\").\n\nTABLEAU TYPIQUE LOCAL\nEnfant présentant une arthrite migratrice +/- antécédent d'infection streptococcique +/- souffle cardiaque +/- fièvre +/- altération de l'état général.\n\nCAT\nAdresser aux urgences après avis pédiatre, avec bilan initial : NFS, CRP, ASLO (antistreptolysine), ECG.\n\nSUIVI APRÈS RAA CONFIRMÉ\nTraitement prophylactique par ORACILLINE pendant au moins 5 ans — ces patients reviennent consulter pour le renouvellement.\n⚠️ Ne pas oublier de reconduire le traitement : en son absence, les rechutes sont fréquentes.\nS'assurer également qu'un suivi cardiologique est bien en place."
+  },
+  {
+    "title": "Traitement post-infarctus et équilibre des facteurs de risque CV",
+    "category": "chronique",
+    "summary": "Antiagrégation, statine, IPP, et cibles HTA/diabète/LDL/protéinurie pour la prévention secondaire.",
+    "content": "TRAITEMENT DE L'INFARCTUS\n- Aspirine : à vie (sauf allergie). Pas d'indication en prévention primaire.\n- Statine : systématique en prévention secondaire (pas de fibrates).\n- IPP : souvent prescrits à dose supra-thérapeutique en phase aiguë — ne pas hésiter à désescalader voire arrêter lors de l'arrêt du deuxième antiagrégant.\n- 2e antiagrégant plaquettaire : Plavix 75mg ou Brilique 90mg x2.\n  - Minimum 1 an après tout infarctus, même sans stent\n  - 3 mois après pose de stent non actif SANS infarctus (si doute, maintenir 1 an)\n- En cas de co-prescription anticoagulant :\n  - Double antiagrégation 1 mois (réductible à 1 semaine si risque hémorragique grave)\n  - Puis simple antiagrégant + anticoagulant pendant 1 an (minimum 6 mois si risque hémorragique grave)\n\nÉQUILIBRE DE TOUS LES FACTEURS DE RISQUE CARDIOVASCULAIRE\n\nHTA : objectif <135/85 (cf protocole HTA). Si doute, réaliser une MAPA.\n\nDiabète : cible HbA1c adaptée à l'individu (cf protocole diabète). Vérifier que la metformine est à la bonne dose par rapport au rein et au poids. Proposer une éducation thérapeutique (EMET, stage 1 semaine, ou Rédiab Ylang). Si diabète très déséquilibré : adresser au CHM (Dr Breno Speckhann) ou en libéral.\n\nLDL : objectif selon protocole, ou <0,55g/L en prévention secondaire. Si absence de couverture sociale : orienter vers Tahor. Si couverture sociale : cf protocole.\n\nProtéinurie ou insuffisance rénale : IEC pour tous les patients. Si couverture sociale : ajouter un iSGLT2 (Forxiga ou Jardiance).\n\nApnée du sommeil : dépistage réalisable uniquement si couverture sociale, chez un pneumologue ou un médecin généraliste équipé.\n\nÉDUCATION SYSTÉMATIQUE DU PATIENT\n- Explication de la maladie et de chaque facteur de risque cardiovasculaire (essentiel pour la compliance et la CAT en cas de récidive)\n- Films éducatifs YouTube, compte \"Cardiomayotte\"\n- Fiche patient disponible sur le site internet Cardiomayotte > Conseils\n- Inscription en éducation thérapeutique : EMET ou REDIAB (cf annuaire sur le site Cardiomayotte)\n\nRÉÉDUCATION/EAPA\nPas de réadaptation cardiologique structurée à Mayotte actuellement (existence d'un EAPA cardiologie au CHM, pérennité incertaine). La reprise d'activité physique reste nécessaire : fiche patient disponible sur Cardiomayotte > Conseils. Contact association sport-santé : CROSS, Hairi Njema.\n\nDIÉTÉTIQUE\nFiche patient disponible sur Cardiomayotte > Conseils (régime sans sel, alimentation équilibrée, régime sans sucre). Inscription en éducation thérapeutique EMET ou REDIAB.\n\nQUAND NE PAS SE PASSER DE CARDIOLOGUE ?\n- Si FEVG initiale altérée : contrôle ETT nécessaire à 3 mois\n- En cas de récidive de symptôme à l'effort : renforcement systématique du traitement anti-ischémique, épreuve d'effort si cardiologue sur place sinon avis à La Réunion indispensable (ne jamais laisser le patient sans prise en charge) — programmer un évasan si besoin"
+  },
+  {
+    "title": "Tuberculose — particularités et filière Mayotte",
+    "category": "chronique",
+    "summary": "Plus fréquente qu'en métropole, formes parfois frustes, filière CLAT et recommandations BCG.",
+    "content": "CONTEXTE\nPlus fréquente qu'en métropole à Mayotte. Formes historiques fréquentes, mais aussi présentations parfois \"simples\" : altération de l'état général +/- toux persistante +/- amaigrissement isolé.\n\nCAT AU DISPENSAIRE\n- Si suspicion de tuberculose : adresser le patient aux urgences ET appeler le CLAT (poste 6072, ouvert en semaine 7h-14h) en donnant nom et IPP du patient\n- Si tuberculose diagnostiquée : hospitalisation et dépistage de l'entourage\n\nPOUR LES NOUVEAUX ARRIVANTS SUR LE TERRITOIRE\n- IDR avant 5 ans et après 15 ans\n- De 5 à 15 ans : quantiféron systématique +/- IDR selon le contexte\n\nLe service Action Santé (dispensaire de Jacaranda, poste 6072) réalise les IDR et les BCG (jusqu'à 15 ans).\n\nRECOMMANDATIONS VACCINALES BCG\n- Fortement recommandé chez tous les enfants <15 ans vivant à Mayotte\n- Dès la naissance avant la sortie de maternité pour les enfants nés à Mayotte\n- Pour les enfants \"voyageurs\" <15 ans séjournant plus d'un mois sur place"
+  },
+  {
+    "title": "VIH — découverte et orientation",
+    "category": "chronique",
+    "summary": "Contact direct du service d'infectiologie pour mise en place du suivi.",
+    "content": "CAT\nLors de la découverte d'un patient VIH+, orienter vers le service d'infectiologie et appeler le poste 50360, qui se charge de mettre en place le suivi et le traitement."
   }
-];
-
-// La génération d'ID et la clé de stockage sont maintenant gérées côté serveur (app/api/fiches/route.js)
-
-function useFiches() {
-  const [fiches, setFiches] = useState(null);
-  const [error, setError] = useState(null);
-
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch('/api/fiches');
-      const data = await res.json();
-      setFiches(data.fiches || []);
-    } catch (e) {
-      setFiches([]);
-      setError('Impossible de charger la base. Vérifie ta connexion.');
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const call = useCallback(async (body) => {
-    try {
-      const res = await fetch('/api/fiches', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      if (data.error) {
-        setError('Enregistrement impossible. Réessaie.');
-        return null;
-      }
-      setFiches(data.fiches);
-      setError(null);
-      return data;
-    } catch (e) {
-      setError('Connexion perdue. Tes modifications ne sont pas encore sauvegardées — réessaie dans un instant.');
-      return null;
-    }
-  }, []);
-
-  const addFiche = useCallback((fiche) => call({ action: 'add', fiche }), [call]);
-
-  const addFichesBulk = useCallback(async (newFiches) => {
-    const data = await call({ action: 'bulkAdd', fiches: newFiches });
-    return data ? data.added : 0;
-  }, [call]);
-
-  const updateFiche = useCallback((id, patch) => call({ action: 'update', id, patch }), [call]);
-
-  const deleteFiche = useCallback((id) => call({ action: 'delete', id }), [call]);
-
-  return { fiches, addFiche, addFichesBulk, updateFiche, deleteFiche, error, reload: load };
-}
-
-function CategoryBadge({ catId, size = 'sm' }) {
-  const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'caribou');
-  const Icon = cat.icon;
-  const px = size === 'sm' ? '4px 10px' : '6px 14px';
-  const fs = size === 'sm' ? '12px' : '13px';
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 6,
-      padding: px, borderRadius: 999, background: cat.bg, color: cat.color,
-      fontSize: fs, fontWeight: 600, letterSpacing: '0.01em'
-    }}>
-      <Icon size={size === 'sm' ? 13 : 15} strokeWidth={2.5} />
-      {cat.label}
-    </span>
-  );
-}
-
-function FicheCard({ fiche, onClick }) {
-  const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES.find(c => c.id === 'caribou');
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        textAlign: 'left', width: '100%', background: '#fff',
-        border: '1px solid #E5E1D8', borderRadius: 14, padding: '18px 20px',
-        cursor: 'pointer', transition: 'all 0.15s ease', display: 'flex',
-        flexDirection: 'column', gap: 10, position: 'relative'
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = cat.color; e.currentTarget.style.boxShadow = `0 2px 12px ${cat.color}1a`; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = '#E5E1D8'; e.currentTarget.style.boxShadow = 'none'; }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-        <h3 style={{
-          fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 18, fontWeight: 600,
-          color: '#1A2B3D', margin: 0, lineHeight: 1.3
-        }}>
-          {fiche.title}
-        </h3>
-        <ChevronRight size={18} color="#9CA3AF" style={{ flexShrink: 0, marginTop: 3 }} />
-      </div>
-      {fiche.summary && (
-        <p style={{ margin: 0, fontSize: 14, color: '#5B6573', lineHeight: 1.5 }}>
-          {fiche.summary.length > 120 ? fiche.summary.slice(0, 120) + '…' : fiche.summary}
-        </p>
-      )}
-      <CategoryBadge catId={fiche.category} />
-    </button>
-  );
-}
-
-function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
-  if (!fiche) return null;
-  const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES.find(c => c.id === 'caribou');
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.4)', zIndex: 50,
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-      padding: '0', overflowY: 'auto'
-    }} onClick={onClose}>
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: '#fff', width: '100%', maxWidth: 760, minHeight: '100vh',
-          padding: '0 0 60px 0', boxShadow: '-4px 0 24px rgba(0,0,0,0.08)'
-        }}
-      >
-        <div style={{
-          position: 'sticky', top: 0, background: '#fff', borderBottom: '1px solid #E5E1D8',
-          padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 5
-        }}>
-          <CategoryBadge catId={fiche.category} size="md" />
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => onEdit(fiche)} aria-label="Modifier" style={iconBtnStyle}>
-              <Edit3 size={18} color="#5B6573" />
-            </button>
-            <button onClick={() => onDelete(fiche)} aria-label="Supprimer" style={iconBtnStyle}>
-              <Trash2 size={18} color="#5B6573" />
-            </button>
-            <button onClick={onClose} aria-label="Fermer" style={iconBtnStyle}>
-              <X size={20} color="#5B6573" />
-            </button>
-          </div>
-        </div>
-        <div style={{ padding: '36px 32px 0 32px' }}>
-          <h1 style={{
-            fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 30, fontWeight: 700,
-            color: '#1A2B3D', margin: '0 0 8px 0', lineHeight: 1.2
-          }}>
-            {fiche.title}
-          </h1>
-          {fiche.updatedAt && (
-            <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 28px 0' }}>
-              Mis à jour le {new Date(fiche.updatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </p>
-          )}
-          <div style={{
-            fontSize: 16, lineHeight: 1.75, color: '#2D3744', whiteSpace: 'pre-wrap',
-            fontFamily: "'Inter', system-ui, sans-serif"
-          }}>
-            {fiche.content}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const iconBtnStyle = {
-  background: '#F7F6F2', border: '1px solid #E5E1D8', borderRadius: 8,
-  width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
-  cursor: 'pointer'
-};
-
-function ImportPanel({ onImport, onCancel }) {
-  const [raw, setRaw] = useState('');
-  const [parsed, setParsed] = useState(null);
-  const [parseError, setParseError] = useState(null);
-  const [importing, setImporting] = useState(false);
-  const [done, setDone] = useState(null);
-
-  const validCategoryIds = CATEGORIES.map(c => c.id);
-
-  const handleParse = (text) => {
-    setRaw(text);
-    setDone(null);
-    if (!text.trim()) { setParsed(null); setParseError(null); return; }
-    try {
-      const data = JSON.parse(text);
-      if (!Array.isArray(data)) throw new Error('Le JSON doit être un tableau de fiches.');
-      const cleaned = data.map((f, i) => {
-        if (!f.title || !f.content) throw new Error(`Fiche #${i + 1} : titre ou contenu manquant.`);
-        return {
-          title: String(f.title).trim(),
-          category: validCategoryIds.includes(f.category) ? f.category : 'caribou',
-          summary: f.summary ? String(f.summary).trim() : '',
-          content: String(f.content).trim()
-        };
-      });
-      setParsed(cleaned);
-      setParseError(null);
-    } catch (e) {
-      setParsed(null);
-      setParseError(e.message || 'JSON invalide.');
-    }
-  };
-
-  const handleImport = async () => {
-    if (!parsed) return;
-    setImporting(true);
-    const count = await onImport(parsed);
-    setImporting(false);
-    setDone(count);
-    setRaw('');
-    setParsed(null);
-  };
-
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.4)', zIndex: 60,
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto'
-    }} onClick={onCancel}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: '#fff', width: '100%', maxWidth: 680, minHeight: '100vh', padding: '0 0 60px 0'
-      }}>
-        <div style={{
-          position: 'sticky', top: 0, background: '#fff', borderBottom: '1px solid #E5E1D8',
-          padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-        }}>
-          <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 20, fontWeight: 700, margin: 0, color: '#1A2B3D' }}>
-            Import en masse
-          </h2>
-          <button onClick={onCancel} style={iconBtnStyle}><X size={20} color="#5B6573" /></button>
-        </div>
-
-        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <p style={{ fontSize: 14, color: '#5B6573', lineHeight: 1.6, margin: 0 }}>
-            Colle ici un tableau JSON de fiches : <code style={{ background: '#F7F6F2', padding: '2px 6px', borderRadius: 4, fontSize: 13 }}>
-              [{'{'}"title", "category", "summary", "content"{'}'}, ...]
-            </code>
-            <br />Catégories valides : {CATEGORIES.map(c => c.id).join(', ')}.
-          </p>
-
-          <textarea
-            value={raw}
-            onChange={e => handleParse(e.target.value)}
-            placeholder='[{"title": "...", "category": "urgences", "summary": "...", "content": "..."}]'
-            rows={14}
-            style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', fontSize: 13, lineHeight: 1.5 }}
-          />
-
-          {parseError && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9A3412', fontSize: 13, background: '#FDF1EC', padding: '10px 14px', borderRadius: 8 }}>
-              <AlertTriangle size={15} style={{ flexShrink: 0 }} /> {parseError}
-            </div>
-          )}
-
-          {parsed && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#0E7490', fontSize: 13, background: '#EBF6F8', padding: '10px 14px', borderRadius: 8 }}>
-              <Check size={15} style={{ flexShrink: 0 }} /> {parsed.length} fiche{parsed.length > 1 ? 's' : ''} prête{parsed.length > 1 ? 's' : ''} à importer.
-            </div>
-          )}
-
-          {done !== null && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#15803D', fontSize: 13, background: '#F0FDF4', padding: '10px 14px', borderRadius: 8 }}>
-              <Check size={15} style={{ flexShrink: 0 }} /> {done} fiche{done > 1 ? 's' : ''} importée{done > 1 ? 's' : ''} avec succès.
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            <button onClick={onCancel} style={{
-              padding: '10px 20px', borderRadius: 10, border: '1px solid #E5E1D8',
-              background: '#fff', color: '#5B6573', fontSize: 14, fontWeight: 600, cursor: 'pointer'
-            }}>
-              Fermer
-            </button>
-            <button
-              disabled={!parsed || importing}
-              onClick={handleImport}
-              style={{
-                padding: '10px 22px', borderRadius: 10, border: 'none',
-                background: parsed && !importing ? '#1A2B3D' : '#D1D5DB', color: '#fff',
-                fontSize: 14, fontWeight: 600, cursor: parsed && !importing ? 'pointer' : 'not-allowed',
-                display: 'flex', alignItems: 'center', gap: 8
-              }}
-            >
-              {importing && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />}
-              Importer {parsed ? `(${parsed.length})` : ''}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FicheForm({ initial, onSave, onCancel }) {
-  const [title, setTitle] = useState(initial?.title || '');
-  const [category, setCategory] = useState(initial?.category || CATEGORIES[0].id);
-  const [summary, setSummary] = useState(initial?.summary || '');
-  const [content, setContent] = useState(initial?.content || '');
-
-  const canSave = title.trim().length > 0 && content.trim().length > 0;
-
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.4)', zIndex: 60,
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto'
-    }} onClick={onCancel}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: '#fff', width: '100%', maxWidth: 680, minHeight: '100vh', padding: '0 0 60px 0'
-      }}>
-        <div style={{
-          position: 'sticky', top: 0, background: '#fff', borderBottom: '1px solid #E5E1D8',
-          padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-        }}>
-          <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 20, fontWeight: 700, margin: 0, color: '#1A2B3D' }}>
-            {initial ? 'Modifier la fiche' : 'Nouvelle fiche'}
-          </h2>
-          <button onClick={onCancel} style={iconBtnStyle}><X size={20} color="#5B6573" /></button>
-        </div>
-
-        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 22 }}>
-          <div>
-            <label style={labelStyle}>Catégorie</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {CATEGORIES.map(cat => {
-                const Icon = cat.icon;
-                const active = category === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCategory(cat.id)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
-                      borderRadius: 999, border: `1.5px solid ${active ? cat.color : '#E5E1D8'}`,
-                      background: active ? cat.bg : '#fff', color: active ? cat.color : '#5B6573',
-                      fontSize: 13, fontWeight: 600, cursor: 'pointer'
-                    }}
-                  >
-                    <Icon size={14} strokeWidth={2.5} /> {cat.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <label style={labelStyle}>Titre</label>
-            <input
-              value={title} onChange={e => setTitle(e.target.value)}
-              placeholder="Ex : Torsion testiculaire — conduite à tenir"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Résumé court (optionnel — affiché dans la liste)</label>
-            <input
-              value={summary} onChange={e => setSummary(e.target.value)}
-              placeholder="Une phrase pour repérer la fiche en un coup d'œil"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Contenu</label>
-            <textarea
-              value={content} onChange={e => setContent(e.target.value)}
-              placeholder="Colle ou écris ici le contenu complet de la fiche…"
-              rows={14}
-              style={{ ...inputStyle, resize: 'vertical', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1.6 }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
-            <button onClick={onCancel} style={{
-              padding: '10px 20px', borderRadius: 10, border: '1px solid #E5E1D8',
-              background: '#fff', color: '#5B6573', fontSize: 14, fontWeight: 600, cursor: 'pointer'
-            }}>
-              Annuler
-            </button>
-            <button
-              disabled={!canSave}
-              onClick={() => onSave({ title: title.trim(), category, summary: summary.trim(), content: content.trim() })}
-              style={{
-                padding: '10px 22px', borderRadius: 10, border: 'none',
-                background: canSave ? '#1A2B3D' : '#D1D5DB', color: '#fff',
-                fontSize: 14, fontWeight: 600, cursor: canSave ? 'pointer' : 'not-allowed'
-              }}
-            >
-              Enregistrer la fiche
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const labelStyle = { display: 'block', fontSize: 13, fontWeight: 600, color: '#1A2B3D', marginBottom: 8 };
-const inputStyle = {
-  width: '100%', padding: '12px 14px', borderRadius: 10, border: '1.5px solid #E5E1D8',
-  fontSize: 15, color: '#1A2B3D', fontFamily: "'Inter', system-ui, sans-serif", boxSizing: 'border-box',
-  outline: 'none'
-};
-
-export default function App() {
-  const { fiches, addFiche, addFichesBulk, updateFiche, deleteFiche, error } = useFiches();
-  const [query, setQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState(null);
-  const [selectedFiche, setSelectedFiche] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingFiche, setEditingFiche] = useState(null);
-  const [showImport, setShowImport] = useState(false);
-
-  const filtered = useMemo(() => {
-    if (!fiches) return [];
-    let list = fiches;
-    if (activeCategory) list = list.filter(f => f.category === activeCategory);
-    if (query.trim()) {
-      const q = query.trim().toLowerCase();
-      list = list.filter(f =>
-        f.title.toLowerCase().includes(q) ||
-        (f.summary || '').toLowerCase().includes(q) ||
-        (f.content || '').toLowerCase().includes(q)
-      );
-    }
-    return [...list].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
-  }, [fiches, query, activeCategory]);
-
-  const handleSave = (data) => {
-    if (editingFiche) {
-      updateFiche(editingFiche.id, data);
-    } else {
-      addFiche(data);
-    }
-    setShowForm(false);
-    setEditingFiche(null);
-    setSelectedFiche(null);
-  };
-
-  const handleDelete = (fiche) => {
-    if (window.confirm(`Supprimer définitivement « ${fiche.title} » ?`)) {
-      deleteFiche(fiche.id);
-      setSelectedFiche(null);
-    }
-  };
-
-  const loading = fiches === null;
-
-  return (
-    <div style={{
-      minHeight: '100vh', background: '#F7F6F2',
-      fontFamily: "'Inter', system-ui, -apple-system, sans-serif"
-    }}>
-      {/* Header */}
-      <header style={{
-        background: '#1A2B3D', padding: '32px 24px 28px 24px',
-        borderBottom: '4px solid #C2410C'
-      }}>
-        <div style={{ maxWidth: 920, margin: '0 auto' }}>
-          <p style={{ color: '#94A8BD', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', margin: '0 0 6px 0' }}>
-            Dispensaire — Mayotte
-          </p>
-          <h1 style={{
-            fontFamily: "'Source Serif 4', Georgia, serif", color: '#fff', fontSize: 28,
-            fontWeight: 700, margin: '0 0 20px 0'
-          }}>
-            Base de référence de l'équipe
-          </h1>
-          <div style={{ position: 'relative' }}>
-            <Search size={19} color="#6B7C90" style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)' }} />
-            <input
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder="Chercher une fiche : torsion, évacuation, ordonnance type…"
-              style={{
-                width: '100%', padding: '14px 16px 14px 46px', borderRadius: 12, border: 'none',
-                fontSize: 16, fontFamily: "'Inter', sans-serif", outline: 'none', boxSizing: 'border-box',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-              }}
-            />
-          </div>
-        </div>
-      </header>
-
-      <main style={{ maxWidth: 920, margin: '0 auto', padding: '28px 24px 80px 24px' }}>
-
-        {error && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 10, background: '#FDF1EC',
-            border: '1px solid #F3C7B0', color: '#9A3412', padding: '12px 16px',
-            borderRadius: 10, fontSize: 14, marginBottom: 20
-          }}>
-            <AlertTriangle size={16} style={{ flexShrink: 0 }} />
-            {error}
-          </div>
-        )}
-
-        {/* Category filters */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-          <button
-            onClick={() => setActiveCategory(null)}
-            style={{
-              padding: '8px 16px', borderRadius: 999, border: `1.5px solid ${!activeCategory ? '#1A2B3D' : '#E5E1D8'}`,
-              background: !activeCategory ? '#1A2B3D' : '#fff', color: !activeCategory ? '#fff' : '#5B6573',
-              fontSize: 13, fontWeight: 600, cursor: 'pointer'
-            }}
-          >
-            Toutes les fiches
-          </button>
-          {CATEGORIES.map(cat => {
-            const Icon = cat.icon;
-            const active = activeCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(active ? null : cat.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
-                  borderRadius: 999, border: `1.5px solid ${active ? cat.color : '#E5E1D8'}`,
-                  background: active ? cat.bg : '#fff', color: active ? cat.color : '#5B6573',
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer'
-                }}
-              >
-                <Icon size={14} strokeWidth={2.5} /> {cat.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* New fiche button */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 28 }}>
-          <button
-            onClick={() => { setEditingFiche(null); setShowForm(true); }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px',
-              borderRadius: 10, border: '1.5px dashed #C2410C', background: '#FDF1EC',
-              color: '#C2410C', fontSize: 14, fontWeight: 700, cursor: 'pointer', flex: 1,
-              justifyContent: 'center'
-            }}
-          >
-            <Plus size={18} strokeWidth={2.5} /> Ajouter une fiche
-          </button>
-          <button
-            onClick={() => setShowImport(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px',
-              borderRadius: 10, border: '1.5px solid #E5E1D8', background: '#fff',
-              color: '#5B6573', fontSize: 14, fontWeight: 700, cursor: 'pointer'
-            }}
-          >
-            <Upload size={16} strokeWidth={2.5} /> Import en masse
-          </button>
-        </div>
-
-        {/* Content */}
-        {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: 10, color: '#9CA3AF' }}>
-            <Loader2 size={20} className="spin" style={{ animation: 'spin 1s linear infinite' }} />
-            Chargement de la base…
-          </div>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#9CA3AF' }}>
-            {fiches.length === 0 ? (
-              <>
-                <p style={{ fontSize: 16, fontWeight: 600, color: '#5B6573', margin: '0 0 6px 0' }}>
-                  La base est vide pour l'instant
-                </p>
-                <p style={{ fontSize: 14, margin: 0 }}>
-                  Ajoute la première fiche avec le bouton ci-dessus.
-                </p>
-              </>
-            ) : (
-              <p style={{ fontSize: 15 }}>Aucune fiche ne correspond à « {query} ».</p>
-            )}
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
-            {filtered.map(fiche => (
-              <FicheCard key={fiche.id} fiche={fiche} onClick={() => setSelectedFiche(fiche)} />
-            ))}
-          </div>
-        )}
-      </main>
-
-      {selectedFiche && !showForm && (
-        <FicheDetail
-          fiche={selectedFiche}
-          onClose={() => setSelectedFiche(null)}
-          onEdit={(f) => { setEditingFiche(f); setShowForm(true); }}
-          onDelete={handleDelete}
-        />
-      )}
-
-      {showForm && (
-        <FicheForm
-          initial={editingFiche}
-          onSave={handleSave}
-          onCancel={() => { setShowForm(false); setEditingFiche(null); }}
-        />
-      )}
-
-      {showImport && (
-        <ImportPanel
-          onImport={async (fichesList) => addFichesBulk(fichesList)}
-          onCancel={() => setShowImport(false)}
-        />
-      )}
-
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        * { box-sizing: border-box; }
-        input:focus, textarea:focus { border-color: #1A2B3D !important; }
-      `}</style>
-    </div>
-  );
-}
+]
