@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat } from 'lucide-react';
+import Link from 'next/link';
+import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -576,6 +577,18 @@ export default function App() {
               </button>
             );
           })}
+          <Link href="/planning" style={{ textDecoration: 'none' }}>
+            <span
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+                borderRadius: 999, border: '1.5px solid #C2410C',
+                background: '#FDF1EC', color: '#C2410C',
+                fontSize: 13, fontWeight: 600, cursor: 'pointer'
+              }}
+            >
+              <Calendar size={14} strokeWidth={2.5} /> Planning de l'équipe
+            </span>
+          </Link>
         </div>
 
         {/* New fiche button */}
