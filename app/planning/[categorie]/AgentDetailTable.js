@@ -65,7 +65,7 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
       style={{
         border: postGarde ? '1.5px solid #65521E' : '1px solid #E5E1D8', borderRadius: 10,
         padding: compact ? 3 : 5,
-        background: day.outOfMonth ? '#FAFAF8' : '#fff',
+        background: day.outOfMonth ? '#FAFAF8' : (postGarde ? '#F0EEE7' : '#fff'),
         opacity: day.outOfMonth ? 0.5 : 1,
         height: '100%', display: 'flex', flexDirection: 'column', gap: compact ? 2 : 3,
         cursor: editable && copySource && copySource !== dk ? 'copy' : 'default',
