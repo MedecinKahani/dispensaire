@@ -7,11 +7,12 @@ export const PLANNING_CATEGORIES = ['medical', 'infirmiers', 'aide-soignants', '
 
 // Structure stockée dans Redis :
 // {
-//   medical:        { agents: [{ id, nom }], cellules: { "agentId|YYYY-MM-DD|M|AM|N": "code" } },
+//   medical:        { agents: [{ id, nom, arrivee, depart }], cellules: { "agentId|YYYY-MM-DD|M|AM|N": "code" } },
 //   infirmiers:      { agents: [...], cellules: {...} },
 //   'aide-soignants': { agents: [...], cellules: {...} },
 //   ash:             { agents: [...], cellules: {...} },
 // }
+// arrivee/depart : 'YYYY-MM-DD' ou null (pas de limite connue)
 const emptyCategory = () => ({ agents: [], cellules: {} });
 const EMPTY_PLANNING = () => ({
   medical: emptyCategory(),
@@ -73,13 +74,16 @@ export async function POST(request) {
     }
 
     if (action === 'addAgent') {
-      // body: { categorie, nom }
-      const { nom } = body;
+      // body: { categorie, nom, arrivee?, depart? }
+      const { nom, arrivee, depart } = body;
       if (!nom || !nom.trim()) {
         return NextResponse.json({ error: 'Nom manquant' }, { status: 400 });
       }
       const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      current[categorie] = { ...cat, agents: [...cat.agents, { id, nom: nom.trim() }] };
+      current[categorie] = {
+        ...cat,
+        agents: [...cat.agents, { id, nom: nom.trim(), arrivee: arrivee || null, depart: depart || null }],
+      };
       await kv.set(KEY, current);
       return NextResponse.json({ planning: current });
     }
@@ -108,6 +112,17 @@ export async function POST(request) {
       current[categorie] = {
         ...cat,
         agents: cat.agents.map(a => a.id === agentId ? { ...a, nom: nom.trim() } : a),
+      };
+      await kv.set(KEY, current);
+      return NextResponse.json({ planning: current });
+    }
+
+    if (action === 'updateAgentDates') {
+      // body: { categorie, agentId, arrivee, depart } - arrivee/depart: 'YYYY-MM-DD' ou null
+      const { agentId, arrivee, depart } = body;
+      current[categorie] = {
+        ...cat,
+        agents: cat.agents.map(a => a.id === agentId ? { ...a, arrivee: arrivee || null, depart: depart || null } : a),
       };
       await kv.set(KEY, current);
       return NextResponse.json({ planning: current });

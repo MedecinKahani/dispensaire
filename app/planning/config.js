@@ -53,7 +53,7 @@ export const PLANNING_CATEGORIES = [
   {
     id: 'ash',
     label: 'ASH',
-    sublabel: "Agents de service hospitalier",
+    sublabel: 'Agents de service',
     icon: SprayCan,
     color: '#65521E',
     bg: '#F8F2E6',
@@ -69,6 +69,48 @@ export function getPlanningCategory(id) {
 export function codeInfo(categoryId, code) {
   const cat = getPlanningCategory(categoryId);
   return cat?.codes.find(c => c.code === code);
+}
+
+// Postes à pourvoir chaque jour pour la catégorie Médical.
+// `slots` = nombre de médecins nécessaires sur ce poste ce jour-là.
+// `heures` surcharge la durée du code générique pour CE poste précis (utile pour les
+// créneaux week-end où G ne dure que 6h au lieu des 12h habituels de la garde de nuit).
+export const POSTES_MEDICAL_SEMAINE = [
+  { code: 'K1', moment: 'M', slots: 3, optionnel: false },
+  { code: 'MAO', moment: 'M', slots: 1, optionnel: false },
+  { code: 'KRO', moment: 'M', slots: 1, optionnel: false },
+  { code: 'S', moment: 'M', slots: 1, optionnel: true },
+  { code: 'K2', moment: 'AM', slots: 1, optionnel: false },
+  { code: 'K3', moment: 'AM', slots: 1, optionnel: false },
+  { code: 'G', moment: 'N', slots: 1, optionnel: false },
+];
+
+// Samedi : matin en K1 normal (3 postes, dont 1 bascule sur les urgences selon l'affluence),
+// puis la garde prend le relais dès l'après-midi.
+export const POSTES_MEDICAL_SAMEDI = [
+  { code: 'K1', moment: 'M', slots: 3, optionnel: false },
+  { code: 'G', moment: 'AM', slots: 1, optionnel: false, heures: 6 },
+  { code: 'G', moment: 'N', slots: 1, optionnel: false, heures: 12 },
+];
+
+// Dimanche : garde continue sur les 3 créneaux, potentiellement 3 médecins différents.
+export const POSTES_MEDICAL_DIMANCHE = [
+  { code: 'G', moment: 'M', slots: 1, optionnel: false, heures: 6 },
+  { code: 'G', moment: 'AM', slots: 1, optionnel: false, heures: 6 },
+  { code: 'G', moment: 'N', slots: 1, optionnel: false, heures: 12 },
+];
+
+export function isWeekday(date) {
+  const d = date.getDay();
+  return d >= 1 && d <= 5;
+}
+
+export function getPostesForDay(categoryId, date) {
+  if (categoryId !== 'medical') return [];
+  const d = date.getDay(); // 0=dimanche, 6=samedi
+  if (d === 6) return POSTES_MEDICAL_SAMEDI;
+  if (d === 0) return POSTES_MEDICAL_DIMANCHE;
+  return POSTES_MEDICAL_SEMAINE;
 }
 
 export const MOMENTS = [
@@ -125,20 +167,84 @@ export function getWeeksMonday(year, month) {
 }
 
 // Calcule, pour un agent sur un mois donné : heures totales, nombre de gardes (G),
-// nombre de RS posés. Repose sur le champ `heures` de chaque code de la catégorie.
+// nombre de RS posés. Utilise en priorité les heures du POSTE du jour (qui peuvent
+// différer du code générique, ex: G = 6h le week-end vs 12h en semaine), avec repli
+// sur les heures génériques du code si aucun poste structuré ne correspond.
 export function computeAgentStats(category, agentId, cellules, year, month) {
   const days = getDaysInMonth(year, month);
   let heures = 0, gardes = 0, rs = 0;
   days.forEach(d => {
     const dk = dateKey(d);
+    const postesJour = getPostesForDay(category.id, d);
     ['M', 'AM', 'N'].forEach(moment => {
       const code = cellules[`${agentId}|${dk}|${moment}`];
       if (!code) return;
+      const poste = postesJour.find(p => p.code === code && p.moment === moment);
       const info = category.codes.find(c => c.code === code);
-      if (info) heures += info.heures || 0;
+      const h = poste?.heures ?? info?.heures ?? 0;
+      heures += h;
       if (code === 'G') gardes += 1;
       if (code === 'RS') rs += 1;
     });
   });
   return { heures, gardes, rs };
+}
+
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+// Un agent est considéré "présent" à une date s'il est dans la fenêtre [arrivee, depart]
+// (bornes incluses). Une date manquante = pas de limite de ce côté-là.
+export function isAgentPresent(agent, dk) {
+  if (agent.arrivee && dk < agent.arrivee) return false;
+  if (agent.depart && dk > agent.depart) return false;
+  return true;
+}
+
+// Détermine si un agent est disponible pour un poste donné, un jour donné, en appliquant
+// les règles : présence (arrivée/départ), pas en congés ce jour, pas de garde la veille au soir,
+// pas déjà affecté à un autre poste ce même jour.
+export function getAgentAvailability(category, agent, date, cellules) {
+  const dk = dateKey(date);
+  const veille = dateKey(addDays(date, -1));
+
+  if (!isAgentPresent(agent, dk)) {
+    return { available: false, reason: 'Pas encore arrivé ou déjà parti' };
+  }
+
+  const codesJour = ['M', 'AM', 'N']
+    .map(m => ({ moment: m, code: cellules[`${agent.id}|${dk}|${m}`] }))
+    .filter(c => c.code);
+
+  const enConges = codesJour.some(c => c.code === 'CA' || c.code === 'CF');
+  if (enConges) {
+    return { available: false, reason: 'En congés ce jour' };
+  }
+
+  const codeVeilleNuit = cellules[`${agent.id}|${veille}|N`];
+  if (codeVeilleNuit === 'G') {
+    return { available: false, reason: 'Garde la veille au soir' };
+  }
+
+  if (codesJour.length > 0) {
+    return { available: false, reason: `Déjà affecté (${codesJour[0].code})`, alreadyAssigned: codesJour[0].code };
+  }
+
+  return { available: true, reason: null };
+}
+
+// Liste les agents disponibles pour un poste/jour donné, avec leur statut.
+// Renvoie deux groupes pour faciliter l'affichage : disponibles puis indisponibles (avec motif).
+export function getAgentsForPoste(category, agents, date, cellules) {
+  const withAvailability = agents.map(agent => ({
+    agent,
+    ...getAgentAvailability(category, agent, date, cellules),
+  }));
+  return {
+    disponibles: withAvailability.filter(a => a.available),
+    indisponibles: withAvailability.filter(a => !a.available),
+  };
 }

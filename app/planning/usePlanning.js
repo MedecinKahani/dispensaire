@@ -42,8 +42,8 @@ export function usePlanning() {
   const setCell = useCallback((categorie, agentId, date, moment, code) =>
     call({ action: 'setCell', categorie, agentId, date, moment, code }), [call]);
 
-  const addAgent = useCallback((categorie, nom) =>
-    call({ action: 'addAgent', categorie, nom }), [call]);
+  const addAgent = useCallback((categorie, nom, arrivee, depart) =>
+    call({ action: 'addAgent', categorie, nom, arrivee, depart }), [call]);
 
   const removeAgent = useCallback((categorie, agentId) =>
     call({ action: 'removeAgent', categorie, agentId }), [call]);
@@ -51,11 +51,14 @@ export function usePlanning() {
   const renameAgent = useCallback((categorie, agentId, nom) =>
     call({ action: 'renameAgent', categorie, agentId, nom }), [call]);
 
+  const updateAgentDates = useCallback((categorie, agentId, arrivee, depart) =>
+    call({ action: 'updateAgentDates', categorie, agentId, arrivee, depart }), [call]);
+
   const copyDay = useCallback((categorie, agentId, fromDate, toDate) =>
     call({ action: 'copyDay', categorie, agentId, fromDate, toDate }), [call]);
 
   const fillRange = useCallback((categorie, agentId, fromDate, toDate, moment, code) =>
     call({ action: 'fillRange', categorie, agentId, fromDate, toDate, moment, code }), [call]);
 
-  return { planning, setCell, addAgent, removeAgent, renameAgent, copyDay, fillRange, error };
+  return { planning, setCell, addAgent, removeAgent, renameAgent, updateAgentDates, copyDay, fillRange, error };
 }

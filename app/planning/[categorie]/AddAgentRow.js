@@ -6,6 +6,8 @@ import { Plus, X } from 'lucide-react';
 export default function AddAgentRow({ onAdd, color }) {
   const [adding, setAdding] = useState(false);
   const [nom, setNom] = useState('');
+  const [arrivee, setArrivee] = useState('');
+  const [depart, setDepart] = useState('');
 
   if (!adding) {
     return (
@@ -23,24 +25,35 @@ export default function AddAgentRow({ onAdd, color }) {
   }
 
   const submit = () => {
-    if (nom.trim()) onAdd(nom.trim());
-    setNom('');
+    if (nom.trim()) onAdd(nom.trim(), arrivee || null, depart || null);
+    setNom(''); setArrivee(''); setDepart('');
     setAdding(false);
   };
 
   return (
-    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-      <input
-        autoFocus
-        value={nom}
-        onChange={e => setNom(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setAdding(false); }}
-        placeholder="Nom de l'agent"
-        style={{
-          padding: '7px 12px', borderRadius: 8, border: '1.5px solid #E5E1D8',
-          fontSize: 13, outline: 'none', width: 180
-        }}
-      />
+    <div style={{
+      display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap',
+      background: '#fff', border: '1px solid #E5E1D8', borderRadius: 10, padding: 10
+    }}>
+      <div>
+        <label style={labelStyle}>Nom</label>
+        <input
+          autoFocus
+          value={nom}
+          onChange={e => setNom(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setAdding(false); }}
+          placeholder="Nom de l'agent"
+          style={inputStyle}
+        />
+      </div>
+      <div>
+        <label style={labelStyle}>Arrivée (optionnel)</label>
+        <input type="date" value={arrivee} onChange={e => setArrivee(e.target.value)} style={inputStyle} />
+      </div>
+      <div>
+        <label style={labelStyle}>Départ (optionnel)</label>
+        <input type="date" value={depart} onChange={e => setDepart(e.target.value)} style={inputStyle} />
+      </div>
       <button onClick={submit} style={{ ...iconBtnStyle, background: '#1A2B3D' }}>
         <Plus size={15} color="#fff" />
       </button>
@@ -51,8 +64,13 @@ export default function AddAgentRow({ onAdd, color }) {
   );
 }
 
+const labelStyle = { display: 'block', fontSize: 10.5, fontWeight: 600, color: '#9CA3AF', marginBottom: 3 };
+const inputStyle = {
+  padding: '7px 10px', borderRadius: 8, border: '1.5px solid #E5E1D8',
+  fontSize: 13, outline: 'none', width: 150
+};
 const iconBtnStyle = {
   background: '#F7F6F2', border: '1px solid #E5E1D8', borderRadius: 8,
-  width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
   cursor: 'pointer', flexShrink: 0
 };

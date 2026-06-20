@@ -42,7 +42,7 @@ export default function PlanningHome() {
           Choisis une catégorie pour consulter ou modifier le planning du mois.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
           {PLANNING_CATEGORIES.map(cat => {
             const Icon = cat.icon;
             const count = planning?.[cat.id]?.agents?.length ?? null;
@@ -50,31 +50,32 @@ export default function PlanningHome() {
               <Link
                 key={cat.id}
                 href={`/planning/${cat.id}`}
-                style={{ textDecoration: 'none' }}
+                style={{ textDecoration: 'none', minWidth: 0 }}
               >
                 <div
                   style={{
                     background: '#fff', border: '1px solid #E5E1D8', borderRadius: 16,
                     padding: '24px', cursor: 'pointer', transition: 'all 0.15s ease',
-                    display: 'flex', flexDirection: 'column', gap: 14, height: '100%'
+                    display: 'flex', flexDirection: 'column', gap: 14, height: '100%',
+                    minWidth: 0, boxSizing: 'border-box', overflow: 'hidden'
                   }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = cat.color; e.currentTarget.style.boxShadow = `0 4px 16px ${cat.color}1a`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = '#E5E1D8'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}
                 >
                   <div style={{
                     width: 48, height: 48, borderRadius: 12, background: cat.bg,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
                   }}>
                     <Icon size={24} color={cat.color} strokeWidth={2.2} />
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <h2 style={{
                       fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 19, fontWeight: 700,
-                      color: '#1A2B3D', margin: '0 0 4px 0'
+                      color: '#1A2B3D', margin: '0 0 4px 0', overflowWrap: 'break-word'
                     }}>
                       {cat.label}
                     </h2>
-                    <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0 }}>
+                    <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0, overflowWrap: 'break-word' }}>
                       {cat.sublabel}
                       {count !== null && ` · ${count} agent${count > 1 ? 's' : ''}`}
                     </p>
@@ -88,7 +89,7 @@ export default function PlanningHome() {
                         <Settings2 size={12} /> À configurer
                       </span>
                     ) : <span />}
-                    <ChevronRight size={18} color={cat.color} />
+                    <ChevronRight size={18} color={cat.color} style={{ flexShrink: 0 }} />
                   </div>
                 </div>
               </Link>

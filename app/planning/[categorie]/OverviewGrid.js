@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { Download } from 'lucide-react';
 import { getDaysInMonth, dateKey, JOURS_FR, computeAgentStats } from '../config';
+import { exportPlanningPDF } from './exportPdf';
 
 // Vue d'ensemble compacte : une ligne par agent, une colonne par jour,
 // + une colonne de totaux (heures / gardes / RS) pour vérifier l'équité sans calcul mental.
@@ -27,7 +29,20 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
   }
 
   return (
-    <div style={{ overflowX: 'auto', border: '1px solid #E5E1D8', borderRadius: 12 }}>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+        <button
+          onClick={() => exportPlanningPDF(category, agents, cellules, year, month)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+            borderRadius: 999, border: '1.5px solid #1A2B3D', background: '#1A2B3D',
+            color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer'
+          }}
+        >
+          <Download size={13} /> Exporter en PDF (direction affaires médicales)
+        </button>
+      </div>
+      <div style={{ overflowX: 'auto', border: '1px solid #E5E1D8', borderRadius: 12 }}>
       <table style={{ borderCollapse: 'collapse', width: '100%' }}>
         <thead>
           <tr style={{ background: '#F7F6F2' }}>
@@ -110,6 +125,7 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
