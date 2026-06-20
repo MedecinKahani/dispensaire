@@ -14,7 +14,7 @@ const CATEGORIES = [
   },
   {
     id: 'annuaire',
-    label: 'Annuaire & Évacuation',
+    label: 'Annuaire & Avis Spé',
     icon: Phone,
     color: '#0E7490',
     bg: '#EBF6F8',
