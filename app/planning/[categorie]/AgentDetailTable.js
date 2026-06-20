@@ -88,7 +88,7 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPickC
         opacity: day.outOfMonth ? 0.5 : 1,
         minHeight: compact ? 76 : 116, display: 'flex', flexDirection: 'column', gap: compact ? 2 : 4,
         cursor: editable && copySource && copySource !== dk ? 'copy' : 'default',
-        position: 'relative'
+        position: 'relative', minWidth: 0, boxSizing: 'border-box', overflow: 'hidden'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -111,6 +111,7 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPickC
           )}
           {editable && !day.outOfMonth && !compact && (
             <button
+              className="planning-copy-btn"
               onClick={e => { e.stopPropagation(); onPickCopySource(dk); }}
               title="Copier cette journée"
               style={{
@@ -173,7 +174,7 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPickC
 
 function WeekGrid({ category, agent, week, cellules, editable, copySource, onPickCopySource, onPaste, onSetCell, onFillRange, compact }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: compact ? 3 : 6, marginBottom: compact ? 3 : 6 }}>
+    <div className={compact ? 'planning-week-row planning-week-row--compact' : 'planning-week-row'} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: compact ? 3 : 6, marginBottom: compact ? 3 : 6 }}>
       {week.map(day => (
         <DayCell
           key={dateKey(day.date)}
@@ -261,20 +262,22 @@ export default function AgentDetailTable({ category, agent, cellules, year, mont
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: mode === 'mois' ? 3 : 6, marginBottom: 6 }}>
+      <div className={mode === 'mois' ? 'planning-week-row planning-week-row--compact' : 'planning-week-row'} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: mode === 'mois' ? 3 : 6, marginBottom: 6 }}>
         {JOURS_LUN_DIM.map(j => (
-          <div key={j} style={{ fontSize: mode === 'mois' ? 9.5 : 11, fontWeight: 700, color: '#9CA3AF', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+          <div key={j} style={{ fontSize: mode === 'mois' ? 9.5 : 11, fontWeight: 700, color: '#9CA3AF', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.03em', overflow: 'hidden' }}>
             {mode === 'mois' ? j.slice(0, 2) : j}
           </div>
         ))}
       </div>
 
       {mode === 'semaine' ? (
-        <WeekGrid
-          category={category} agent={agent} week={currentWeek} cellules={cellules}
-          editable={editable} copySource={copySource} onPickCopySource={setCopySource}
-          onPaste={handlePaste} onSetCell={onSetCell} onFillRange={onFillRange} compact={false}
-        />
+        <div className="planning-week-grid">
+          <WeekGrid
+            category={category} agent={agent} week={currentWeek} cellules={cellules}
+            editable={editable} copySource={copySource} onPickCopySource={setCopySource}
+            onPaste={handlePaste} onSetCell={onSetCell} onFillRange={onFillRange} compact={false}
+          />
+        </div>
       ) : (
         <div className="planning-month-grid">
           {allWeeks.map((week, wi) => (
@@ -289,16 +292,35 @@ export default function AgentDetailTable({ category, agent, cellules, year, mont
       )}
 
       <style>{`
-        .planning-month-grid { container-type: inline-size; }
+        .planning-week-grid, .planning-month-grid { container-type: inline-size; }
+
+        /* Vue semaine (mode par défaut) : on réduit progressivement avant de masquer le label M/AM/N */
+        @media (max-width: 600px) {
+          .planning-week-row, .planning-week-grid .planning-week-row { gap: 4px !important; }
+          .planning-week-grid button { padding: 3px 4px !important; font-size: 10px !important; }
+          .planning-week-grid .planning-week-row > div > div { min-height: 92px !important; padding: 5px !important; }
+        }
+        @media (max-width: 460px) {
+          .planning-week-grid button { padding: 2px 3px !important; font-size: 9px !important; }
+          .planning-week-grid button span:first-child { display: none; }
+          .planning-week-grid .planning-week-row > div > div { min-height: 78px !important; padding: 4px !important; }
+          .planning-week-grid .planning-copy-btn { display: none !important; }
+        }
+        @media (max-width: 360px) {
+          .planning-week-row { gap: 3px !important; }
+          .planning-week-grid button { font-size: 8px !important; }
+        }
+
+        /* Vue mois (compacte) */
         @media (max-width: 640px) {
           .planning-month-grid button { padding: 1px 2px !important; font-size: 8px !important; }
           .planning-month-grid button span:first-child { display: none; }
-          .planning-month-grid > div { gap: 2px !important; }
-          .planning-month-grid > div > div { min-height: 52px !important; padding: 2px !important; gap: 1px !important; }
+          .planning-month-grid .planning-week-row { gap: 2px !important; }
+          .planning-month-grid .planning-week-row > div > div { min-height: 52px !important; padding: 2px !important; gap: 1px !important; }
         }
         @media (max-width: 420px) {
           .planning-month-grid button { font-size: 7px !important; }
-          .planning-month-grid > div > div { min-height: 44px !important; }
+          .planning-month-grid .planning-week-row > div > div { min-height: 44px !important; }
         }
       `}</style>
     </div>
