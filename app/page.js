@@ -1,652 +1,92 @@
-'use client';
-
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Plus, X, Phone, Stethoscope, FileText, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check } from 'lucide-react';
-
-const CATEGORIES = [
+[
   {
-    id: 'urgences',
-    label: 'Protocoles & Urgences',
-    icon: Stethoscope,
-    color: '#C2410C',
-    bg: '#FDF1EC',
-    description: 'Conduites à tenir, scores, seuils décisionnels'
+    "title": "Mayotte — géographie et histoire",
+    "category": "caribou",
+    "summary": "Archipel volcanique, climat, étapes vers la départementalisation (2011).",
+    "content": "GÉOGRAPHIE\nSituée dans l'hémisphère sud, à l'entrée du Canal du Mozambique, à mi-chemin entre Madagascar et l'Afrique, Mayotte (\"l'île hippocampe\") est un archipel volcanique de 374 km². Elle comprend deux îles principales et une trentaine de petits îlots, dans un lagon de plus de 1 500 km².\nL'îlot de Pamandzi et le rocher de Dzaoudzi, reliés par le \"Boulevard des Crabes\", forment Petite-Terre. Le chef-lieu administratif est à Dzaoudzi, mais l'activité économique se concentre autour de Mamoudzou, en Grande-Terre.\nMayotte est la plus ancienne île de l'archipel des Comores (environ 8 millions d'années), avec un relief moins accentué du fait de l'érosion. Elle possède l'un des plus grands lagons du monde, délimité par une barrière de corail de plus de 160 km.\n\nCLIMAT\nTropical humide (moyenne annuelle 25,6°C), deux saisons :\n- Saison des pluies (octobre-mars) : mousson du nord, fortes températures et humidité, 80% des précipitations annuelles. Saison des cyclones, mais Mayotte est protégée à l'est par Madagascar et peu exposée au risque cyclonique.\n- Saison sèche (avril-septembre) : alizés du sud-est, climat plus frais et moins humide.\n\nHISTOIRE — DES ORIGINES À LA FRANCE\nPeuplement originel d'origine bantoue (Vème-VIIIème siècle). Influences arabes (culture swahilie, religion musulmane), sultanats rivaux dans l'archipel. Premiers Européens (Portugais, Français) vers le XVème siècle.\nFin XVIIIème-début XIXème : troubles violents (razzias d'esclaves malgaches), population réduite à 3 000 personnes.\n\n25 avril 1841 : le sultan Andriantsouli cède Mayotte à la France — début du protectorat français. Esclavage aboli en 1846.\n1886-1892 : protectorat français étendu aux autres îles des Comores.\n1946 : statut de Territoire d'Outre-mer pour l'archipel des Comores.\n\nVERS LA DÉPARTEMENTALISATION\nDécembre 1974 : référendum sur l'indépendance — Mayotte vote à 63,8% pour rester française.\nFévrier 1976 : nouvelle consultation, 99,4% pour le maintien dans l'ensemble français.\n1976 : statut provisoire de Collectivité Territoriale de la République.\n29 mars 2009 : 95,2% des Mahorais votent pour la départementalisation.\n31 mars 2011 : Mayotte devient le 101e département français.\n1er janvier 2014 : Mayotte accède au statut de région ultrapériphérique (RUP) de l'Union Européenne, ouvrant l'accès aux fonds structurels européens."
   },
   {
-    id: 'annuaire',
-    label: 'Annuaire & Avis Spé',
-    icon: Phone,
-    color: '#0E7490',
-    bg: '#EBF6F8',
-    description: 'Contacts, spécialistes, filières d\'évacuation'
+    "title": "Mayotte — démographie et conditions de vie",
+    "category": "caribou",
+    "summary": "Forte natalité, pauvreté, conditions de logement précaires — contexte essentiel pour la pratique médicale.",
+    "content": "DÉMOGRAPHIE\nRecensement 2022 : environ 300 000 habitants (805 hab/km²), contre 25 000 dans les années 1970.\nForte natalité + flux migratoire (majoritairement comorien, de plus en plus est-africain) : excédent migratoire de 32 500 personnes entre 2012 et 2017 (surtout femmes 15-34 ans avec enfants).\nMayotte est aussi une terre d'émigration méconnue : 25 900 natifs ont quitté le territoire entre 2012 et 2017.\nPlus de la moitié des adultes de l'île n'y sont pas nés (>40% originaires des Comores). Près de la moitié de la population n'a pas la nationalité française, mais un tiers des étrangers de l'île y sont nés.\n\nFÉCONDITÉ ET NATALITÉ\n5,0 enfants par femme à Mayotte (vs 1,9 en métropole). 10 795 naissances en 2022 (3/4 de mères étrangères, 1/2 de pères étrangers, un peu plus de la moitié avec au moins un parent français).\n\nCONDITIONS DE VIE\nEn 2011 : 84% de la population sous le seuil de pauvreté (959€/mois/ménage) contre 16% en métropole.\nEn 2018 : seulement 1/3 des 15-64 ans a un emploi ; taux de chômage 35%. 6 jeunes sur 10 (20-29 ans) sans emploi ni formation. Les cultures vivrières privées (bananes, manioc) restent essentielles à l'alimentation de nombreux foyers.\n\nLOGEMENT\n1/10 sans électricité, 1/3 sans eau courante, 6/10 sans confort sanitaire de base (eau intérieure + toilettes + douche/baignoire). Près de 4 logements sur 10 en matériaux fragiles (tôle, bois, végétal, terre) — 65% chez les étrangers contre 25% chez les Français natifs de l'île.\n\nDÉMOGRAPHIE SANITAIRE\nPopulation jeune : la moitié a moins de 18 ans. Taux de décès par habitant le plus faible de France (2,9/1000 en 2018), MAIS les taux de décès par tranche d'âge sont plus élevés qu'en métropole. Mortalité infantile élevée (9,8/1000) ainsi que celle des seniors.\n\nPROTECTION SOCIALE\nPas de CMU-C, ni d'AME, ni d'ACS à Mayotte. Accès aux soins gratuit pour les résidents réguliers au CHM. Les non-affiliés doivent acquitter un forfait, sauf en cas de risque vital, épidémique, ou pour la maternité et la pédiatrie.\n\nÉDUCATION\nScolarisation de masse récente (1973) — faible niveau d'éducation chez les plus de 40 ans. En 2002, 44% de la population n'avait jamais été scolarisée (mais 60% savaient lire/écrire l'arabe via l'école coranique). En 2015, plus de 5 jeunes sur 10 en situation d'illettrisme, 75% des 17-24 ans en grave difficulté de lecture."
   },
   {
-    id: 'administratif',
-    label: 'Procédures admin',
-    icon: FileText,
-    color: '#1A2B3D',
-    bg: '#EEF0F3',
-    description: 'Démarches, formulaires, organisation du dispensaire'
+    "title": "Mayotte — système de santé et CHM",
+    "category": "caribou",
+    "summary": "Densité de soignants, organisation du CHM en dispensaires, spécialités absentes nécessitant une EVASAN.",
+    "content": "DENSITÉ DES PROFESSIONNELS DE SANTÉ\nNettement inférieure à la métropole, à l'exception des sages-femmes (densité double).\n244 médecins en activité (01/01/2019), 89 masseurs-kinésithérapeutes (01/01/2018), 720 infirmiers (01/01/2018).\n\nORGANISATION DU CHM\nL'offre de soins est majoritairement publique. Le Centre Hospitalier de Mayotte (CHM) gère l'offre de médecine générale via des dispensaires : 4 centres de référence et 13 centres de consultations, répartis en 5 secteurs (Nord, Centre, Sud, Grand Mamoudzou, Petite-Terre).\n\nLe CHM de Mamoudzou regroupe le plateau technique complet : urgences, laboratoire, radiologie, hospitalisation médecine/chirurgie, pédiatrie, réanimation, maternité.\n\nAVIS SPÉCIALISÉS\nC'est au CHM que se font la majorité des avis spécialisés : cardiologie, endocrinologie, pneumologie, rhumatologie, médecine interne, gastro (FOGD, coloscopie, suivi VHB), rééducation, néphrologie (RDV à prendre en médecine externe), dermatologie (RDV à Action Santé ou lors des missions), ORL, ophtalmologie, oncologie (médecine ambulatoire).\n\nMISSIONS PONCTUELLES\nDes spécialistes viennent fréquemment de La Réunion pour des missions temporaires (chirurgie infantile, neurologie, rhumatologie, dermato...). Le planning est communiqué par le secrétariat des services concernés (à consulter sur la messagerie interne).\n\nSPÉCIALITÉS ABSENTES (recours à l'EVASAN)\nNeurochirurgie, chirurgie cardiaque, cardiologie interventionnelle ne sont pas représentées sur le territoire. En cas d'urgence relevant de ces spécialités, les patients sont évacués vers La Réunion ou la métropole (évacuation sanitaire = EVASAN)."
   },
   {
-    id: 'lexique',
-    label: 'Lexique Shimaoré',
-    icon: Languages,
-    color: '#65521E',
-    bg: '#F8F2E6',
-    description: 'Vocabulaire médical Shimaoré / Français'
+    "title": "Arrivée à Mayotte — candidature et contrat",
+    "category": "caribou",
+    "summary": "Process de candidature, types de contrats, avantages du PH contractuel.",
+    "content": "CANDIDATURE\nPour candidater, il suffit de passer par le chef de service qui valide la candidature auprès des affaires médicales du CHM.\n\nTYPES DE CONTRATS\n- Contrats de FFI pour les licences de remplacement\n- Contrats de PH contractuels ou PH titulaires pour les médecins thésés\nDurée minimum : 1 mois.\n\nRECOMMANDATION\nUne expérience de 3 mois est conseillée — elle permet à la fois de découvrir la médecine mahoraise et d'avoir le temps de découvrir l'île.\n\nAVANTAGES DU CONTRAT PH CONTRACTUEL\n- Billets aller-retour pris en charge\n- Voiture de location prise en charge 3 mois\n- Logement CHM pris en charge 6 mois\n- Rémunération selon la loi RIST II"
+  },
+  {
+    "title": "Arrivée à Mayotte — logistique pratique (avion, logement, badge)",
+    "category": "caribou",
+    "summary": "Du débarquement à l'aéroport jusqu'à l'installation : voiture, badge, accès informatique.",
+    "content": "ARRIVÉE PAR AVION\nL'avion atterrit à Dzaoudzi (Petite-Terre), où se situe l'aéroport. Un agent du CHM (service logement) attend pour remettre la voiture et les clés du logement.\nContact service logement : 06 39 68 79 45\n\nSI LA BARGE EST NÉCESSAIRE (pour rejoindre Mamoudzou)\nPrendre un taxi (environ 2€, facilement trouvable devant l'aéroport) jusqu'au port, puis rejoindre le point de ralliement au bar \"camion rouge\" (en sortant à gauche de la barge en arrivant à Mamoudzou).\nUn agent CHM y remet ensuite le véhicule.\n\nFIN DE CONTRAT\nLa restitution se fait à l'agence de location pour la voiture, et au PC sécurité de Mamoudzou (entrée du CHM) pour les clés du logement.\n\nBADGE\nÀ récupérer au service badge du CHM, dans l'un des bâtiments administratifs en face de l'entrée du CHM — c'est aussi là que se trouvent les affaires médicales si la signature du contrat est nécessaire sur place.\n\nACCÈS INFORMATIQUE — À FAIRE AVANT L'ARRIVÉE\nAppeler le standard (0269618000) puis :\n- Service DxCare (poste 3750) pour les identifiants de connexion\n- Service Informatique (poste 3700) pour les identifiants de session DxCare"
+  },
+  {
+    "title": "Culture mahoraise — religion, rapport à la maladie et à la mort",
+    "category": "caribou",
+    "summary": "95% musulmane, fatalisme face à la maladie chronique, notion de djinn — clés de compréhension essentielles.",
+    "content": "CONTEXTE RELIGIEUX\n95% de la population est musulmane, pratiquant pieusement mais de manière modérée. L'Islam occupe une place importante dans la société mahoraise, associé à une spiritualité d'origine africaine (notion de djinn/esprit).\n\nRAPPORT À LA MALADIE CHRONIQUE\nLa notion de pathologie chronique est souvent difficile à appréhender. Annoncer un diagnostic grave ou une complication sévère (ex: liée au diabète) peut amener le patient à répondre que seul Allah décide du droit de vie ou de mort. Cette résilience face à la maladie et à la mort entraîne de fréquentes ruptures de traitement.\n\n\"CRISES DE DJINN\" (possession par esprit)\nPeuvent évoquer des somatisations de traumatisme personnel, des spasmophilies ou crises d'angoisse réactionnelles, surtout chez les jeunes filles. Devant ces tableaux (parfois de type pseudo-épileptique), rechercher à l'anamnèse un passé traumatisant ou des épreuves psychologiques. Rassurer la personne et s'appuyer sur les membres mahorais de l'équipe soignante, qui savent trouver les mots pour apaiser le patient.\n\nMÉDECINE TRADITIONNELLE\nLes patients associent fréquemment la médecine traditionnelle (tisanes, décoctions) à la médecine occidentale, utilisant les deux en alternance. À garder en tête lors des anamnèses : par exemple, certaines plantes diurétiques/hypotensives utilisées en automédication peuvent être hypokaliémiantes ; l'ingestion d'argile blanche peut être en lien avec une anémie."
+  },
+  {
+    "title": "Culture mahoraise — communication, Ramadan, et le Mcarara/MSada",
+    "category": "caribou",
+    "summary": "Tutoiement, pudeur, jeûne du Ramadan, et la pratique d'entraide entre soignants.",
+    "content": "COMMUNICATION AVEC LE PATIENT\n- Le tutoiement est souvent la règle.\n- Certains patients peuvent paraître peu communicants, évitants — traduisant plutôt un comportement pudique que de l'hostilité.\n- La douleur peut être sous-évaluée ou sur-évaluée selon les profils — à intégrer dans l'évaluation clinique.\n\nRAMADAN\nLe jeûne se pratique 1 mois par an selon un calendrier lunaire défini par le Cadi. Durant cette période, les musulmans ne boivent ni ne mangent du lever au coucher du soleil. Les ruptures de traitement sont nombreuses. Solutions possibles à proposer médicalement : prières allégées, ou adaptation des prises médicamenteuses pour raison de santé.\n\nLE MCARARA / MSADA — PRATIQUE D'ENTRAIDE ENTRE SOIGNANTS\nEn raison du manque d'accès aux soins, les soignants mahorais ont fréquemment besoin d'avis médicaux pour eux-mêmes ou leurs familles, souvent intercalés entre les consultations aiguës.\nCette pratique est appelée localement \"Mcarara\" ou \"Business\" — le terme préféré est \"MSada\" (entraide), plus juste sur le fond.\nConseil : ne pas se braquer, temporiser si une urgence est en cours, mais consulter ces demandes dès que possible. C'est une pratique très répandue à Mayotte qui favorise une bonne entente avec les équipes soignantes, qui comptent beaucoup sur cette aide au vu de la difficulté d'accès aux soins."
+  },
+  {
+    "title": "Dispensaire Kahani — horaires et organisation des consultations",
+    "category": "caribou",
+    "summary": "Horaires d'ouverture, capacité de consultation, fonctionnement matin/après-midi.",
+    "content": "HORAIRES\nKahani : 7h-17h. Sada : 7h-13h. La permanence de soins (PDS), pour les soins urgents, est ouverte 24h/24.\n\nLE MATIN\nDès 6h30, l'agent de sécurité et l'infirmier d'orientation à l'accueil (IAO) trient les patients vers les différents soignants (urgences, consultations aiguës/chroniques, injection d'insuline, pansements, RDV bilans...).\nCapacité théorique : 25 consultations par médecin, soit environ 75 patients le matin.\nLes patients sont enregistrés au bureau des entrées, reçoivent un bon de circulation (retrait des traitements à la pharmacie du dispensaire, ouverte 8h-15h en semaine, fermée le week-end), puis sont reçus au BOX ACCUEIL ET ORIENTATION où un AS prend les paramètres et les inscrit sur DxCare. Les patients francophones reçoivent la mention \"F\" sur leur bon.\n\nL'APRÈS-MIDI\nRéservé aux 15 consultations sur rendez-vous, plus 20 tickets de consultations non programmées. À partir de 17h, les médecins basculent sur la permanence de soins.\n\nPRISE DE RDV SPÉCIALISTES\nLors des consultations, les patients sont dirigés vers le secrétariat pour la prise de RDV avec les spécialistes, notamment au CHM.\n\nACCÈS HORS HORAIRES\nL'accès à la PDS en dehors des horaires du bureau des entrées (7h-17h) nécessite un enregistrement par un référent de la régie (AS) directement dans la PDS. Après 17h, tous les patients sont paramétrés à la PDS."
+  },
+  {
+    "title": "Permanence de soins (PDS) — fonctionnement et transferts",
+    "category": "caribou",
+    "summary": "Locaux, déclenchement de transfert (14 vs 15), gestion des consultations semi-urgentes en garde.",
+    "content": "PRÉSENTATION\nLa PDS prend en charge les patients nécessitant des soins non différables (plaies, urgences, accueil des patients en ambulance). Pas d'hospitalisation possible : la durée de séjour maximale est de 6h.\n\nLOCAUX\n- Salle de déchoquage : 2 brancards avec scopes (prises en charge urgentes, plaies)\n- Salle d'observation de courte durée : 2 brancards (lit 1, lit 2) + 2 fauteuils (attentes de transfert, asthme...)\n- Seconde salle d'observation : 1 lit adulte + 1 lit pédiatrique + 2 fauteuils (surveillance SRO)\n\nLes patients vus en consultation peuvent être envoyés aux urgences pour ECG, injections, aérosols, ou prise en charge d'urgence.\n\nTRANSFERTS\n- Transfert vers les urgences de Mamoudzou : nécessite l'accord du médecin régulateur du SAMU (poste 14), qui déclenche le transport.\n- Le 15 reste le numéro pour les urgences vitales, avec déclenchement SMUR (4x4 ou hélicoptère).\n- Des ambulances libérales peuvent être appelées pour les patients affiliés à la CSSM.\n\nORGANISATION PENDANT LES GARDES\nÀ l'accueil PDS, les patients sont enregistrés par les aides-soignants, puis pris en charge par le médecin et l'IDE.\nLe médecin peut réadresser aux consultations du lendemain les patients ne nécessitant pas de prise en charge urgente, après s'être assuré de l'absence de gravité. Entre 17h et 19h généralement, la PDS renvoie les consultations semi-urgentes vers les bureaux de consultation.\n\nCONSEIL DE COMMUNICATION\nÉviter \"vous n'êtes pas une urgence\" (rarement efficace). Préférer : \"je vous dépanne de votre motif et vous pourrez revenir demain matin en consultation\"."
+  },
+  {
+    "title": "Effectifs et planning médical — Kahani",
+    "category": "caribou",
+    "summary": "Répartition K1/K3, gardes, jours fériés musulmans, référents locaux.",
+    "content": "EFFECTIFS THÉORIQUES\n\nK1 (7h-13h) — 5 médecins :\n- 3 en consultations aiguës (dont 1 se détache au tri)\n- 1 à la permanence de soins (urgences)\n- 1 sur les consultations chroniques (KRO)\nD'autres bureaux s'ouvrent selon l'effectif disponible, pour accueillir des intervenants extérieurs (psychiatrie adulte, pédiatrie, assistant social, psychologue, téléconsultation...).\n\nK3 (13h-19h) — 3 médecins :\n- 2 en consultation (RDV + consultations aiguës semi-urgentes)\n- 1 en PDS\n\nUn médecin sans patient peut aider ses collègues.\n\nCCP DE SADA\nUn médecin consulte le matin en semaine (7h-13h, code \"S\" sur le planning).\n\nSAMEDI MATIN\n3 médecins en K1.\n\nGARDES\n- Samedi après-midi : 13h-19h\n- Dimanche et jours fériés : 7h-19h (parfois partagé en deux)\n- Nuits : 19h-7h\nLes jours fériés musulmans ne sont pas toujours connus à l'avance — date précise parfois communiquée seulement la veille.\n\nRÉFÉRENTS LOCAUX (au moment de la rédaction du document, à actualiser)\nSerge Garnier : référent des consultations chroniques, tient les statistiques patients\nIssoufa Maoulida : médecin mahorais de l'équipe, ressource précieuse pour les particularités locales\nAdrien Cussac : chef de service"
+  },
+  {
+    "title": "Organisation du tri — méthode et objectifs",
+    "category": "caribou",
+    "summary": "Rôle de l'IAO et du Médecin d'Accueil et Orientation (MAO), tickets rouge/blanc, limite de 75 patients.",
+    "content": "CONTEXTE\nLe parcours de soin est souvent chamboulé par une pression trop forte au portail par rapport à la capacité de consultation (25 consultations théoriques par médecin de K1).\n\nORGANISATION DU TRI À KAHANI\nUn médecin de consultation devient Médecin d'Accueil et Orientation (MAO), avec un AS, à l'ALGECO face à l'entrée du dispensaire.\nObjectifs : trier les problématiques simples/rapides vs complexes, désengorger le dispensaire et le BOX AO, réaliser un double regard (IAO puis MAO) pour ne pas manquer une urgence, bien orienter le patient et prescrire ce qui accélère sa prise en charge.\n\nL'ALGECO est équipé : DYNAMAP, glycémie capillaire, balance adulte et pédiatrique. Consultation possible sur chaise ou brancard.\n\nDÈS 6H30 — RÔLE DE L'IAO\nDescend au portail, récupère la liste des patients établie par la sécurité. Dépiste en priorité :\n- Fièvre mal tolérée, notamment chez l'enfant\n- Signes de gravité (détresse respiratoire, trouble de la vigilance, déshydratation sévère)\n- Patients venant pour des résultats de bilan\nNote la date et la température de chaque patient examiné.\n\nORIENTATION DÉCIDÉE PAR L'IAO\n- Ticket rouge : urgence\n- Consultation semi-urgente \"complexe\" : paramétrage au local IAO puis bureau de consultation (mention \"F\" si patient francophone)\n- Ticket blanc \"tri\" : motif simple et non différable, attente sous la varangue de la maternité ou face au rond-point, envoyé au MAO (limite 25-30 tickets selon afflux)\n\nDÈS 7H — RÔLE DU MAO\nDescend avec l'AS AO à la tente : consultation rapide (viroses, parasitoses, problématiques non complexes) et réorientation si besoin des cas complexes. Peut prescrire directement les examens réalisables au box IAO (BU, bHCG, palu, dengue, hémocue, cétonémie...).\n\nEXEMPLES DE CONSULTATIONS SIMPLES (MAO)\nVirose bénigne sans gravité (rhinopharyngite, varicelle, OMA, angine), parasitose (gale, parasitoses digestives), mycose bénigne (teignes, dermatophytie des plis), mise à jour vaccinale.\n\nRÈGLE ABSOLUE\nAucun patient ne doit sonner à la PDS sans être passé par l'IAO — le réorienter avec patience vers l'IAO si besoin.\n\nL'APRÈS-MIDI\nL'IAO (assisté d'un médecin si besoin) redistribue jusqu'à 20 tickets de consultation. Si effectif suffisant, les secrétaires peuvent inscrire 15 consultations programmées en plus. Au-delà des 20 tickets, chaque demande est examinée au cas par cas. À partir de 17h, le bureau des entrées ferme — passage obligatoire par la PDS.\nLe bureau de consultation 1 peut être dédié à l'aigu, le bureau 2 aux RDV si nécessaire."
+  },
+  {
+    "title": "DxCare — informatique et logiciel dossier patient",
+    "category": "caribou",
+    "summary": "Logiciel utilisé pour dossiers, résultats, comptes-rendus. Contacts en cas de problème.",
+    "content": "Le logiciel utilisé au CHM est DxCare — pour les dossiers patients, l'accès aux résultats biologiques et d'imagerie, et les comptes-rendus de consultation ou d'hospitalisation. La prise en main est généralement aisée, un collègue peut accompagner la découverte à l'arrivée.\n\nEN CAS DE PROBLÈME\nProblème de session : poste 3700 (informatique)\nProblème DxCare : poste 3750\n\nRéclamation possible via ticket GLPI, accessible dans INTRANET sur le bureau, onglet INTRANET → \"Demande intervention informatique\"."
+  },
+  {
+    "title": "Carnet de santé du patient — usage et importance",
+    "category": "caribou",
+    "summary": "Carnet bleu (général) ou rouge (drépanocytaire) — antécédents, vaccins, preuve de résidence.",
+    "content": "Les patients présentent leur carnet de santé (généralement petit carnet bleu ; rouge pour les patients drépanocytaires) à leur arrivée en consultation.\n\nCONTENU\nVaccins, antécédents, rendez-vous, comptes-rendus — le patient ne connaît souvent ni sa pathologie ni son traitement précis. Il est fortement recommandé de le feuilleter systématiquement pour ne pas méconnaître une allergie, un antécédent notable, ou pour vérifier le statut vaccinal.\n\nAUTRE FONCTION\nCe carnet constitue aussi la preuve de résidence sur le territoire mahorais, nécessaire pour l'obtention d'un titre de séjour.\n\nPRATIQUE\nLe compte-rendu de consultation et la prescription sont rédigés sur DxCare, imprimés puis collés dans le carnet. L'écriture manuscrite directe dans le carnet reste également possible."
+  },
+  {
+    "title": "Déclenchement MCS (Médecin Correspondant SMUR)",
+    "category": "caribou",
+    "summary": "Sortie en urgence vitale sur demande de la régulation, matériel à emporter, certificats de décès à domicile.",
+    "content": "PRINCIPE\nSur demande de la régulation, le médecin peut être amené à sortir dans le cadre d'une urgence vitale en tant que MCS (Médecin Correspondant SMUR) — le SMUR est alors systématiquement déclenché. Pas de visite médicale classique en dehors de ce cadre.\n\nACCOMPAGNEMENT\nLe jour : ambulancier + IDE (celui de pansement). La nuit : ambulancier seul.\n\nMATÉRIEL\nSac d'urgence + défibrillateur (localisés en UHCD) + scope. Aspiration et oxygène sont sur le chariot d'urgence, en salle brancard ou dans l'ambulance.\n\nCERTIFICATS DE DÉCÈS À DOMICILE\nLa régulation peut demander une sortie pour signer un certificat de décès à domicile — toujours accompagné d'un ambulancier. Il convient de refuser cette sortie si elle laisserait le dispensaire sans médecin.\n\nAPRÈS L'INTERVENTION\nChaque médecin ayant utilisé le sac est responsable de sa réfection à son retour, avec l'aide de l'IDE et des ambulanciers. Astuce pratique : mettre tout le matériel utilisé dans un sac poubelle pendant l'intervention pour faciliter la réfection ensuite."
+  },
+  {
+    "title": "Équipe paramédicale du dispensaire — rôles et répartition",
+    "category": "caribou",
+    "summary": "Traducteurs, bureau des entrées, IDE, AS, secrétaires, sécurité — qui fait quoi.",
+    "content": "TRADUCTEURS ET ASH\nAssistent le médecin : traduction (shimaoré ou shibushi), prise de paramètres si besoin, réalisation de certains tests (test optimal, Actim CRP, tétanotop...). Précieux pour comprendre l'expression culturelle de la symptomatologie.\n\nBUREAU DES ENTRÉES\nEnregistrement des patients, impression des étiquettes.\n\nIDE — répartition\n- Poste d'accueil (IAO)\n- Permanence de soins\n- Pansements (7h-19h)\n- Salle de prélèvements : injections d'insuline, bilans sanguins programmés, vaccins sur RDV (7h-14h)\n\nAS — répartition\n- Poste AO à la tente de tri (7h-14h) ou box AO (7h-19h)\n- Permanence de soins (7h-19h)\n\nSECRÉTAIRES MÉDICALES\n- En interne (Kahani) : RDV prélèvements, pansements, consultations chroniques, consultations d'après-midi\n- En externe : prises de RDV à l'hôpital de Mamoudzou pour consultations spécialisées, imagerie...\n\nSÉCURITÉ\nPrésente 7j/7, oriente les patients dans le calme — ne réalise pas le tri médical. La nuit, un interphone permet de communiquer avec les patients hors du dispensaire.\n\nRESSOURCES SPÉCIFIQUES DU DISPENSAIRE (au moment de la rédaction, à actualiser)\nIDE (Valérie Koutala) : éducation thérapeutique des diabétiques\nIPA (Sitti Abdallah) : consultations chroniques (HTA, diabète) en parallèle du médecin KRO\nDes journées de formation à la DRP sont régulièrement organisées."
   }
-];
-
-// La génération d'ID et la clé de stockage sont maintenant gérées côté serveur (app/api/fiches/route.js)
-
-function useFiches() {
-  const [fiches, setFiches] = useState(null);
-  const [error, setError] = useState(null);
-
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch('/api/fiches');
-      const data = await res.json();
-      setFiches(data.fiches || []);
-    } catch (e) {
-      setFiches([]);
-      setError('Impossible de charger la base. Vérifie ta connexion.');
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const call = useCallback(async (body) => {
-    try {
-      const res = await fetch('/api/fiches', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      if (data.error) {
-        setError('Enregistrement impossible. Réessaie.');
-        return null;
-      }
-      setFiches(data.fiches);
-      setError(null);
-      return data;
-    } catch (e) {
-      setError('Connexion perdue. Tes modifications ne sont pas encore sauvegardées — réessaie dans un instant.');
-      return null;
-    }
-  }, []);
-
-  const addFiche = useCallback((fiche) => call({ action: 'add', fiche }), [call]);
-
-  const addFichesBulk = useCallback(async (newFiches) => {
-    const data = await call({ action: 'bulkAdd', fiches: newFiches });
-    return data ? data.added : 0;
-  }, [call]);
-
-  const updateFiche = useCallback((id, patch) => call({ action: 'update', id, patch }), [call]);
-
-  const deleteFiche = useCallback((id) => call({ action: 'delete', id }), [call]);
-
-  return { fiches, addFiche, addFichesBulk, updateFiche, deleteFiche, error, reload: load };
-}
-
-function CategoryBadge({ catId, size = 'sm' }) {
-  const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES[2];
-  const Icon = cat.icon;
-  const px = size === 'sm' ? '4px 10px' : '6px 14px';
-  const fs = size === 'sm' ? '12px' : '13px';
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 6,
-      padding: px, borderRadius: 999, background: cat.bg, color: cat.color,
-      fontSize: fs, fontWeight: 600, letterSpacing: '0.01em'
-    }}>
-      <Icon size={size === 'sm' ? 13 : 15} strokeWidth={2.5} />
-      {cat.label}
-    </span>
-  );
-}
-
-function FicheCard({ fiche, onClick }) {
-  const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES[2];
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        textAlign: 'left', width: '100%', background: '#fff',
-        border: '1px solid #E5E1D8', borderRadius: 14, padding: '18px 20px',
-        cursor: 'pointer', transition: 'all 0.15s ease', display: 'flex',
-        flexDirection: 'column', gap: 10, position: 'relative'
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = cat.color; e.currentTarget.style.boxShadow = `0 2px 12px ${cat.color}1a`; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = '#E5E1D8'; e.currentTarget.style.boxShadow = 'none'; }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-        <h3 style={{
-          fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 18, fontWeight: 600,
-          color: '#1A2B3D', margin: 0, lineHeight: 1.3
-        }}>
-          {fiche.title}
-        </h3>
-        <ChevronRight size={18} color="#9CA3AF" style={{ flexShrink: 0, marginTop: 3 }} />
-      </div>
-      {fiche.summary && (
-        <p style={{ margin: 0, fontSize: 14, color: '#5B6573', lineHeight: 1.5 }}>
-          {fiche.summary.length > 120 ? fiche.summary.slice(0, 120) + '…' : fiche.summary}
-        </p>
-      )}
-      <CategoryBadge catId={fiche.category} />
-    </button>
-  );
-}
-
-function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
-  if (!fiche) return null;
-  const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES[2];
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.4)', zIndex: 50,
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-      padding: '0', overflowY: 'auto'
-    }} onClick={onClose}>
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: '#fff', width: '100%', maxWidth: 760, minHeight: '100vh',
-          padding: '0 0 60px 0', boxShadow: '-4px 0 24px rgba(0,0,0,0.08)'
-        }}
-      >
-        <div style={{
-          position: 'sticky', top: 0, background: '#fff', borderBottom: '1px solid #E5E1D8',
-          padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 5
-        }}>
-          <CategoryBadge catId={fiche.category} size="md" />
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => onEdit(fiche)} aria-label="Modifier" style={iconBtnStyle}>
-              <Edit3 size={18} color="#5B6573" />
-            </button>
-            <button onClick={() => onDelete(fiche)} aria-label="Supprimer" style={iconBtnStyle}>
-              <Trash2 size={18} color="#5B6573" />
-            </button>
-            <button onClick={onClose} aria-label="Fermer" style={iconBtnStyle}>
-              <X size={20} color="#5B6573" />
-            </button>
-          </div>
-        </div>
-        <div style={{ padding: '36px 32px 0 32px' }}>
-          <h1 style={{
-            fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 30, fontWeight: 700,
-            color: '#1A2B3D', margin: '0 0 8px 0', lineHeight: 1.2
-          }}>
-            {fiche.title}
-          </h1>
-          {fiche.updatedAt && (
-            <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 28px 0' }}>
-              Mis à jour le {new Date(fiche.updatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-            </p>
-          )}
-          <div style={{
-            fontSize: 16, lineHeight: 1.75, color: '#2D3744', whiteSpace: 'pre-wrap',
-            fontFamily: "'Inter', system-ui, sans-serif"
-          }}>
-            {fiche.content}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const iconBtnStyle = {
-  background: '#F7F6F2', border: '1px solid #E5E1D8', borderRadius: 8,
-  width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
-  cursor: 'pointer'
-};
-
-function ImportPanel({ onImport, onCancel }) {
-  const [raw, setRaw] = useState('');
-  const [parsed, setParsed] = useState(null);
-  const [parseError, setParseError] = useState(null);
-  const [importing, setImporting] = useState(false);
-  const [done, setDone] = useState(null);
-
-  const validCategoryIds = CATEGORIES.map(c => c.id);
-
-  const handleParse = (text) => {
-    setRaw(text);
-    setDone(null);
-    if (!text.trim()) { setParsed(null); setParseError(null); return; }
-    try {
-      const data = JSON.parse(text);
-      if (!Array.isArray(data)) throw new Error('Le JSON doit être un tableau de fiches.');
-      const cleaned = data.map((f, i) => {
-        if (!f.title || !f.content) throw new Error(`Fiche #${i + 1} : titre ou contenu manquant.`);
-        return {
-          title: String(f.title).trim(),
-          category: validCategoryIds.includes(f.category) ? f.category : 'administratif',
-          summary: f.summary ? String(f.summary).trim() : '',
-          content: String(f.content).trim()
-        };
-      });
-      setParsed(cleaned);
-      setParseError(null);
-    } catch (e) {
-      setParsed(null);
-      setParseError(e.message || 'JSON invalide.');
-    }
-  };
-
-  const handleImport = async () => {
-    if (!parsed) return;
-    setImporting(true);
-    const count = await onImport(parsed);
-    setImporting(false);
-    setDone(count);
-    setRaw('');
-    setParsed(null);
-  };
-
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.4)', zIndex: 60,
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto'
-    }} onClick={onCancel}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: '#fff', width: '100%', maxWidth: 680, minHeight: '100vh', padding: '0 0 60px 0'
-      }}>
-        <div style={{
-          position: 'sticky', top: 0, background: '#fff', borderBottom: '1px solid #E5E1D8',
-          padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-        }}>
-          <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 20, fontWeight: 700, margin: 0, color: '#1A2B3D' }}>
-            Import en masse
-          </h2>
-          <button onClick={onCancel} style={iconBtnStyle}><X size={20} color="#5B6573" /></button>
-        </div>
-
-        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <p style={{ fontSize: 14, color: '#5B6573', lineHeight: 1.6, margin: 0 }}>
-            Colle ici un tableau JSON de fiches : <code style={{ background: '#F7F6F2', padding: '2px 6px', borderRadius: 4, fontSize: 13 }}>
-              [{'{'}"title", "category", "summary", "content"{'}'}, ...]
-            </code>
-            <br />Catégories valides : {CATEGORIES.map(c => c.id).join(', ')}.
-          </p>
-
-          <textarea
-            value={raw}
-            onChange={e => handleParse(e.target.value)}
-            placeholder='[{"title": "...", "category": "urgences", "summary": "...", "content": "..."}]'
-            rows={14}
-            style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', fontSize: 13, lineHeight: 1.5 }}
-          />
-
-          {parseError && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#9A3412', fontSize: 13, background: '#FDF1EC', padding: '10px 14px', borderRadius: 8 }}>
-              <AlertTriangle size={15} style={{ flexShrink: 0 }} /> {parseError}
-            </div>
-          )}
-
-          {parsed && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#0E7490', fontSize: 13, background: '#EBF6F8', padding: '10px 14px', borderRadius: 8 }}>
-              <Check size={15} style={{ flexShrink: 0 }} /> {parsed.length} fiche{parsed.length > 1 ? 's' : ''} prête{parsed.length > 1 ? 's' : ''} à importer.
-            </div>
-          )}
-
-          {done !== null && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#15803D', fontSize: 13, background: '#F0FDF4', padding: '10px 14px', borderRadius: 8 }}>
-              <Check size={15} style={{ flexShrink: 0 }} /> {done} fiche{done > 1 ? 's' : ''} importée{done > 1 ? 's' : ''} avec succès.
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            <button onClick={onCancel} style={{
-              padding: '10px 20px', borderRadius: 10, border: '1px solid #E5E1D8',
-              background: '#fff', color: '#5B6573', fontSize: 14, fontWeight: 600, cursor: 'pointer'
-            }}>
-              Fermer
-            </button>
-            <button
-              disabled={!parsed || importing}
-              onClick={handleImport}
-              style={{
-                padding: '10px 22px', borderRadius: 10, border: 'none',
-                background: parsed && !importing ? '#1A2B3D' : '#D1D5DB', color: '#fff',
-                fontSize: 14, fontWeight: 600, cursor: parsed && !importing ? 'pointer' : 'not-allowed',
-                display: 'flex', alignItems: 'center', gap: 8
-              }}
-            >
-              {importing && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />}
-              Importer {parsed ? `(${parsed.length})` : ''}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FicheForm({ initial, onSave, onCancel }) {
-  const [title, setTitle] = useState(initial?.title || '');
-  const [category, setCategory] = useState(initial?.category || CATEGORIES[0].id);
-  const [summary, setSummary] = useState(initial?.summary || '');
-  const [content, setContent] = useState(initial?.content || '');
-
-  const canSave = title.trim().length > 0 && content.trim().length > 0;
-
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.4)', zIndex: 60,
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto'
-    }} onClick={onCancel}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: '#fff', width: '100%', maxWidth: 680, minHeight: '100vh', padding: '0 0 60px 0'
-      }}>
-        <div style={{
-          position: 'sticky', top: 0, background: '#fff', borderBottom: '1px solid #E5E1D8',
-          padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-        }}>
-          <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 20, fontWeight: 700, margin: 0, color: '#1A2B3D' }}>
-            {initial ? 'Modifier la fiche' : 'Nouvelle fiche'}
-          </h2>
-          <button onClick={onCancel} style={iconBtnStyle}><X size={20} color="#5B6573" /></button>
-        </div>
-
-        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 22 }}>
-          <div>
-            <label style={labelStyle}>Catégorie</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {CATEGORIES.map(cat => {
-                const Icon = cat.icon;
-                const active = category === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCategory(cat.id)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
-                      borderRadius: 999, border: `1.5px solid ${active ? cat.color : '#E5E1D8'}`,
-                      background: active ? cat.bg : '#fff', color: active ? cat.color : '#5B6573',
-                      fontSize: 13, fontWeight: 600, cursor: 'pointer'
-                    }}
-                  >
-                    <Icon size={14} strokeWidth={2.5} /> {cat.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <label style={labelStyle}>Titre</label>
-            <input
-              value={title} onChange={e => setTitle(e.target.value)}
-              placeholder="Ex : Torsion testiculaire — conduite à tenir"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Résumé court (optionnel — affiché dans la liste)</label>
-            <input
-              value={summary} onChange={e => setSummary(e.target.value)}
-              placeholder="Une phrase pour repérer la fiche en un coup d'œil"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label style={labelStyle}>Contenu</label>
-            <textarea
-              value={content} onChange={e => setContent(e.target.value)}
-              placeholder="Colle ou écris ici le contenu complet de la fiche…"
-              rows={14}
-              style={{ ...inputStyle, resize: 'vertical', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1.6 }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
-            <button onClick={onCancel} style={{
-              padding: '10px 20px', borderRadius: 10, border: '1px solid #E5E1D8',
-              background: '#fff', color: '#5B6573', fontSize: 14, fontWeight: 600, cursor: 'pointer'
-            }}>
-              Annuler
-            </button>
-            <button
-              disabled={!canSave}
-              onClick={() => onSave({ title: title.trim(), category, summary: summary.trim(), content: content.trim() })}
-              style={{
-                padding: '10px 22px', borderRadius: 10, border: 'none',
-                background: canSave ? '#1A2B3D' : '#D1D5DB', color: '#fff',
-                fontSize: 14, fontWeight: 600, cursor: canSave ? 'pointer' : 'not-allowed'
-              }}
-            >
-              Enregistrer la fiche
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const labelStyle = { display: 'block', fontSize: 13, fontWeight: 600, color: '#1A2B3D', marginBottom: 8 };
-const inputStyle = {
-  width: '100%', padding: '12px 14px', borderRadius: 10, border: '1.5px solid #E5E1D8',
-  fontSize: 15, color: '#1A2B3D', fontFamily: "'Inter', system-ui, sans-serif", boxSizing: 'border-box',
-  outline: 'none'
-};
-
-export default function App() {
-  const { fiches, addFiche, addFichesBulk, updateFiche, deleteFiche, error } = useFiches();
-  const [query, setQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState(null);
-  const [selectedFiche, setSelectedFiche] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingFiche, setEditingFiche] = useState(null);
-  const [showImport, setShowImport] = useState(false);
-
-  const filtered = useMemo(() => {
-    if (!fiches) return [];
-    let list = fiches;
-    if (activeCategory) list = list.filter(f => f.category === activeCategory);
-    if (query.trim()) {
-      const q = query.trim().toLowerCase();
-      list = list.filter(f =>
-        f.title.toLowerCase().includes(q) ||
-        (f.summary || '').toLowerCase().includes(q) ||
-        (f.content || '').toLowerCase().includes(q)
-      );
-    }
-    return [...list].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
-  }, [fiches, query, activeCategory]);
-
-  const handleSave = (data) => {
-    if (editingFiche) {
-      updateFiche(editingFiche.id, data);
-    } else {
-      addFiche(data);
-    }
-    setShowForm(false);
-    setEditingFiche(null);
-    setSelectedFiche(null);
-  };
-
-  const handleDelete = (fiche) => {
-    if (window.confirm(`Supprimer définitivement « ${fiche.title} » ?`)) {
-      deleteFiche(fiche.id);
-      setSelectedFiche(null);
-    }
-  };
-
-  const loading = fiches === null;
-
-  return (
-    <div style={{
-      minHeight: '100vh', background: '#F7F6F2',
-      fontFamily: "'Inter', system-ui, -apple-system, sans-serif"
-    }}>
-      {/* Header */}
-      <header style={{
-        background: '#1A2B3D', padding: '32px 24px 28px 24px',
-        borderBottom: '4px solid #C2410C'
-      }}>
-        <div style={{ maxWidth: 920, margin: '0 auto' }}>
-          <p style={{ color: '#94A8BD', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', margin: '0 0 6px 0' }}>
-            Dispensaire — Mayotte
-          </p>
-          <h1 style={{
-            fontFamily: "'Source Serif 4', Georgia, serif", color: '#fff', fontSize: 28,
-            fontWeight: 700, margin: '0 0 20px 0'
-          }}>
-            Base de référence de l'équipe
-          </h1>
-          <div style={{ position: 'relative' }}>
-            <Search size={19} color="#6B7C90" style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)' }} />
-            <input
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder="Chercher une fiche : torsion, évacuation, ordonnance type…"
-              style={{
-                width: '100%', padding: '14px 16px 14px 46px', borderRadius: 12, border: 'none',
-                fontSize: 16, fontFamily: "'Inter', sans-serif", outline: 'none', boxSizing: 'border-box',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-              }}
-            />
-          </div>
-        </div>
-      </header>
-
-      <main style={{ maxWidth: 920, margin: '0 auto', padding: '28px 24px 80px 24px' }}>
-
-        {error && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 10, background: '#FDF1EC',
-            border: '1px solid #F3C7B0', color: '#9A3412', padding: '12px 16px',
-            borderRadius: 10, fontSize: 14, marginBottom: 20
-          }}>
-            <AlertTriangle size={16} style={{ flexShrink: 0 }} />
-            {error}
-          </div>
-        )}
-
-        {/* Category filters */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-          <button
-            onClick={() => setActiveCategory(null)}
-            style={{
-              padding: '8px 16px', borderRadius: 999, border: `1.5px solid ${!activeCategory ? '#1A2B3D' : '#E5E1D8'}`,
-              background: !activeCategory ? '#1A2B3D' : '#fff', color: !activeCategory ? '#fff' : '#5B6573',
-              fontSize: 13, fontWeight: 600, cursor: 'pointer'
-            }}
-          >
-            Toutes les fiches
-          </button>
-          {CATEGORIES.map(cat => {
-            const Icon = cat.icon;
-            const active = activeCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(active ? null : cat.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
-                  borderRadius: 999, border: `1.5px solid ${active ? cat.color : '#E5E1D8'}`,
-                  background: active ? cat.bg : '#fff', color: active ? cat.color : '#5B6573',
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer'
-                }}
-              >
-                <Icon size={14} strokeWidth={2.5} /> {cat.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* New fiche button */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 28 }}>
-          <button
-            onClick={() => { setEditingFiche(null); setShowForm(true); }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px',
-              borderRadius: 10, border: '1.5px dashed #C2410C', background: '#FDF1EC',
-              color: '#C2410C', fontSize: 14, fontWeight: 700, cursor: 'pointer', flex: 1,
-              justifyContent: 'center'
-            }}
-          >
-            <Plus size={18} strokeWidth={2.5} /> Ajouter une fiche
-          </button>
-          <button
-            onClick={() => setShowImport(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '12px 18px',
-              borderRadius: 10, border: '1.5px solid #E5E1D8', background: '#fff',
-              color: '#5B6573', fontSize: 14, fontWeight: 700, cursor: 'pointer'
-            }}
-          >
-            <Upload size={16} strokeWidth={2.5} /> Import en masse
-          </button>
-        </div>
-
-        {/* Content */}
-        {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: 10, color: '#9CA3AF' }}>
-            <Loader2 size={20} className="spin" style={{ animation: 'spin 1s linear infinite' }} />
-            Chargement de la base…
-          </div>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#9CA3AF' }}>
-            {fiches.length === 0 ? (
-              <>
-                <p style={{ fontSize: 16, fontWeight: 600, color: '#5B6573', margin: '0 0 6px 0' }}>
-                  La base est vide pour l'instant
-                </p>
-                <p style={{ fontSize: 14, margin: 0 }}>
-                  Ajoute la première fiche avec le bouton ci-dessus.
-                </p>
-              </>
-            ) : (
-              <p style={{ fontSize: 15 }}>Aucune fiche ne correspond à « {query} ».</p>
-            )}
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
-            {filtered.map(fiche => (
-              <FicheCard key={fiche.id} fiche={fiche} onClick={() => setSelectedFiche(fiche)} />
-            ))}
-          </div>
-        )}
-      </main>
-
-      {selectedFiche && !showForm && (
-        <FicheDetail
-          fiche={selectedFiche}
-          onClose={() => setSelectedFiche(null)}
-          onEdit={(f) => { setEditingFiche(f); setShowForm(true); }}
-          onDelete={handleDelete}
-        />
-      )}
-
-      {showForm && (
-        <FicheForm
-          initial={editingFiche}
-          onSave={handleSave}
-          onCancel={() => { setShowForm(false); setEditingFiche(null); }}
-        />
-      )}
-
-      {showImport && (
-        <ImportPanel
-          onImport={async (fichesList) => addFichesBulk(fichesList)}
-          onCancel={() => setShowImport(false)}
-        />
-      )}
-
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        * { box-sizing: border-box; }
-        input:focus, textarea:focus { border-color: #1A2B3D !important; }
-      `}</style>
-    </div>
-  );
-}
+]
