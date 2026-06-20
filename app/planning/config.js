@@ -285,3 +285,105 @@ export function agentSortKey(agent) {
 export function sortAgents(agents) {
   return [...agents].sort((a, b) => agentSortKey(a).localeCompare(agentSortKey(b), 'fr'));
 }
+
+// ----- Jours fériés français (fixes + mobiles basés sur Pâques) -----
+
+// Calcule la date de Pâques pour une année donnée (algorithme de Gauss / méthode standard).
+function computeEaster(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31); // 3=mars, 4=avril
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+
+// Liste des jours fériés français pour une année donnée (objets Date).
+export function getFrenchHolidays(year) {
+  const easter = computeEaster(year);
+  const addDaysToDate = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+  return [
+    new Date(year, 0, 1),           // 1er janvier
+    addDaysToDate(easter, 1),       // Lundi de Pâques
+    new Date(year, 4, 1),           // 1er mai
+    new Date(year, 4, 8),           // 8 mai
+    addDaysToDate(easter, 39),      // Ascension
+    addDaysToDate(easter, 50),      // Lundi de Pentecôte
+    new Date(year, 6, 14),          // 14 juillet
+    new Date(year, 7, 15),          // 15 août
+    new Date(year, 10, 1),          // Toussaint
+    new Date(year, 10, 11),         // 11 novembre
+    new Date(year, 11, 25),         // Noël
+  ];
+}
+
+// Indique si une date donnée est un jour férié français.
+export function isHoliday(date) {
+  const holidays = getFrenchHolidays(date.getFullYear());
+  return holidays.some(h => h.getFullYear() === date.getFullYear() && h.getMonth() === date.getMonth() && h.getDate() === date.getDate());
+}
+
+// ----- Classification des gardes (G) pour le récapitulatif de paie -----
+// 8 catégories distinctes et exclusives : une garde donnée n'appartient qu'à une seule.
+// Férié est prioritaire sur le jour de semaine habituel (une garde un dimanche férié
+// compte dans "ferie"/"ferieNuit", pas dans "dimancheMatin" etc.)
+export const GARDE_CATEGORIES = [
+  { id: 'nuitSemaine', label: 'Nuit semaine' },
+  { id: 'samediApresMidi', label: 'Samedi après-midi' },
+  { id: 'samediNuit', label: 'Samedi nuit' },
+  { id: 'dimancheMatin', label: 'Dimanche matin' },
+  { id: 'dimancheApresMidi', label: 'Dimanche après-midi' },
+  { id: 'dimancheNuit', label: 'Dimanche nuit' },
+  { id: 'ferie', label: 'Jours fériés' },
+  { id: 'ferieNuit', label: 'Nuit jours fériés' },
+];
+
+// Détermine la catégorie d'une garde G pour une date + moment (M/AM/N) donnés.
+// Renvoie null si ce n'est pas une garde classifiable (ne devrait pas arriver pour un code G,
+// mais reste défensif).
+export function classifyGarde(date, moment) {
+  const dow = date.getDay(); // 0=dim, 1=lun, ..., 6=sam
+  const ferie = isHoliday(date);
+
+  if (ferie) {
+    return moment === 'N' ? 'ferieNuit' : 'ferie';
+  }
+  if (dow === 6) { // samedi
+    if (moment === 'AM') return 'samediApresMidi';
+    if (moment === 'N') return 'samediNuit';
+    return null; // samedi matin = K1, pas une garde
+  }
+  if (dow === 0) { // dimanche
+    if (moment === 'M') return 'dimancheMatin';
+    if (moment === 'AM') return 'dimancheApresMidi';
+    if (moment === 'N') return 'dimancheNuit';
+  }
+  // lundi-vendredi
+  if (moment === 'N') return 'nuitSemaine';
+  return null;
+}
+
+// Calcule, pour un agent sur un mois donné, le nombre de gardes dans chacune des 8 catégories.
+export function computeGardeBreakdown(agentId, cellules, year, month) {
+  const days = getDaysInMonth(year, month);
+  const counts = Object.fromEntries(GARDE_CATEGORIES.map(c => [c.id, 0]));
+  days.forEach(d => {
+    const dk = dateKey(d);
+    ['M', 'AM', 'N'].forEach(moment => {
+      const code = cellules[`${agentId}|${dk}|${moment}`];
+      if (code !== 'G') return;
+      const cat = classifyGarde(d, moment);
+      if (cat) counts[cat] += 1;
+    });
+  });
+  return counts;
+}
