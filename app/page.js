@@ -105,12 +105,7 @@ function useFiches() {
 
   const deleteFiche = useCallback((id) => call({ action: 'delete', id }), [call]);
 
-  const deleteCategory = useCallback(async (category) => {
-    const data = await call({ action: 'deleteByCategory', category });
-    return data ? data.removed : 0;
-  }, [call]);
-
-  return { fiches, addFiche, addFichesBulk, updateFiche, deleteFiche, deleteCategory, error, reload: load };
+  return { fiches, addFiche, addFichesBulk, updateFiche, deleteFiche, error, reload: load };
 }
 
 function CategoryBadge({ catId, size = 'sm' }) {
@@ -460,7 +455,7 @@ const inputStyle = {
 };
 
 export default function App() {
-  const { fiches, addFiche, addFichesBulk, updateFiche, deleteFiche, deleteCategory, error } = useFiches();
+  const { fiches, addFiche, addFichesBulk, updateFiche, deleteFiche, error } = useFiches();
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState(null);
   const [selectedFiche, setSelectedFiche] = useState(null);
@@ -500,16 +495,6 @@ export default function App() {
       setSelectedFiche(null);
     }
   };
-
-  const handleDeleteCategory = async (cat) => {
-    const count = (fiches || []).filter(f => f.category === cat.id).length;
-    if (count === 0) return;
-    const confirmText = `Supprimer définitivement les ${count} fiche(s) de « ${cat.label} » ? Cette action est irréversible.`;
-    if (window.confirm(confirmText)) {
-      await deleteCategory(cat.id);
-    }
-  };
-
   const loading = fiches === null;
 
   return (
@@ -592,52 +577,6 @@ export default function App() {
             );
           })}
         </div>
-
-        {/* Danger zone: clear active category (admin/migration tool) */}
-        {activeCategory && (
-          <div style={{ marginBottom: 20 }}>
-            <button
-              onClick={() => handleDeleteCategory(CATEGORIES.find(c => c.id === activeCategory))}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
-                borderRadius: 8, border: '1px solid #FCA5A5', background: '#FEF2F2',
-                color: '#B91C1C', fontSize: 12, fontWeight: 600, cursor: 'pointer'
-              }}
-            >
-              <Trash2 size={13} /> Vider cette catégorie ({(fiches || []).filter(f => f.category === activeCategory).length} fiches)
-            </button>
-          </div>
-        )}
-
-        {/* Danger zone: orphan categories (no longer in CATEGORIES list, e.g. after a rename/migration) */}
-        {!activeCategory && fiches && (() => {
-          const knownIds = CATEGORIES.map(c => c.id);
-          const orphanIds = [...new Set(fiches.map(f => f.category).filter(c => !knownIds.includes(c)))];
-          if (orphanIds.length === 0) return null;
-          return (
-            <div style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <p style={{ fontSize: 12, color: '#9A3412', margin: 0 }}>
-                Catégories obsolètes détectées (suite à une migration) :
-              </p>
-              {orphanIds.map(catId => {
-                const count = fiches.filter(f => f.category === catId).length;
-                return (
-                  <button
-                    key={catId}
-                    onClick={() => handleDeleteCategory({ id: catId, label: catId })}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
-                      borderRadius: 8, border: '1px solid #FCA5A5', background: '#FEF2F2',
-                      color: '#B91C1C', fontSize: 12, fontWeight: 600, cursor: 'pointer', width: 'fit-content'
-                    }}
-                  >
-                    <Trash2 size={13} /> Vider "{catId}" ({count} fiches orphelines)
-                  </button>
-                );
-              })}
-            </div>
-          );
-        })()}
 
         {/* New fiche button */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 28 }}>
