@@ -257,3 +257,31 @@ export function getAgentsForPoste(category, agents, date, cellules) {
     indisponibles: withAvailability.filter(a => !a.available),
   };
 }
+
+// Formatage et tri des noms d'agents.
+// Nouveau modèle : { nomFamille, prenom }. Ancien modèle (rétrocompat) : { nom } en une seule chaîne,
+// affiché tel quel sans pouvoir le re-séparer de façon fiable (ex: "DE SAINT JORES Theo").
+
+// Affiche "NOM Prénom" (nom de famille en majuscules, prénom en casse normale).
+export function formatAgentName(agent) {
+  if (agent.nomFamille) {
+    const famille = agent.nomFamille.trim().toUpperCase();
+    const prenom = (agent.prenom || '').trim();
+    return prenom ? `${famille} ${prenom}` : famille;
+  }
+  // Ancien format : on affiche tel quel, on ne devine pas la coupure nom/prénom.
+  return agent.nom || '';
+}
+
+// Clé de tri alphabétique par nom de famille (puis prénom en cas d'égalité).
+export function agentSortKey(agent) {
+  if (agent.nomFamille) {
+    return `${agent.nomFamille.trim().toUpperCase()}|${(agent.prenom || '').trim().toLowerCase()}`;
+  }
+  return (agent.nom || '').trim().toUpperCase();
+}
+
+// Renvoie une copie triée par ordre alphabétique de nom de famille.
+export function sortAgents(agents) {
+  return [...agents].sort((a, b) => agentSortKey(a).localeCompare(agentSortKey(b), 'fr'));
+}

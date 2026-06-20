@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
-import { dateKey, JOURS_FR, MOIS_FR } from '../config';
+import { dateKey, JOURS_FR, MOIS_FR, formatAgentName, sortAgents } from '../config';
 
 const CODES_OFF = ['CA', 'CF', 'RS', 'X'];
 
@@ -95,7 +95,7 @@ export default function MultiAgentCompare({ category, agents, cellules }) {
           <tbody>
             {agents.map((agent, ai) => (
               <tr key={agent.id}>
-                <td style={{ ...tdStyle, fontWeight: 600, color: '#1A2B3D', whiteSpace: 'nowrap' }}>{agent.nom}</td>
+                <td style={{ ...tdStyle, fontWeight: 600, color: '#1A2B3D', whiteSpace: 'nowrap' }}>{formatAgentName(agent)}</td>
                 {week.map(d => {
                   const dk = dateKey(d);
                   const isCommonOff = commonOffDays.includes(dk);

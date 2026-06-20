@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Plus, X } from 'lucide-react';
-import { dateKey, getPostesForDay, getAgentsForPoste, JOURS_FR } from '../config';
+import { dateKey, getPostesForDay, getAgentsForPoste, JOURS_FR, formatAgentName } from '../config';
 
 function MiniSlotPicker({ category, agents, date, cellules, onPick, onClose }) {
   const { disponibles, indisponibles } = getAgentsForPoste(category, agents, date, cellules);
@@ -30,7 +30,7 @@ function MiniSlotPicker({ category, agents, date, cellules, onPick, onClose }) {
           onMouseEnter={e => e.currentTarget.style.background = '#F7F6F2'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          {agent.nom}
+          {formatAgentName(agent)}
         </button>
       ))}
       {indisponibles.length > 0 && (
@@ -74,7 +74,7 @@ function DayColumn({ category, agents, date, cellules, onSetCell }) {
                         background: info?.bg, color: info?.color, borderRadius: 6,
                         padding: '4px 6px', fontSize: 10.5, fontWeight: 600
                       }}>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agent.nom}</span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formatAgentName(agent)}</span>
                         <button
                           onClick={() => onSetCell(agent.id, dk, poste.moment, '')}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', opacity: 0.6, display: 'flex', flexShrink: 0 }}

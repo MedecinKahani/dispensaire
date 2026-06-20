@@ -74,15 +74,21 @@ export async function POST(request) {
     }
 
     if (action === 'addAgent') {
-      // body: { categorie, nom, arrivee?, depart? }
-      const { nom, arrivee, depart } = body;
-      if (!nom || !nom.trim()) {
-        return NextResponse.json({ error: 'Nom manquant' }, { status: 400 });
+      // body: { categorie, nomFamille, prenom, arrivee?, depart? }
+      const { nomFamille, prenom, arrivee, depart } = body;
+      if (!nomFamille || !nomFamille.trim()) {
+        return NextResponse.json({ error: 'Nom de famille manquant' }, { status: 400 });
       }
       const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       current[categorie] = {
         ...cat,
-        agents: [...cat.agents, { id, nom: nom.trim(), arrivee: arrivee || null, depart: depart || null }],
+        agents: [...cat.agents, {
+          id,
+          nomFamille: nomFamille.trim(),
+          prenom: (prenom || '').trim(),
+          arrivee: arrivee || null,
+          depart: depart || null,
+        }],
       };
       await kv.set(KEY, current);
       return NextResponse.json({ planning: current });
@@ -104,14 +110,16 @@ export async function POST(request) {
     }
 
     if (action === 'renameAgent') {
-      // body: { categorie, agentId, nom }
-      const { agentId, nom } = body;
-      if (!nom || !nom.trim()) {
-        return NextResponse.json({ error: 'Nom manquant' }, { status: 400 });
+      // body: { categorie, agentId, nomFamille, prenom }
+      const { agentId, nomFamille, prenom } = body;
+      if (!nomFamille || !nomFamille.trim()) {
+        return NextResponse.json({ error: 'Nom de famille manquant' }, { status: 400 });
       }
       current[categorie] = {
         ...cat,
-        agents: cat.agents.map(a => a.id === agentId ? { ...a, nom: nom.trim() } : a),
+        agents: cat.agents.map(a => a.id === agentId
+          ? { ...a, nomFamille: nomFamille.trim(), prenom: (prenom || '').trim() }
+          : a),
       };
       await kv.set(KEY, current);
       return NextResponse.json({ planning: current });

@@ -5,7 +5,8 @@ import { Plus, X } from 'lucide-react';
 
 export default function AddAgentRow({ onAdd, color }) {
   const [adding, setAdding] = useState(false);
-  const [nom, setNom] = useState('');
+  const [nomFamille, setNomFamille] = useState('');
+  const [prenom, setPrenom] = useState('');
   const [arrivee, setArrivee] = useState('');
   const [depart, setDepart] = useState('');
 
@@ -25,8 +26,8 @@ export default function AddAgentRow({ onAdd, color }) {
   }
 
   const submit = () => {
-    if (nom.trim()) onAdd(nom.trim(), arrivee || null, depart || null);
-    setNom(''); setArrivee(''); setDepart('');
+    if (nomFamille.trim()) onAdd(nomFamille.trim(), prenom.trim(), arrivee || null, depart || null);
+    setNomFamille(''); setPrenom(''); setArrivee(''); setDepart('');
     setAdding(false);
   };
 
@@ -36,13 +37,23 @@ export default function AddAgentRow({ onAdd, color }) {
       background: '#fff', border: '1px solid #E5E1D8', borderRadius: 10, padding: 10
     }}>
       <div>
-        <label style={labelStyle}>Nom</label>
+        <label style={labelStyle}>Nom de famille</label>
         <input
           autoFocus
-          value={nom}
-          onChange={e => setNom(e.target.value)}
+          value={nomFamille}
+          onChange={e => setNomFamille(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setAdding(false); }}
-          placeholder="Nom de l'agent"
+          placeholder="ex. DE SAINT JORES"
+          style={inputStyle}
+        />
+      </div>
+      <div>
+        <label style={labelStyle}>Prénom</label>
+        <input
+          value={prenom}
+          onChange={e => setPrenom(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setAdding(false); }}
+          placeholder="ex. Theo"
           style={inputStyle}
         />
       </div>
@@ -67,7 +78,7 @@ export default function AddAgentRow({ onAdd, color }) {
 const labelStyle = { display: 'block', fontSize: 10.5, fontWeight: 600, color: '#9CA3AF', marginBottom: 3 };
 const inputStyle = {
   padding: '7px 10px', borderRadius: 8, border: '1.5px solid #E5E1D8',
-  fontSize: 13, outline: 'none', width: 150
+  fontSize: 13, outline: 'none', width: 140
 };
 const iconBtnStyle = {
   background: '#F7F6F2', border: '1px solid #E5E1D8', borderRadius: 8,

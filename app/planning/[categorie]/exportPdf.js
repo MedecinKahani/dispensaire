@@ -2,7 +2,7 @@
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { getDaysInMonth, dateKey, JOURS_FR, MOIS_FR, computeAgentStats } from '../config';
+import { getDaysInMonth, dateKey, JOURS_FR, MOIS_FR, computeAgentStats, formatAgentName } from '../config';
 
 // Génère un PDF paysage : médecins en colonnes, jours du mois en lignes,
 // une cellule par jour (code du matin en priorité, sinon AM, sinon N — comme la vue d'ensemble),
@@ -31,7 +31,7 @@ export function exportPlanningPDF(category, agents, cellules, year, month) {
   doc.text(subtitle, 14, 20);
 
   // En-tête : Jour | Date | un par médecin
-  const head = [['Jour', 'Date', ...agents.map(a => a.nom)]];
+  const head = [['Jour', 'Date', ...agents.map(a => formatAgentName(a))]];
 
   const body = days.map(d => {
     const dk = dateKey(d);
@@ -80,7 +80,7 @@ export function exportPlanningPDF(category, agents, cellules, year, month) {
 
   const recapBody = agents.map(a => {
     const stats = computeAgentStats(category, a.id, cellules, year, month);
-    return [a.nom, `${stats.heures} h`, String(stats.gardes), String(stats.rs)];
+    return [formatAgentName(a), `${stats.heures} h`, String(stats.gardes), String(stats.rs)];
   });
 
   autoTable(doc, {

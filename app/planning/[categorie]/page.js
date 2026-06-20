@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, ChevronDown, Loader2, Settings, Search, Users, Check, X } from 'lucide-react';
-import { getPlanningCategory } from '../config';
+import { getPlanningCategory, formatAgentName, sortAgents } from '../config';
 import { usePlanning } from '../usePlanning';
 import AgentDetailTable from './AgentDetailTable';
 import MultiAgentCompare from './MultiAgentCompare';
@@ -35,13 +35,13 @@ export default function PlanningCategoryEntryPage() {
 
   const loading = planning === null;
   const data = planning?.[categoryId] || { agents: [], cellules: {} };
-  const agents = data.agents;
+  const agents = sortAgents(data.agents);
   const selected = agents.find(a => a.id === selectedId) || null;
 
   const filteredAgents = useMemo(() => {
     if (!search.trim()) return agents;
     const q = search.trim().toLowerCase();
-    return agents.filter(a => a.nom.toLowerCase().includes(q));
+    return agents.filter(a => formatAgentName(a).toLowerCase().includes(q));
   }, [agents, search]);
 
   const compareAgents = agents.filter(a => compareIds.includes(a.id));
@@ -183,7 +183,7 @@ export default function PlanningCategoryEntryPage() {
                       onMouseEnter={e => { if (!isChecked) e.currentTarget.style.borderColor = category.color; }}
                       onMouseLeave={e => { if (!isChecked) e.currentTarget.style.borderColor = '#E5E1D8'; }}
                     >
-                      {a.nom}
+                      {formatAgentName(a)}
                       {compareMode ? (
                         <span style={{
                           width: 20, height: 20, borderRadius: 6, flexShrink: 0,
@@ -225,7 +225,7 @@ export default function PlanningCategoryEntryPage() {
               </button>
             </div>
             <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 20, fontWeight: 700, color: '#1A2B3D', margin: '0 0 16px' }}>
-              {compareAgents.map(a => a.nom).join(' · ')}
+              {compareAgents.map(a => formatAgentName(a)).join(' · ')}
             </h2>
             <MultiAgentCompare category={category} agents={compareAgents} cellules={data.cellules} />
           </>
@@ -243,7 +243,7 @@ export default function PlanningCategoryEntryPage() {
               <ArrowLeft size={14} /> Changer de {category.label === 'Médical' ? 'médecin' : 'agent'}
             </button>
             <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 22, fontWeight: 700, color: '#1A2B3D', margin: '0 0 16px' }}>
-              {selected.nom}
+              {formatAgentName(selected)}
             </h2>
             <AgentDetailTable
               category={category}

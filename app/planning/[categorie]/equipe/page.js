@@ -7,7 +7,7 @@ import {
   ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Loader2, Pencil, Trash2,
   AlertTriangle, Settings2, CalendarDays
 } from 'lucide-react';
-import { getPlanningCategory, MOIS_FR, JOURS_FR } from '../../config';
+import { getPlanningCategory, MOIS_FR, JOURS_FR, formatAgentName, sortAgents } from '../../config';
 import { usePlanning } from '../../usePlanning';
 import OverviewGrid from '../OverviewGrid';
 import AgentDetailTable from '../AgentDetailTable';
@@ -54,7 +54,7 @@ export default function PlanningCategoryEquipePage() {
 
   const loading = planning === null;
   const data = planning?.[categoryId] || { agents: [], cellules: {} };
-  const agents = data.agents;
+  const agents = sortAgents(data.agents);
   const selected = agents.find(a => a.id === selectedId) || null;
 
   const year = currentDate.getFullYear();
@@ -202,7 +202,7 @@ export default function PlanningCategoryEquipePage() {
             {editMode && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, marginTop: 12, flexWrap: 'wrap' }}>
                 <AddAgentRow
-                  onAdd={(nom, arrivee, depart) => addAgent(categoryId, nom, arrivee, depart)}
+                  onAdd={(nomFamille, prenom, arrivee, depart) => addAgent(categoryId, nomFamille, prenom, arrivee, depart)}
                   color={category.color}
                 />
                 <button
@@ -225,7 +225,7 @@ export default function PlanningCategoryEquipePage() {
                 background: '#FDF1EC', border: '1px solid #F3C7B0', borderRadius: 10,
                 padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#9A3412'
               }}>
-                <span>Retirer définitivement « {confirmDelete.nom} » et tout son planning ?</span>
+                <span>Retirer définitivement « {formatAgentName(confirmDelete)} » et tout son planning ?</span>
                 <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                   <button
                     onClick={() => { removeAgent(categoryId, confirmDelete.id); setSelectedId(null); setConfirmDelete(null); }}
@@ -288,7 +288,7 @@ export default function PlanningCategoryEquipePage() {
                       }}
                     >
                       <option value="" disabled>Choisir un agent…</option>
-                      {agents.map(a => <option key={a.id} value={a.id}>{a.nom}</option>)}
+                      {agents.map(a => <option key={a.id} value={a.id}>{formatAgentName(a)}</option>)}
                     </select>
                     <ChevronDown size={15} color="#9CA3AF" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                   </div>
@@ -301,7 +301,7 @@ export default function PlanningCategoryEquipePage() {
                         color: '#9A3412', fontSize: 12.5, fontWeight: 600, cursor: 'pointer'
                       }}
                     >
-                      <Trash2 size={13} /> Retirer {selected.nom}
+                      <Trash2 size={13} /> Retirer {formatAgentName(selected)}
                     </button>
                   )}
                 </div>

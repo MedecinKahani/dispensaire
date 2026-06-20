@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Plus, X, AlertCircle } from 'lucide-react';
-import { dateKey, getPostesForDay, getAgentsForPoste } from '../config';
+import { dateKey, getPostesForDay, getAgentsForPoste, formatAgentName } from '../config';
 
 function SlotPicker({ category, agents, date, cellules, moment, excludeAgentId, onPick, onClose }) {
   const { disponibles, indisponibles } = useMemo(
@@ -37,7 +37,7 @@ function SlotPicker({ category, agents, date, cellules, moment, excludeAgentId, 
           onMouseEnter={e => e.currentTarget.style.background = '#F7F6F2'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          {agent.nom}
+          {formatAgentName(agent)}
         </button>
       ))}
 
@@ -48,7 +48,7 @@ function SlotPicker({ category, agents, date, cellules, moment, excludeAgentId, 
           </p>
           {indisponibles.map(({ agent, reason }) => (
             <div key={agent.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 10px', fontSize: 12, color: '#C8C5BA' }}>
-              <span>{agent.nom}</span>
+              <span>{formatAgentName(agent)}</span>
               <span style={{ fontSize: 10.5, fontStyle: 'italic' }}>{reason}</span>
             </div>
           ))}
@@ -96,7 +96,7 @@ function PosteCard({ category, agents, date, cellules, poste, onAssign, onUnassi
                 background: info?.bg || '#F7F6F2', color: info?.color || '#1A2B3D',
                 borderRadius: 7, padding: '6px 8px', fontSize: 12, fontWeight: 600
               }}>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agent.nom}</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formatAgentName(agent)}</span>
                 <button
                   onClick={() => onUnassign(agent.id, poste)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', opacity: 0.6, flexShrink: 0, display: 'flex' }}

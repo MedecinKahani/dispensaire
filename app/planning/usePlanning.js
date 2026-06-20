@@ -42,14 +42,14 @@ export function usePlanning() {
   const setCell = useCallback((categorie, agentId, date, moment, code) =>
     call({ action: 'setCell', categorie, agentId, date, moment, code }), [call]);
 
-  const addAgent = useCallback((categorie, nom, arrivee, depart) =>
-    call({ action: 'addAgent', categorie, nom, arrivee, depart }), [call]);
+  const addAgent = useCallback((categorie, nomFamille, prenom, arrivee, depart) =>
+    call({ action: 'addAgent', categorie, nomFamille, prenom, arrivee, depart }), [call]);
 
   const removeAgent = useCallback((categorie, agentId) =>
     call({ action: 'removeAgent', categorie, agentId }), [call]);
 
-  const renameAgent = useCallback((categorie, agentId, nom) =>
-    call({ action: 'renameAgent', categorie, agentId, nom }), [call]);
+  const renameAgent = useCallback((categorie, agentId, nomFamille, prenom) =>
+    call({ action: 'renameAgent', categorie, agentId, nomFamille, prenom }), [call]);
 
   const updateAgentDates = useCallback((categorie, agentId, arrivee, depart) =>
     call({ action: 'updateAgentDates', categorie, agentId, arrivee, depart }), [call]);

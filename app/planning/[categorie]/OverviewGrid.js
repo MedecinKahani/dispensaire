@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { Download } from 'lucide-react';
-import { getDaysInMonth, dateKey, JOURS_FR, computeAgentStats } from '../config';
+import { getDaysInMonth, dateKey, JOURS_FR, computeAgentStats, formatAgentName } from '../config';
 import { exportPlanningPDF } from './exportPdf';
 
 // Vue d'ensemble compacte : une ligne par agent, une colonne par jour,
@@ -78,7 +78,7 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  {agent.nom}
+                  {formatAgentName(agent)}
                 </td>
                 {days.map(d => {
                   const dk = dateKey(d);
