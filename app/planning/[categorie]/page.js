@@ -19,6 +19,7 @@ export default function PlanningCategoryEntryPage() {
   const [selectedId, setSelectedId] = useState(null);
   const [compareMode, setCompareMode] = useState(false);
   const [compareIds, setCompareIds] = useState([]);
+  const [showComparison, setShowComparison] = useState(false);
 
   const today = new Date();
   const [year] = useState(today.getFullYear());
@@ -104,7 +105,7 @@ export default function PlanningCategoryEntryPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#9CA3AF', padding: '40px 0', fontSize: 14 }}>
             <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Chargement…
           </div>
-        ) : !selected && !(compareMode && compareAgents.length >= 2) ? (
+        ) : !selected && !(compareMode && showComparison && compareAgents.length >= 2) ? (
           <>
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
               <div style={{ position: 'relative', flex: 1 }}>
@@ -121,7 +122,7 @@ export default function PlanningCategoryEntryPage() {
                 />
               </div>
               <button
-                onClick={() => { setCompareMode(v => !v); setCompareIds([]); }}
+                onClick={() => { setCompareMode(v => !v); setCompareIds([]); setShowComparison(false); }}
                 title="Comparer plusieurs agendas pour trouver des jours off en commun"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '0 16px', borderRadius: 12,
@@ -135,13 +136,27 @@ export default function PlanningCategoryEntryPage() {
             </div>
 
             {compareMode && (
-              <p style={{ fontSize: 13, color: '#5B6573', margin: '-8px 0 14px' }}>
-                {compareAgents.length === 0
-                  ? 'Sélectionne au moins 2 agendas à comparer.'
-                  : compareAgents.length === 1
-                    ? 'Sélectionne encore au moins 1 agenda.'
-                    : `${compareAgents.length} agendas sélectionnés — affichage automatique de la comparaison.`}
-              </p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '-8px 0 14px', flexWrap: 'wrap' }}>
+                <p style={{ fontSize: 13, color: '#5B6573', margin: 0 }}>
+                  {compareAgents.length === 0
+                    ? 'Sélectionne au moins 2 agendas à comparer.'
+                    : compareAgents.length === 1
+                      ? 'Sélectionne encore au moins 1 agenda.'
+                      : `${compareAgents.length} agendas sélectionnés.`}
+                </p>
+                {compareAgents.length >= 2 && (
+                  <button
+                    onClick={() => setShowComparison(true)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 999,
+                      border: 'none', background: category.color, color: '#fff',
+                      fontSize: 12.5, fontWeight: 700, cursor: 'pointer'
+                    }}
+                  >
+                    Voir la comparaison ({compareAgents.length})
+                  </button>
+                )}
+              </div>
             )}
 
             {filteredAgents.length === 0 ? (
@@ -187,26 +202,26 @@ export default function PlanningCategoryEntryPage() {
               </div>
             )}
           </>
-        ) : compareMode && compareAgents.length >= 2 ? (
+        ) : compareMode && showComparison && compareAgents.length >= 2 ? (
           <>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
               <button
-                onClick={() => { setCompareMode(false); setCompareIds([]); }}
+                onClick={() => setShowComparison(false)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
                   color: '#5B6573', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: '4px 0'
                 }}
               >
-                <ArrowLeft size={14} /> Quitter la comparaison
+                <ArrowLeft size={14} /> Modifier la sélection
               </button>
               <button
-                onClick={() => setCompareIds([])}
+                onClick={() => { setCompareMode(false); setCompareIds([]); setShowComparison(false); }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none',
                   color: '#9A3412', fontSize: 12.5, fontWeight: 600, cursor: 'pointer'
                 }}
               >
-                <X size={13} /> Réinitialiser la sélection
+                <X size={13} /> Quitter la comparaison
               </button>
             </div>
             <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 20, fontWeight: 700, color: '#1A2B3D', margin: '0 0 16px' }}>
