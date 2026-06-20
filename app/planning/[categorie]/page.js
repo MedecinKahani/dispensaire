@@ -3,10 +3,11 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, ChevronDown, Loader2, Settings, Search } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Loader2, Settings, Search, Users, Check, X } from 'lucide-react';
 import { getPlanningCategory } from '../config';
 import { usePlanning } from '../usePlanning';
 import AgentDetailTable from './AgentDetailTable';
+import MultiAgentCompare from './MultiAgentCompare';
 
 export default function PlanningCategoryEntryPage() {
   const params = useParams();
@@ -16,6 +17,8 @@ export default function PlanningCategoryEntryPage() {
   const { planning, setCell, copyDay, fillRange, error } = usePlanning();
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState(null);
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareIds, setCompareIds] = useState([]);
 
   const today = new Date();
   const [year] = useState(today.getFullYear());
@@ -39,6 +42,12 @@ export default function PlanningCategoryEntryPage() {
     const q = search.trim().toLowerCase();
     return agents.filter(a => a.nom.toLowerCase().includes(q));
   }, [agents, search]);
+
+  const compareAgents = agents.filter(a => compareIds.includes(a.id));
+
+  const toggleCompare = (agentId) => {
+    setCompareIds(ids => ids.includes(agentId) ? ids.filter(i => i !== agentId) : [...ids, agentId]);
+  };
 
   const Icon = category.icon;
 
@@ -95,21 +104,45 @@ export default function PlanningCategoryEntryPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#9CA3AF', padding: '40px 0', fontSize: 14 }}>
             <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Chargement…
           </div>
-        ) : !selected ? (
+        ) : !selected && !(compareMode && compareAgents.length >= 2) ? (
           <>
-            <div style={{ position: 'relative', marginBottom: 16 }}>
-              <Search size={16} color="#9CA3AF" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Rechercher mon nom…"
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <Search size={16} color="#9CA3AF" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Rechercher mon nom…"
+                  style={{
+                    width: '100%', padding: '12px 14px 12px 38px', borderRadius: 12,
+                    border: '1.5px solid #E5E1D8', fontSize: 15, outline: 'none', boxSizing: 'border-box',
+                    background: '#fff'
+                  }}
+                />
+              </div>
+              <button
+                onClick={() => { setCompareMode(v => !v); setCompareIds([]); }}
+                title="Comparer plusieurs agendas pour trouver des jours off en commun"
                 style={{
-                  width: '100%', padding: '12px 14px 12px 38px', borderRadius: 12,
-                  border: '1.5px solid #E5E1D8', fontSize: 15, outline: 'none', boxSizing: 'border-box',
-                  background: '#fff'
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '0 16px', borderRadius: 12,
+                  border: `1.5px solid ${compareMode ? category.color : '#E5E1D8'}`,
+                  background: compareMode ? category.bg : '#fff', color: compareMode ? category.color : '#5B6573',
+                  fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0
                 }}
-              />
+              >
+                <Users size={15} /> Comparer
+              </button>
             </div>
+
+            {compareMode && (
+              <p style={{ fontSize: 13, color: '#5B6573', margin: '-8px 0 14px' }}>
+                {compareAgents.length === 0
+                  ? 'Sélectionne au moins 2 agendas à comparer.'
+                  : compareAgents.length === 1
+                    ? 'Sélectionne encore au moins 1 agenda.'
+                    : `${compareAgents.length} agendas sélectionnés — affichage automatique de la comparaison.`}
+              </p>
+            )}
 
             {filteredAgents.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9CA3AF', fontSize: 14, border: '1px dashed #E5E1D8', borderRadius: 12 }}>
@@ -119,27 +152,71 @@ export default function PlanningCategoryEntryPage() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {filteredAgents.map(a => (
-                  <button
-                    key={a.id}
-                    onClick={() => setSelectedId(a.id)}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      width: '100%', textAlign: 'left', padding: '14px 16px', borderRadius: 12,
-                      border: '1px solid #E5E1D8', background: '#fff', cursor: 'pointer',
-                      fontSize: 15, fontWeight: 600, color: '#1A2B3D'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = category.color}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = '#E5E1D8'}
-                  >
-                    {a.nom}
-                    <ChevronDown size={16} color="#9CA3AF" style={{ transform: 'rotate(-90deg)' }} />
-                  </button>
-                ))}
+                {filteredAgents.map(a => {
+                  const isChecked = compareIds.includes(a.id);
+                  return (
+                    <button
+                      key={a.id}
+                      onClick={() => compareMode ? toggleCompare(a.id) : setSelectedId(a.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        width: '100%', textAlign: 'left', padding: '14px 16px', borderRadius: 12,
+                        border: `1px solid ${isChecked ? category.color : '#E5E1D8'}`,
+                        background: isChecked ? category.bg : '#fff', cursor: 'pointer',
+                        fontSize: 15, fontWeight: 600, color: '#1A2B3D'
+                      }}
+                      onMouseEnter={e => { if (!isChecked) e.currentTarget.style.borderColor = category.color; }}
+                      onMouseLeave={e => { if (!isChecked) e.currentTarget.style.borderColor = '#E5E1D8'; }}
+                    >
+                      {a.nom}
+                      {compareMode ? (
+                        <span style={{
+                          width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+                          border: `1.5px solid ${isChecked ? category.color : '#D1D5DB'}`,
+                          background: isChecked ? category.color : 'transparent',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          {isChecked && <Check size={13} color="#fff" strokeWidth={3} />}
+                        </span>
+                      ) : (
+                        <ChevronDown size={16} color="#9CA3AF" style={{ transform: 'rotate(-90deg)' }} />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </>
-        ) : (
+        ) : compareMode && compareAgents.length >= 2 ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+              <button
+                onClick={() => { setCompareMode(false); setCompareIds([]); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+                  color: '#5B6573', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: '4px 0'
+                }}
+              >
+                <ArrowLeft size={14} /> Quitter la comparaison
+              </button>
+              <button
+                onClick={() => setCompareIds([])}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none',
+                  color: '#9A3412', fontSize: 12.5, fontWeight: 600, cursor: 'pointer'
+                }}
+              >
+                <X size={13} /> Réinitialiser la sélection
+              </button>
+            </div>
+            <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 20, fontWeight: 700, color: '#1A2B3D', margin: '0 0 16px' }}>
+              {compareAgents.map(a => a.nom).join(' · ')}
+            </h2>
+            <MultiAgentCompare category={category} agents={compareAgents} cellules={data.cellules} />
+          </>
+        ) : null}
+
+        {!loading && !compareMode && selected && (
           <>
             <button
               onClick={() => setSelectedId(null)}

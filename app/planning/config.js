@@ -204,6 +204,15 @@ export function isAgentPresent(agent, dk) {
   return true;
 }
 
+// Indique si la case RS d'un agent à une date donnée fait suite à une garde (G) la veille au soir.
+// Sert à distinguer visuellement un repos de garde "mérité" d'un simple jour off.
+export function isPostGardeRS(agentId, date, cellules) {
+  const dk = dateKey(date);
+  if (cellules[`${agentId}|${dk}|M`] !== 'RS' && cellules[`${agentId}|${dk}|AM`] !== 'RS') return false;
+  const veille = dateKey(addDays(date, -1));
+  return cellules[`${agentId}|${veille}|N`] === 'G';
+}
+
 // Détermine si un agent est disponible pour un poste donné, un jour donné, en appliquant
 // les règles : présence (arrivée/départ), pas en congés ce jour, pas de garde la veille au soir,
 // pas déjà affecté à un autre poste ce même jour.
