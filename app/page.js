@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Plus, X, Phone, Stethoscope, FileText, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -19,14 +19,6 @@ const CATEGORIES = [
     color: '#0E7490',
     bg: '#EBF6F8',
     description: 'Contacts, spécialistes, filières d\'évacuation'
-  },
-  {
-    id: 'administratif',
-    label: 'Procédures admin',
-    icon: FileText,
-    color: '#1A2B3D',
-    bg: '#EEF0F3',
-    description: 'Démarches, formulaires, organisation du dispensaire'
   },
   {
     id: 'lexique',
@@ -101,7 +93,7 @@ function useFiches() {
 }
 
 function CategoryBadge({ catId, size = 'sm' }) {
-  const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES[2];
+  const cat = CATEGORIES.find(c => c.id === catId) || CATEGORIES.find(c => c.id === 'caribou');
   const Icon = cat.icon;
   const px = size === 'sm' ? '4px 10px' : '6px 14px';
   const fs = size === 'sm' ? '12px' : '13px';
@@ -118,7 +110,7 @@ function CategoryBadge({ catId, size = 'sm' }) {
 }
 
 function FicheCard({ fiche, onClick }) {
-  const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES[2];
+  const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES.find(c => c.id === 'caribou');
   return (
     <button
       onClick={onClick}
@@ -152,7 +144,7 @@ function FicheCard({ fiche, onClick }) {
 
 function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
   if (!fiche) return null;
-  const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES[2];
+  const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES.find(c => c.id === 'caribou');
   return (
     <div style={{
       position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.4)', zIndex: 50,
@@ -233,7 +225,7 @@ function ImportPanel({ onImport, onCancel }) {
         if (!f.title || !f.content) throw new Error(`Fiche #${i + 1} : titre ou contenu manquant.`);
         return {
           title: String(f.title).trim(),
-          category: validCategoryIds.includes(f.category) ? f.category : 'administratif',
+          category: validCategoryIds.includes(f.category) ? f.category : 'caribou',
           summary: f.summary ? String(f.summary).trim() : '',
           content: String(f.content).trim()
         };
