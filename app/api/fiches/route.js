@@ -45,6 +45,14 @@ export async function POST(request) {
       return NextResponse.json({ fiches: next });
     }
 
+    if (action === 'deleteByCategory') {
+      const { category } = body;
+      const removed = current.filter(f => f.category === category).length;
+      const next = current.filter(f => f.category !== category);
+      await kv.set(KEY, next);
+      return NextResponse.json({ fiches: next, removed });
+    }
+
     return NextResponse.json({ error: 'Action inconnue' }, { status: 400 });
   } catch (e) {
     return NextResponse.json({ error: 'Erreur de traitement', details: String(e) }, { status: 500 });
