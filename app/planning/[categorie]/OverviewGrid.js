@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { getDaysInMonth, dateKey, JOURS_FR } from '../config';
+import { getDaysInMonth, dateKey, JOURS_FR, computeAgentStats } from '../config';
 
-// Vue d'ensemble compacte : une ligne par agent, une colonne par jour.
+// Vue d'ensemble compacte : une ligne par agent, une colonne par jour,
+// + une colonne de totaux (heures / gardes / RS) pour vérifier l'équité sans calcul mental.
 // Affiche le code du matin en priorité (sinon AM, sinon N) pour rester lisible ;
 // un agent + une colonne ouvrent la vue détaillée filtrée.
 export default function OverviewGrid({ category, agents, cellules, year, month, onSelectAgent }) {
@@ -42,43 +43,71 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                 </th>
               );
             })}
+            <th style={{ ...thStyle, position: 'sticky', right: 0, background: '#F7F6F2', zIndex: 2, minWidth: 130, borderLeft: '1px solid #E5E1D8' }}>
+              Total mois
+            </th>
           </tr>
         </thead>
         <tbody>
-          {agents.map(agent => (
-            <tr key={agent.id}>
-              <td
-                onClick={() => onSelectAgent(agent)}
-                style={{
-                  ...tdStyle, position: 'sticky', left: 0, background: '#fff', zIndex: 1,
-                  fontWeight: 600, color: '#1A2B3D', cursor: 'pointer', borderRight: '1px solid #E5E1D8',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {agent.nom}
-              </td>
-              {days.map(d => {
-                const dk = dateKey(d);
-                const code = codeFor(agent.id, dk);
-                const info = code ? category.codes.find(c => c.code === code) : null;
-                const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-                return (
-                  <td
-                    key={dk}
-                    onClick={() => onSelectAgent(agent, dk)}
-                    style={{
-                      ...tdStyle, textAlign: 'center', cursor: 'pointer',
-                      background: info ? info.bg : (isWeekend ? '#FBFAF7' : '#fff'),
-                      color: info ? info.color : '#D1D5DB',
-                      fontWeight: 700, fontSize: 11
-                    }}
-                  >
-                    {code || '·'}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
+          {agents.map(agent => {
+            const stats = category.codes.length > 0
+              ? computeAgentStats(category, agent.id, cellules, year, month)
+              : null;
+            return (
+              <tr key={agent.id}>
+                <td
+                  onClick={() => onSelectAgent(agent)}
+                  style={{
+                    ...tdStyle, position: 'sticky', left: 0, background: '#fff', zIndex: 1,
+                    fontWeight: 600, color: '#1A2B3D', cursor: 'pointer', borderRight: '1px solid #E5E1D8',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {agent.nom}
+                </td>
+                {days.map(d => {
+                  const dk = dateKey(d);
+                  const code = codeFor(agent.id, dk);
+                  const info = code ? category.codes.find(c => c.code === code) : null;
+                  const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                  return (
+                    <td
+                      key={dk}
+                      onClick={() => onSelectAgent(agent, dk)}
+                      style={{
+                        ...tdStyle, textAlign: 'center', cursor: 'pointer',
+                        background: info ? info.bg : (isWeekend ? '#FBFAF7' : '#fff'),
+                        color: info ? info.color : '#D1D5DB',
+                        fontWeight: 700, fontSize: 11
+                      }}
+                    >
+                      {code || '·'}
+                    </td>
+                  );
+                })}
+                <td style={{
+                  ...tdStyle, position: 'sticky', right: 0, background: '#fff', zIndex: 1,
+                  borderLeft: '1px solid #E5E1D8', whiteSpace: 'nowrap'
+                }}>
+                  {stats ? (
+                    <div style={{ display: 'flex', gap: 10, fontSize: 11.5 }}>
+                      <span title="Heures travaillées sur le mois" style={{ color: '#1A2B3D', fontWeight: 700 }}>
+                        {stats.heures}h
+                      </span>
+                      <span title="Nombre de gardes" style={{ color: '#C2410C', fontWeight: 700 }}>
+                        {stats.gardes}G
+                      </span>
+                      <span title="Nombre de repos de garde posés" style={{ color: '#65521E', fontWeight: 700 }}>
+                        {stats.rs}RS
+                      </span>
+                    </div>
+                  ) : (
+                    <span style={{ color: '#D1D5DB', fontSize: 11 }}>—</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
