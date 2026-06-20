@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat } from 'lucide-react';
-import PlanningCaribou from './PlanningCaribou';
 
 const CATEGORIES = [
   {
@@ -210,7 +209,6 @@ function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
           }}>
             {fiche.content}
           </div>
-          {fiche.category === 'caribou' && <PlanningCaribou />}
         </div>
       </div>
     </div>
