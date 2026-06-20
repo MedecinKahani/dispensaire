@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { Download } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Download, Trash2, X, Check } from 'lucide-react';
 import { getDaysInMonth, dateKey, JOURS_FR, computeAgentStats, formatAgentName } from '../config';
 import { exportPlanningPDF } from './exportPdf';
 
@@ -9,8 +9,9 @@ import { exportPlanningPDF } from './exportPdf';
 // + une colonne de totaux (heures / gardes / RS) pour vérifier l'équité sans calcul mental.
 // Affiche le code du matin en priorité (sinon AM, sinon N) pour rester lisible ;
 // un agent + une colonne ouvrent la vue détaillée filtrée.
-export default function OverviewGrid({ category, agents, cellules, year, month, onSelectAgent }) {
+export default function OverviewGrid({ category, agents, cellules, year, month, onSelectAgent, onRemoveAgent }) {
   const days = useMemo(() => getDaysInMonth(year, month), [year, month]);
+  const [confirmingId, setConfirmingId] = useState(null);
 
   const codeFor = (agentId, dk) => {
     for (const m of ['M', 'AM', 'N']) {
@@ -46,7 +47,7 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
       <table style={{ borderCollapse: 'collapse', width: '100%' }}>
         <thead>
           <tr style={{ background: '#F7F6F2' }}>
-            <th style={{ ...thStyle, position: 'sticky', left: 0, background: '#F7F6F2', zIndex: 2, minWidth: 160, textAlign: 'left' }}>
+            <th style={{ ...thStyle, position: 'sticky', left: 0, background: '#F7F6F2', zIndex: 2, minWidth: 190, textAlign: 'left' }}>
               Agent
             </th>
             {days.map(d => {
@@ -68,17 +69,54 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
             const stats = category.codes.length > 0
               ? computeAgentStats(category, agent.id, cellules, year, month)
               : null;
+            const isConfirming = confirmingId === agent.id;
             return (
               <tr key={agent.id}>
                 <td
-                  onClick={() => onSelectAgent(agent)}
                   style={{
-                    ...tdStyle, position: 'sticky', left: 0, background: '#fff', zIndex: 1,
-                    fontWeight: 600, color: '#1A2B3D', cursor: 'pointer', borderRight: '1px solid #E5E1D8',
+                    ...tdStyle, position: 'sticky', left: 0, background: isConfirming ? '#FDF1EC' : '#fff', zIndex: 1,
+                    fontWeight: 600, color: '#1A2B3D', borderRight: '1px solid #E5E1D8',
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  {formatAgentName(agent)}
+                  {isConfirming ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 11.5, color: '#9A3412' }}>Supprimer ?</span>
+                      <button
+                        onClick={() => { onRemoveAgent(agent); setConfirmingId(null); }}
+                        title="Confirmer la suppression"
+                        style={{ display: 'flex', border: 'none', background: '#9A3412', color: '#fff', borderRadius: 5, width: 20, height: 20, alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                      >
+                        <Check size={12} />
+                      </button>
+                      <button
+                        onClick={() => setConfirmingId(null)}
+                        title="Annuler"
+                        style={{ display: 'flex', border: '1px solid #E5E1D8', background: '#fff', color: '#5B6573', borderRadius: 5, width: 20, height: 20, alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="planning-agent-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                      <span onClick={() => onSelectAgent(agent)} style={{ cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {formatAgentName(agent)}
+                      </span>
+                      {onRemoveAgent && (
+                        <button
+                          className="planning-agent-delete-btn"
+                          onClick={(e) => { e.stopPropagation(); setConfirmingId(agent.id); }}
+                          title="Supprimer cet agent"
+                          style={{
+                            display: 'flex', border: 'none', background: 'transparent', color: '#D1D5DB',
+                            cursor: 'pointer', flexShrink: 0, padding: 2
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </td>
                 {days.map(d => {
                   const dk = dateKey(d);
@@ -126,6 +164,11 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
         </tbody>
       </table>
       </div>
+      <style>{`
+        .planning-agent-delete-btn { opacity: 0; transition: opacity 0.12s; }
+        .planning-agent-row:hover .planning-agent-delete-btn { opacity: 1; }
+        .planning-agent-delete-btn:hover { color: #9A3412 !important; }
+      `}</style>
     </div>
   );
 }

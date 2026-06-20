@@ -271,6 +271,7 @@ export default function PlanningCategoryEquipePage() {
                 year={year}
                 month={month}
                 onSelectAgent={selectAgent}
+                onRemoveAgent={(agent) => removeAgent(categoryId, agent.id)}
               />
             )}
 
