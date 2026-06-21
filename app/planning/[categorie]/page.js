@@ -255,6 +255,7 @@ export default function PlanningCategoryEntryPage() {
               onSetCell={(date, moment, code) => setCell(categoryId, selected.id, date, moment, code)}
               onFillRange={(fromDate, toDate, moment, code) => fillRange(categoryId, selected.id, fromDate, toDate, moment, code)}
               onCopyDay={(fromDate, toDate) => copyDay(categoryId, selected.id, fromDate, toDate)}
+              requireConfirm
             />
           </>
         )}

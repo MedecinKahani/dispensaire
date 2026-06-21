@@ -2,7 +2,7 @@
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { getDaysInMonth, dateKey, JOURS_FR, MOIS_FR, computeAgentStats, formatAgentName, computeGardeBreakdown, GARDE_CATEGORIES } from '../config';
+import { getDaysInMonth, dateKey, JOURS_FR, MOIS_FR, computeAgentStats, formatAgentName, computeGardeBreakdown, GARDE_CATEGORIES, isCancelledCode } from '../config';
 
 // Génère un PDF paysage : médecins en colonnes, jours du mois en lignes,
 // une cellule par jour (code du matin en priorité, sinon AM, sinon N — comme la vue d'ensemble),
@@ -14,7 +14,7 @@ export function exportPlanningPDF(category, agents, cellules, year, month) {
   const codeFor = (agentId, dk) => {
     for (const m of ['M', 'AM', 'N']) {
       const c = cellules[`${agentId}|${dk}|${m}`];
-      if (c) return c;
+      if (c && !isCancelledCode(c)) return c; // un créneau annulé n'apparaît pas dans le document officiel
     }
     return '';
   };

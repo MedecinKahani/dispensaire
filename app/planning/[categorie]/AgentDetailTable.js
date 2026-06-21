@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Copy, X, ChevronLeft, ChevronRight, CalendarRange, Moon, Plus } from 'lucide-react';
-import { getWeeksMonday, dateKey, JOURS_FR, MOMENTS, isPostGardeRS } from '../config';
+import { getWeeksMonday, dateKey, JOURS_FR, MOMENTS, isPostGardeRS, isCancelledCode, cancelledCodeValue, makeCancelledCode } from '../config';
 import CellEditor from './CellEditor';
 
 const JOURS_LUN_DIM = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -54,10 +54,62 @@ function DayHeader({ agent, day, cellules, editable, onPickCopySource, compact }
   );
 }
 
-function DayCell({ category, agent, day, cellules, editable, copySource, onPaste, onSetCell, onFillRange, compact }) {
+function ConfirmChangeDialog({ label, onConfirm, onCancel }) {
+  return (
+    <div
+      onClick={e => e.stopPropagation()}
+      style={{
+        position: 'absolute', zIndex: 50, top: '100%', left: 0, marginTop: 4,
+        background: '#fff', border: '1.5px solid #1A2B3D', borderRadius: 10,
+        boxShadow: '0 8px 28px rgba(0,0,0,0.2)', padding: 12, width: 220
+      }}
+    >
+      <p style={{ fontSize: 12.5, fontWeight: 600, color: '#1A2B3D', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+        {label}
+      </p>
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button
+          onClick={onCancel}
+          style={{ flex: 1, padding: '7px 0', borderRadius: 7, border: '1px solid #E5E1D8', background: '#fff', color: '#5B6573', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+        >
+          Annuler
+        </button>
+        <button
+          onClick={onConfirm}
+          style={{ flex: 1, padding: '7px 0', borderRadius: 7, border: 'none', background: '#1A2B3D', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+        >
+          Confirmer
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DayCell({ category, agent, day, cellules, editable, copySource, onPaste, onSetCell, onFillRange, compact, requireConfirm }) {
   const dk = dateKey(day.date);
   const [editingMoment, setEditingMoment] = useState(null); // cellId (date|moment) en cours d'édition
+  const [pendingChange, setPendingChange] = useState(null); // { momentId, newRawCode, label } en attente de confirmation
   const postGarde = isPostGardeRS(agent.id, day.date, cellules);
+
+  const applyChange = (momentId, currentRawCode, newCode) => {
+    // newCode === '' signifie suppression : si on a la confirmation activée et qu'il y avait
+    // déjà quelque chose, on marque comme "annulé" plutôt que d'effacer la trace.
+    const wasFilled = currentRawCode && !isCancelledCode(currentRawCode);
+    const isClearing = newCode === '' || newCode === null;
+    const finalValue = isClearing
+      ? (requireConfirm && wasFilled ? makeCancelledCode(cancelledCodeValue(currentRawCode)) : '')
+      : newCode;
+
+    if (!requireConfirm) {
+      onSetCell(dk, momentId, finalValue);
+      return;
+    }
+
+    const label = isClearing
+      ? (wasFilled ? `Marquer « ${cancelledCodeValue(currentRawCode)} » comme annulé ?` : 'Effacer cette case ?')
+      : `Confirmer « ${newCode} » le ${dk} ?`;
+    setPendingChange({ momentId, finalValue, label });
+  };
 
   return (
     <div
@@ -75,10 +127,13 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
       {/* 3 bandes fixes empilées (matin/après-midi/nuit), chacune = exactement 1/3 de la case.
           Une bande remplie occupe tout son espace en bloc plein coloré ; une bande vide reste neutre. */}
       {MOMENTS.map(m => {
-        const code = cellules[`${agent.id}|${dk}|${m.id}`];
+        const rawCode = cellules[`${agent.id}|${dk}|${m.id}`];
+        const cancelled = isCancelledCode(rawCode);
+        const code = cancelled ? cancelledCodeValue(rawCode) : rawCode;
         const info = code ? category.codes.find(c => c.code === code) : null;
         const cellId = `${dk}|${m.id}`;
         const isEditing = editingMoment === cellId;
+        const isPending = pendingChange?.momentId === m.id;
         return (
           <div key={m.id} style={{ position: 'relative', flex: '1 1 0', minHeight: 0 }}>
             <button
@@ -87,28 +142,37 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
                 if (editable && !day.outOfMonth && !copySource) setEditingMoment(isEditing ? null : cellId);
               }}
               disabled={!editable || day.outOfMonth}
-              title={m.label}
+              title={cancelled ? `${m.label} — créneau annulé (était : ${code})` : m.label}
               style={{
                 width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                border: info ? `1px solid ${info.color}40` : (editable && !day.outOfMonth ? '1px dashed #E5E1D8' : 'none'),
+                border: info ? `1px ${cancelled ? 'dashed' : 'solid'} ${info.color}40` : (editable && !day.outOfMonth ? '1px dashed #E5E1D8' : 'none'),
                 borderRadius: 6,
-                background: info ? info.bg : 'transparent',
+                background: info ? (cancelled ? `${info.bg}99` : info.bg) : 'transparent',
                 color: info ? info.color : '#D1D5DB',
+                opacity: cancelled ? 0.5 : 1,
                 fontSize: compact ? 10 : 13, fontWeight: 800,
+                textDecoration: cancelled ? 'line-through' : 'none',
                 cursor: editable && !day.outOfMonth ? 'pointer' : 'default',
                 boxSizing: 'border-box'
               }}
             >
               {code || (editable && !day.outOfMonth ? <Plus size={compact ? 9 : 11} /> : '')}
             </button>
-            {isEditing && (
+            {isEditing && !isPending && (
               <CellEditor
                 codes={category.codes}
                 value={code}
                 date={dk}
-                onChange={(newCode) => onSetCell(dk, m.id, newCode)}
+                onChange={(newCode) => { applyChange(m.id, rawCode, newCode); setEditingMoment(null); }}
                 onFillRange={(fromDate, toDate, fillCode) => onFillRange(fromDate, toDate, m.id, fillCode)}
                 onClose={() => setEditingMoment(null)}
+              />
+            )}
+            {isPending && (
+              <ConfirmChangeDialog
+                label={pendingChange.label}
+                onConfirm={() => { onSetCell(dk, pendingChange.momentId, pendingChange.finalValue); setPendingChange(null); }}
+                onCancel={() => setPendingChange(null)}
               />
             )}
           </div>
@@ -118,7 +182,7 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
   );
 }
 
-function WeekGrid({ category, agent, week, cellules, editable, copySource, onPickCopySource, onPaste, onSetCell, onFillRange, compact }) {
+function WeekGrid({ category, agent, week, cellules, editable, copySource, onPickCopySource, onPaste, onSetCell, onFillRange, compact, requireConfirm }) {
   return (
     <div style={{ marginBottom: compact ? 3 : 6 }}>
       <div className={compact ? 'planning-week-row planning-week-row--compact' : 'planning-week-row'} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: compact ? 3 : 6 }}>
@@ -151,6 +215,7 @@ function WeekGrid({ category, agent, week, cellules, editable, copySource, onPic
             onSetCell={onSetCell}
             onFillRange={onFillRange}
             compact={compact}
+            requireConfirm={requireConfirm}
           />
         ))}
       </div>
@@ -158,7 +223,7 @@ function WeekGrid({ category, agent, week, cellules, editable, copySource, onPic
   );
 }
 
-export default function AgentDetailTable({ category, agent, cellules, year, month, editable, onSetCell, onFillRange, onCopyDay }) {
+export default function AgentDetailTable({ category, agent, cellules, year, month, editable, onSetCell, onFillRange, onCopyDay, requireConfirm }) {
   const allWeeks = useMemo(() => getWeeksMonday(year, month), [year, month]);
   const [copySource, setCopySource] = useState(null);
   const [mode, setMode] = useState('semaine'); // 'semaine' | 'mois'
@@ -251,6 +316,7 @@ export default function AgentDetailTable({ category, agent, cellules, year, mont
             category={category} agent={agent} week={currentWeek} cellules={cellules}
             editable={editable} copySource={copySource} onPickCopySource={setCopySource}
             onPaste={handlePaste} onSetCell={onSetCell} onFillRange={onFillRange} compact={false}
+            requireConfirm={requireConfirm}
           />
         </div>
       ) : (
@@ -261,6 +327,7 @@ export default function AgentDetailTable({ category, agent, cellules, year, mont
               category={category} agent={agent} week={week} cellules={cellules}
               editable={editable} copySource={copySource} onPickCopySource={setCopySource}
               onPaste={handlePaste} onSetCell={onSetCell} onFillRange={onFillRange} compact={true}
+              requireConfirm={requireConfirm}
             />
           ))}
         </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
-import { dateKey, JOURS_FR, MOIS_FR, formatAgentName, sortAgents } from '../config';
+import { dateKey, JOURS_FR, MOIS_FR, formatAgentName, sortAgents, isCancelledCode, cancelledCodeValue } from '../config';
 
 const CODES_OFF = ['CA', 'CF', 'RS', 'X'];
 
@@ -102,7 +102,7 @@ export default function MultiAgentCompare({ category, agents, cellules }) {
                   const codes = ['M', 'AM', 'N']
                     .map(m => cellules[`${agent.id}|${dk}|${m}`])
                     .filter(Boolean);
-                  const display = codes[0] || '·';
+                  const display = codes[0] ? cancelledCodeValue(codes[0]) : '·';
                   const off = isOffThisDay(agent.id, dk, cellules);
                   const isLastRow = ai === agents.length - 1;
                   return (

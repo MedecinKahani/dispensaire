@@ -136,6 +136,19 @@ export function dateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+// Un code "annulé" est stocké avec un préfixe '~' (ex. '~K1') plutôt que d'être effacé.
+// Permet de garder une trace visuelle (transparente) du créneau initialement prévu,
+// distincte d'une case jamais remplie — utile en cas d'absence imprévue le jour J.
+export function isCancelledCode(rawCode) {
+  return typeof rawCode === 'string' && rawCode.startsWith('~');
+}
+export function cancelledCodeValue(rawCode) {
+  return isCancelledCode(rawCode) ? rawCode.slice(1) : rawCode;
+}
+export function makeCancelledCode(code) {
+  return `~${code}`;
+}
+
 // Découpe le mois en semaines Lundi -> Dimanche.
 // Les jours hors mois (début/fin de semaine à cheval) sont inclus avec un flag outOfMonth,
 // pour garder des semaines complètes de 7 jours mais distinguer visuellement le hors-mois.
@@ -178,8 +191,9 @@ export function computeAgentStats(category, agentId, cellules, year, month) {
     const dk = dateKey(d);
     const postesJour = getPostesForDay(category.id, d);
     ['M', 'AM', 'N'].forEach(moment => {
-      const code = cellules[`${agentId}|${dk}|${moment}`];
-      if (!code) return;
+      const rawCode = cellules[`${agentId}|${dk}|${moment}`];
+      if (!rawCode || isCancelledCode(rawCode)) return; // un créneau annulé ne compte pas
+      const code = rawCode;
       const poste = postesJour.find(p => p.code === code && p.moment === moment);
       const info = category.codes.find(c => c.code === code);
       const h = poste?.heures ?? info?.heures ?? 0;

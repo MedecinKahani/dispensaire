@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { Download, Trash2, X, Check } from 'lucide-react';
-import { getDaysInMonth, dateKey, JOURS_FR, computeAgentStats, formatAgentName } from '../config';
+import { getDaysInMonth, dateKey, JOURS_FR, computeAgentStats, formatAgentName, isCancelledCode, cancelledCodeValue } from '../config';
 import { exportPlanningPDF } from './exportPdf';
 
 // Vue d'ensemble compacte : une ligne par agent, une colonne par jour,
@@ -133,17 +133,21 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                         <span style={{ color: '#D1D5DB', fontWeight: 700, fontSize: 11 }}>·</span>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'stretch' }}>
-                          {codes.map((code, i) => {
+                          {codes.map((rawCode, i) => {
+                            const cancelled = isCancelledCode(rawCode);
+                            const code = cancelled ? cancelledCodeValue(rawCode) : rawCode;
                             const info = category.codes.find(c => c.code === code);
                             return (
                               <span
                                 key={i}
+                                title={cancelled ? `Créneau annulé (était : ${code})` : undefined}
                                 style={{
                                   display: 'block', borderRadius: 4, padding: '1px 3px',
-                                  background: info ? info.bg : '#F0EEE7',
+                                  background: info ? (cancelled ? `${info.bg}99` : info.bg) : '#F0EEE7',
                                   color: info ? info.color : '#9CA3AF',
                                   fontWeight: 700, fontSize: codes.length > 1 ? 9.5 : 11,
-                                  lineHeight: 1.4
+                                  lineHeight: 1.4, opacity: cancelled ? 0.5 : 1,
+                                  textDecoration: cancelled ? 'line-through' : 'none'
                                 }}
                               >
                                 {code}
