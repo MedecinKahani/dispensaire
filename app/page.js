@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -44,6 +44,14 @@ const CATEGORIES = [
     color: '#65521E',
     bg: '#F8F2E6',
     description: 'Vocabulaire médical Shimaoré / Français'
+  },
+  {
+    id: 'pediatrie',
+    label: 'Pédiatrie',
+    icon: Baby,
+    color: '#5B21B6',
+    bg: '#F2EBFB',
+    description: 'Protocoles pédiatriques adaptés au dispensaire (Le P\'tit Mwana)'
   },
   {
     id: 'caribou',
