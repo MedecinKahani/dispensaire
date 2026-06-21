@@ -166,13 +166,14 @@ export function getWeeksMonday(year, month) {
   return weeks;
 }
 
-// Calcule, pour un agent sur un mois donné : heures totales, nombre de gardes (G),
-// nombre de RS posés. Utilise en priorité les heures du POSTE du jour (qui peuvent
-// différer du code générique, ex: G = 6h le week-end vs 12h en semaine), avec repli
-// sur les heures génériques du code si aucun poste structuré ne correspond.
+// Calcule, pour un agent sur un mois donné : heures totales, heures moyennes par semaine
+// (base 4,33 semaines/mois), nombre de gardes de nuit (G sur le créneau N) et de gardes
+// de jour (G sur M ou AM — cas du week-end : samedi après-midi, dimanche matin/après-midi).
+// Utilise en priorité les heures du POSTE du jour (qui peuvent différer du code générique,
+// ex: G = 6h le week-end vs 12h en semaine), avec repli sur les heures génériques du code.
 export function computeAgentStats(category, agentId, cellules, year, month) {
   const days = getDaysInMonth(year, month);
-  let heures = 0, gardes = 0, rs = 0;
+  let heures = 0, gardesNuit = 0, gardesJour = 0, rs = 0;
   days.forEach(d => {
     const dk = dateKey(d);
     const postesJour = getPostesForDay(category.id, d);
@@ -183,11 +184,15 @@ export function computeAgentStats(category, agentId, cellules, year, month) {
       const info = category.codes.find(c => c.code === code);
       const h = poste?.heures ?? info?.heures ?? 0;
       heures += h;
-      if (code === 'G') gardes += 1;
+      if (code === 'G') {
+        if (moment === 'N') gardesNuit += 1;
+        else gardesJour += 1;
+      }
       if (code === 'RS') rs += 1;
     });
   });
-  return { heures, gardes, rs };
+  const heuresParSemaine = heures / 4.33;
+  return { heures, heuresParSemaine, gardesNuit, gardesJour, rs };
 }
 
 function addDays(d, n) {

@@ -57,8 +57,8 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                 </th>
               );
             })}
-            <th style={{ ...thStyle, position: 'sticky', right: 0, background: '#F7F6F2', zIndex: 2, minWidth: 130, borderLeft: '1px solid #E5E1D8' }}>
-              Total mois
+            <th style={{ ...thStyle, position: 'sticky', right: 0, background: '#F7F6F2', zIndex: 2, minWidth: 170, borderLeft: '1px solid #E5E1D8' }}>
+              Moy. semaine / Gardes
             </th>
           </tr>
         </thead>
@@ -161,14 +161,14 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                 }}>
                   {stats ? (
                     <div style={{ display: 'flex', gap: 10, fontSize: 11.5 }}>
-                      <span title="Heures travaillées sur le mois" style={{ color: '#1A2B3D', fontWeight: 700 }}>
-                        {stats.heures}h
+                      <span title="Moyenne d'heures par semaine sur le mois (base 4,33 semaines)" style={{ color: '#1A2B3D', fontWeight: 700 }}>
+                        {stats.heuresParSemaine.toFixed(1)}h/sem
                       </span>
-                      <span title="Nombre de gardes" style={{ color: '#C2410C', fontWeight: 700 }}>
-                        {stats.gardes}G
+                      <span title="Nombre de gardes de nuit" style={{ color: '#C2410C', fontWeight: 700 }}>
+                        {stats.gardesNuit}GN
                       </span>
-                      <span title="Nombre de repos de garde posés" style={{ color: '#65521E', fontWeight: 700 }}>
-                        {stats.rs}RS
+                      <span title="Nombre de gardes de jour (week-end)" style={{ color: '#B45309', fontWeight: 700 }}>
+                        {stats.gardesJour}GJ
                       </span>
                     </div>
                   ) : (

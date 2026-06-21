@@ -68,7 +68,7 @@ export function exportPlanningPDF(category, agents, cellules, year, month) {
     },
   });
 
-  // Page récapitulative : heures / gardes / RS par agent, utile pour le paiement des gardes
+  // Page récapitulative : heures / gardes de nuit / gardes de jour par agent
   doc.addPage('a4', 'landscape');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
@@ -80,16 +80,22 @@ export function exportPlanningPDF(category, agents, cellules, year, month) {
 
   const recapBody = agents.map(a => {
     const stats = computeAgentStats(category, a.id, cellules, year, month);
-    return [formatAgentName(a), `${stats.heures} h`, String(stats.gardes), String(stats.rs)];
+    return [
+      formatAgentName(a),
+      `${stats.heures} h`,
+      `${stats.heuresParSemaine.toFixed(1)} h`,
+      String(stats.gardesNuit),
+      String(stats.gardesJour),
+    ];
   });
 
   autoTable(doc, {
-    head: [['Médecin', 'Heures travaillées', 'Nombre de gardes (G)', 'Repos de garde (RS)']],
+    head: [['Médecin', 'Heures totales (mois)', 'Moy. heures / semaine', 'Gardes de nuit', 'Gardes de jour']],
     body: recapBody,
     startY: 26,
     styles: { fontSize: 10, cellPadding: 3 },
     headStyles: { fillColor: [26, 43, 61], textColor: 255 },
-    columnStyles: { 0: { halign: 'left', fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' } },
+    columnStyles: { 0: { halign: 'left', fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' } },
   });
 
   // Page 3 : détail des gardes par catégorie (nuit semaine, week-end, fériés...) pour le paiement
