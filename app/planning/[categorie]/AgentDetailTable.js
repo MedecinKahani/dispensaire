@@ -54,6 +54,8 @@ function DayHeader({ agent, day, cellules, editable, onPickCopySource, compact }
   );
 }
 
+const CODES_JOURNEE_ENTIERE = ['CA', 'CF'];
+
 function ConfirmChangeDialog({ label, onConfirm, onCancel }) {
   return (
     <div
@@ -88,14 +90,58 @@ function ConfirmChangeDialog({ label, onConfirm, onCancel }) {
 function DayCell({ category, agent, day, cellules, editable, copySource, onPaste, onSetCell, onFillRange, compact, requireConfirm }) {
   const dk = dateKey(day.date);
   const [editingMoment, setEditingMoment] = useState(null); // cellId (date|moment) en cours d'édition
-  const [pendingChange, setPendingChange] = useState(null); // { momentId, newRawCode, label } en attente de confirmation
+  const [pendingChange, setPendingChange] = useState(null); // { moments: [...], finalValue, label } en attente de confirmation
   const postGarde = isPostGardeRS(agent.id, day.date, cellules);
 
+  // Code journée entière (CA/CF) : un seul badge sur toute la case, plutôt que répété sur les 3 bandes.
+  const journeeCode = MOMENTS
+    .map(m => cellules[`${agent.id}|${dk}|${m.id}`])
+    .find(raw => CODES_JOURNEE_ENTIERE.includes(cancelledCodeValue(raw)));
+  const journeeCancelled = isCancelledCode(journeeCode);
+  const journeeCodeValue = journeeCancelled ? cancelledCodeValue(journeeCode) : journeeCode;
+  const journeeInfo = journeeCodeValue ? category.codes.find(c => c.code === journeeCodeValue) : null;
+
   const applyChange = (momentId, currentRawCode, newCode) => {
+    // CA/CF : s'applique à toute la journée (M+AM+N), incompatible avec tout autre poste le même jour.
+    if (CODES_JOURNEE_ENTIERE.includes(newCode)) {
+      const finalValues = MOMENTS.map(m => ({ moment: m.id, finalValue: newCode }));
+      if (!requireConfirm) {
+        finalValues.forEach(({ moment, finalValue }) => onSetCell(dk, moment, finalValue));
+        return;
+      }
+      setPendingChange({
+        moments: finalValues,
+        label: `Marquer toute la journée du ${dk} en « ${newCode} » ?`
+      });
+      return;
+    }
+
     // newCode === '' signifie suppression : si on a la confirmation activée et qu'il y avait
     // déjà quelque chose, on marque comme "annulé" plutôt que d'effacer la trace.
     const wasFilled = currentRawCode && !isCancelledCode(currentRawCode);
     const isClearing = newCode === '' || newCode === null;
+
+    // Si on efface/modifie un créneau qui faisait partie d'un CA/CF journée entière,
+    // on libère les 3 créneaux d'un coup (sinon les 2 autres resteraient bloqués en CA/CF résiduel).
+    if (currentRawCode && CODES_JOURNEE_ENTIERE.includes(cancelledCodeValue(currentRawCode))) {
+      const baseCode = cancelledCodeValue(currentRawCode);
+      const finalValues = MOMENTS.map(m => ({
+        moment: m.id,
+        finalValue: isClearing
+          ? (requireConfirm ? makeCancelledCode(baseCode) : '')
+          : (m.id === momentId ? newCode : ''),
+      }));
+      if (!requireConfirm) {
+        finalValues.forEach(({ moment, finalValue }) => onSetCell(dk, moment, finalValue));
+        return;
+      }
+      const label = isClearing
+        ? `Marquer toute la journée « ${baseCode} » comme annulée ?`
+        : `Remplacer « ${baseCode} » de la journée par « ${newCode} » sur ${MOMENTS.find(m => m.id === momentId)?.label.toLowerCase()} ?`;
+      setPendingChange({ moments: finalValues, label });
+      return;
+    }
+
     const finalValue = isClearing
       ? (requireConfirm && wasFilled ? makeCancelledCode(cancelledCodeValue(currentRawCode)) : '')
       : newCode;
@@ -108,8 +154,71 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
     const label = isClearing
       ? (wasFilled ? `Marquer « ${cancelledCodeValue(currentRawCode)} » comme annulé ?` : 'Effacer cette case ?')
       : `Confirmer « ${newCode} » le ${dk} ?`;
-    setPendingChange({ momentId, finalValue, label });
+    setPendingChange({ moments: [{ moment: momentId, finalValue }], label });
   };
+
+  const confirmPending = () => {
+    pendingChange.moments.forEach(({ moment, finalValue }) => onSetCell(dk, moment, finalValue));
+    setPendingChange(null);
+  };
+
+  // Affichage compact : un seul badge journée entière si CA/CF détecté
+  if (journeeCodeValue) {
+    return (
+      <div
+        onClick={() => { if (editable && copySource && copySource !== dk) onPaste(dk); }}
+        style={{
+          border: '1px solid #E5E1D8', borderRadius: 10,
+          padding: compact ? 3 : 5,
+          background: day.outOfMonth ? '#FAFAF8' : '#fff',
+          opacity: day.outOfMonth ? 0.5 : 1,
+          height: '100%', display: 'flex', flexDirection: 'column',
+          cursor: editable && copySource && copySource !== dk ? 'copy' : 'default',
+          position: 'relative', minWidth: 0, boxSizing: 'border-box'
+        }}
+      >
+        <button
+          onClick={e => {
+            e.stopPropagation();
+            if (editable && !day.outOfMonth && !copySource) setEditingMoment(editingMoment === 'journee' ? null : 'journee');
+          }}
+          disabled={!editable || day.outOfMonth}
+          title={journeeCancelled ? `Journée annulée (était : ${journeeCodeValue})` : `${journeeCodeValue} — journée entière`}
+          style={{
+            width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: `1px ${journeeCancelled ? 'dashed' : 'solid'} ${journeeInfo?.color || '#9CA3AF'}40`,
+            borderRadius: 7,
+            background: journeeInfo ? (journeeCancelled ? `${journeeInfo.bg}99` : journeeInfo.bg) : '#F0EEE7',
+            color: journeeInfo?.color || '#9CA3AF',
+            opacity: journeeCancelled ? 0.5 : 1,
+            fontSize: compact ? 11 : 14, fontWeight: 800,
+            textDecoration: journeeCancelled ? 'line-through' : 'none',
+            cursor: editable && !day.outOfMonth ? 'pointer' : 'default',
+            boxSizing: 'border-box'
+          }}
+        >
+          {journeeCodeValue}
+        </button>
+        {editingMoment === 'journee' && !pendingChange && (
+          <CellEditor
+            codes={category.codes}
+            value={journeeCodeValue}
+            date={dk}
+            onChange={(newCode) => { applyChange('M', journeeCode, newCode); setEditingMoment(null); }}
+            onFillRange={() => {}}
+            onClose={() => setEditingMoment(null)}
+          />
+        )}
+        {pendingChange && (
+          <ConfirmChangeDialog
+            label={pendingChange.label}
+            onConfirm={confirmPending}
+            onCancel={() => setPendingChange(null)}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -133,7 +242,7 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
         const info = code ? category.codes.find(c => c.code === code) : null;
         const cellId = `${dk}|${m.id}`;
         const isEditing = editingMoment === cellId;
-        const isPending = pendingChange?.momentId === m.id;
+        const isPending = pendingChange && pendingChange.moments.some(pc => pc.moment === m.id);
         return (
           <div key={m.id} style={{ position: 'relative', flex: '1 1 0', minHeight: 0 }}>
             <button
@@ -168,10 +277,10 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
                 onClose={() => setEditingMoment(null)}
               />
             )}
-            {isPending && (
+            {isPending && pendingChange.moments[0].moment === m.id && (
               <ConfirmChangeDialog
                 label={pendingChange.label}
-                onConfirm={() => { onSetCell(dk, pendingChange.momentId, pendingChange.finalValue); setPendingChange(null); }}
+                onConfirm={confirmPending}
                 onCancel={() => setPendingChange(null)}
               />
             )}
