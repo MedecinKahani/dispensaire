@@ -121,7 +121,7 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
         opacity: day.outOfMonth ? 0.5 : 1,
         height: '100%', display: 'flex', flexDirection: 'column', gap: compact ? 2 : 3,
         cursor: editable && copySource && copySource !== dk ? 'copy' : 'default',
-        position: 'relative', minWidth: 0, boxSizing: 'border-box', overflow: 'hidden'
+        position: 'relative', minWidth: 0, boxSizing: 'border-box'
       }}
     >
       {/* 3 bandes fixes empilées (matin/après-midi/nuit), chacune = exactement 1/3 de la case.
