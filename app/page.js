@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -52,6 +52,14 @@ const CATEGORIES = [
     color: '#5B21B6',
     bg: '#F2EBFB',
     description: 'Protocoles pédiatriques adaptés au dispensaire (Le P\'tit Mwana)'
+  },
+  {
+    id: 'pharmacie',
+    label: 'Pharmacie',
+    icon: Pill,
+    color: '#B91C1C',
+    bg: '#FEECEC',
+    description: 'Livret du médicament — stock disponible au CMR de Kahani'
   },
   {
     id: 'caribou',
