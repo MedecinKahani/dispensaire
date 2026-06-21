@@ -214,8 +214,9 @@ export function isPostGardeRS(agentId, date, cellules) {
 }
 
 // Détermine si un agent est disponible pour un poste donné, un jour donné, en appliquant
-// les règles : présence (arrivée/départ), pas en congés ce jour, pas de garde la veille au soir,
-// pas déjà affecté à un autre poste ce même jour.
+// les règles : présence (arrivée/départ), pas en congés ce jour, pas de garde la veille au soir.
+// Un agent peut être affecté à plusieurs créneaux le même jour (ex. matin + après-midi),
+// la seule contrainte forte étant l'impossibilité de travailler le lendemain d'une garde de nuit.
 export function getAgentAvailability(category, agent, date, cellules) {
   const dk = dateKey(date);
   const veille = dateKey(addDays(date, -1));
@@ -236,10 +237,6 @@ export function getAgentAvailability(category, agent, date, cellules) {
   const codeVeilleNuit = cellules[`${agent.id}|${veille}|N`];
   if (codeVeilleNuit === 'G') {
     return { available: false, reason: 'Garde la veille au soir' };
-  }
-
-  if (codesJour.length > 0) {
-    return { available: false, reason: `Déjà affecté (${codesJour[0].code})`, alreadyAssigned: codesJour[0].code };
   }
 
   return { available: true, reason: null };
