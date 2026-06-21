@@ -13,12 +13,10 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
   const days = useMemo(() => getDaysInMonth(year, month), [year, month]);
   const [confirmingId, setConfirmingId] = useState(null);
 
-  const codeFor = (agentId, dk) => {
-    for (const m of ['M', 'AM', 'N']) {
-      const c = cellules[`${agentId}|${dk}|${m}`];
-      if (c) return c;
-    }
-    return null;
+  const codesFor = (agentId, dk) => {
+    return ['M', 'AM', 'N']
+      .map(m => cellules[`${agentId}|${dk}|${m}`])
+      .filter(Boolean);
   };
 
   if (agents.length === 0) {
@@ -120,21 +118,40 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                 </td>
                 {days.map(d => {
                   const dk = dateKey(d);
-                  const code = codeFor(agent.id, dk);
-                  const info = code ? category.codes.find(c => c.code === code) : null;
+                  const codes = codesFor(agent.id, dk);
                   const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                   return (
                     <td
                       key={dk}
                       onClick={() => onSelectAgent(agent, dk)}
                       style={{
-                        ...tdStyle, textAlign: 'center', cursor: 'pointer',
-                        background: info ? info.bg : (isWeekend ? '#FBFAF7' : '#fff'),
-                        color: info ? info.color : '#D1D5DB',
-                        fontWeight: 700, fontSize: 11
+                        ...tdStyle, textAlign: 'center', cursor: 'pointer', padding: '3px 4px',
+                        background: codes.length === 0 ? (isWeekend ? '#FBFAF7' : '#fff') : undefined,
                       }}
                     >
-                      {code || '·'}
+                      {codes.length === 0 ? (
+                        <span style={{ color: '#D1D5DB', fontWeight: 700, fontSize: 11 }}>·</span>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'stretch' }}>
+                          {codes.map((code, i) => {
+                            const info = category.codes.find(c => c.code === code);
+                            return (
+                              <span
+                                key={i}
+                                style={{
+                                  display: 'block', borderRadius: 4, padding: '1px 3px',
+                                  background: info ? info.bg : '#F0EEE7',
+                                  color: info ? info.color : '#9CA3AF',
+                                  fontWeight: 700, fontSize: codes.length > 1 ? 9.5 : 11,
+                                  lineHeight: 1.4
+                                }}
+                              >
+                                {code}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                     </td>
                   );
                 })}
