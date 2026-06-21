@@ -166,14 +166,26 @@ export default function AgentDetailTable({ category, agent, cellules, year, mont
   const today = new Date();
   const [weekAnchor, setWeekAnchor] = useState(mondayOf(today));
 
+  // La semaine affichée est calculée directement depuis weekAnchor (navigation libre,
+  // indépendante du mois/année figés transmis par le parent au montage). Le "mois de
+  // référence" de la semaine est celui où tombe la majorité de ses jours, pour décider
+  // quels jours apparaissent grisés (hors-mois) en cas de semaine à cheval.
   const currentWeek = useMemo(() => {
-    return allWeeks.find(w => dateKey(w[0].date) === dateKey(mondayOf(weekAnchor)))
-      || [...Array(7)].map((_, i) => {
-        const d = new Date(mondayOf(weekAnchor));
-        d.setDate(d.getDate() + i);
-        return { date: d, outOfMonth: d.getMonth() !== month };
-      });
-  }, [allWeeks, weekAnchor, month]);
+    const monday = mondayOf(weekAnchor);
+    const week = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(d.getDate() + i);
+      return d;
+    });
+    const monthCounts = {};
+    week.forEach(d => {
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      monthCounts[key] = (monthCounts[key] || 0) + 1;
+    });
+    const refMonthKey = Object.keys(monthCounts).reduce((a, b) => monthCounts[a] >= monthCounts[b] ? a : b);
+    const [refYear, refMonth] = refMonthKey.split('-').map(Number);
+    return week.map(d => ({ date: d, outOfMonth: d.getFullYear() !== refYear || d.getMonth() !== refMonth }));
+  }, [weekAnchor]);
 
   const navigateWeek = (delta) => {
     const d = new Date(weekAnchor);
