@@ -333,9 +333,24 @@ function WeekGrid({ category, agent, week, cellules, editable, copySource, onPic
 }
 
 export default function AgentDetailTable({ category, agent, cellules, year, month, editable, onSetCell, onFillRange, onCopyDay, requireConfirm }) {
-  const allWeeks = useMemo(() => getWeeksMonday(year, month), [year, month]);
   const [copySource, setCopySource] = useState(null);
   const [mode, setMode] = useState('semaine'); // 'semaine' | 'mois'
+
+  // Navigation en mode mois : état local indépendant des props figées du parent
+  const [viewYear, setViewYear] = useState(year);
+  const [viewMonth, setViewMonth] = useState(month);
+  const allWeeks = useMemo(() => getWeeksMonday(viewYear, viewMonth), [viewYear, viewMonth]);
+
+  const navigateMonth = (delta) => {
+    setViewMonth(m => {
+      const next = m + delta;
+      if (next < 0) { setViewYear(y => y - 1); return 11; }
+      if (next > 11) { setViewYear(y => y + 1); return 0; }
+      return next;
+    });
+  };
+
+  const monthLabel = new Date(viewYear, viewMonth, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
   const today = new Date();
   const [weekAnchor, setWeekAnchor] = useState(mondayOf(today));
@@ -383,7 +398,13 @@ export default function AgentDetailTable({ category, agent, cellules, year, mont
             <button onClick={() => navigateWeek(1)} style={navBtnStyle}><ChevronRight size={15} /></button>
           </div>
         ) : (
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#1A2B3D' }}>Mois complet</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: '#F7F6F2', borderRadius: 10, padding: 3 }}>
+            <button onClick={() => navigateMonth(-1)} style={navBtnStyle}><ChevronLeft size={15} /></button>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#1A2B3D', padding: '0 8px', minWidth: 150, textAlign: 'center', textTransform: 'capitalize' }}>
+              {monthLabel}
+            </span>
+            <button onClick={() => navigateMonth(1)} style={navBtnStyle}><ChevronRight size={15} /></button>
+          </div>
         )}
 
         <button
