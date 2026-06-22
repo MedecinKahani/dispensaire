@@ -74,8 +74,8 @@ export async function POST(request) {
     }
 
     if (action === 'addAgent') {
-      // body: { categorie, nomFamille, prenom, arrivee?, depart?, tuteurId? }
-      const { nomFamille, prenom, arrivee, depart, tuteurId } = body;
+      // body: { categorie, nomFamille, prenom, arrivee?, depart? }
+      const { nomFamille, prenom, arrivee, depart } = body;
       if (!nomFamille || !nomFamille.trim()) {
         return NextResponse.json({ error: 'Nom de famille manquant' }, { status: 400 });
       }
@@ -88,7 +88,6 @@ export async function POST(request) {
           prenom: (prenom || '').trim(),
           arrivee: arrivee || null,
           depart: depart || null,
-          tuteurId: tuteurId || null,
         }],
       };
       await kv.set(KEY, current);

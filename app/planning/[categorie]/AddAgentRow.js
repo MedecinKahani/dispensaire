@@ -3,13 +3,12 @@
 import React, { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 
-export default function AddAgentRow({ onAdd, color, agents = [] }) {
+export default function AddAgentRow({ onAdd, color }) {
   const [adding, setAdding] = useState(false);
   const [nomFamille, setNomFamille] = useState('');
   const [prenom, setPrenom] = useState('');
   const [arrivee, setArrivee] = useState('');
   const [depart, setDepart] = useState('');
-  const [tuteurId, setTuteurId] = useState('');
 
   if (!adding) {
     return (
@@ -27,8 +26,8 @@ export default function AddAgentRow({ onAdd, color, agents = [] }) {
   }
 
   const submit = () => {
-    if (nomFamille.trim()) onAdd(nomFamille.trim(), prenom.trim(), arrivee || null, depart || null, tuteurId || null);
-    setNomFamille(''); setPrenom(''); setArrivee(''); setDepart(''); setTuteurId('');
+    if (nomFamille.trim()) onAdd(nomFamille.trim(), prenom.trim(), arrivee || null, depart || null);
+    setNomFamille(''); setPrenom(''); setArrivee(''); setDepart('');
     setAdding(false);
   };
 
@@ -66,19 +65,6 @@ export default function AddAgentRow({ onAdd, color, agents = [] }) {
         <label style={labelStyle}>Départ (optionnel)</label>
         <input type="date" value={depart} onChange={e => setDepart(e.target.value)} style={inputStyle} />
       </div>
-      {agents.length > 0 && (
-        <div>
-          <label style={labelStyle}>Introduit par (optionnel)</label>
-          <select value={tuteurId} onChange={e => setTuteurId(e.target.value)} style={{ ...inputStyle, width: 180 }}>
-            <option value="">— aucun —</option>
-            {agents.map(a => (
-              <option key={a.id} value={a.id}>
-                {a.nomFamille ? `${a.nomFamille} ${a.prenom || ''}`.trim() : (a.nom || a.id)}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
       <button onClick={submit} style={{ ...iconBtnStyle, background: '#1A2B3D' }}>
         <Plus size={15} color="#fff" />
       </button>

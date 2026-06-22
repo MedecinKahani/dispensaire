@@ -242,25 +242,9 @@ export default function PlanningCategoryEntryPage() {
             >
               <ArrowLeft size={14} /> Changer de {category.label === 'Médical' ? 'médecin' : 'agent'}
             </button>
-            <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 22, fontWeight: 700, color: '#1A2B3D', margin: '0 0 4px' }}>
+            <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 22, fontWeight: 700, color: '#1A2B3D', margin: '0 0 16px' }}>
               {formatAgentName(selected)}
             </h2>
-            {selected.tuteurId && (() => {
-              const tuteur = agents.find(a => a.id === selected.tuteurId);
-              return tuteur ? (
-                <p style={{ fontSize: 12, color: '#0F766E', fontWeight: 500, margin: '0 0 14px' }}>
-                  ↪ Introduit par {formatAgentName(tuteur)}
-                </p>
-              ) : null;
-            })()}
-            {(() => {
-              const nouveaux = agents.filter(a => a.tuteurId === selected.id);
-              return nouveaux.length > 0 ? (
-                <p style={{ fontSize: 12, color: '#B45309', fontWeight: 500, margin: '0 0 14px' }}>
-                  ↳ Guide de {nouveaux.map(n => formatAgentName(n)).join(', ')}
-                </p>
-              ) : null;
-            })()}
             <AgentDetailTable
               category={category}
               agent={selected}
