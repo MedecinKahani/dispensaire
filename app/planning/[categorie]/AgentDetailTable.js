@@ -54,7 +54,7 @@ function DayHeader({ agent, day, cellules, editable, onPickCopySource, compact }
   );
 }
 
-const CODES_JOURNEE_ENTIERE = ['CA', 'CF', 'ADM', 'X', 'RG'];
+const CODES_JOURNEE_ENTIERE = ['CA', 'CF', 'ADM', 'X', 'RC'];
 
 function ConfirmChangeDialog({ label, onConfirm, onCancel }) {
   return (
@@ -205,7 +205,7 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
             boxSizing: 'border-box'
           }}
         >
-          {journeeCancelled ? <s>{journeeCodeValue}</s> : journeeCodeValue}
+          {journeeCodeValue === 'RC' ? null : (journeeCancelled ? <s>{journeeCodeValue}</s> : journeeCodeValue)}
         </button>
         {/* Badges guide J1 */}
         {guideAgent && (
