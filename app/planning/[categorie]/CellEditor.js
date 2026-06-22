@@ -40,13 +40,14 @@ export default function CellEditor({ codes, value, date, onChange, onFillRange, 
         </select>
         <div style={{ display: 'flex', gap: 6 }}>
           <button
-            onClick={() => { onClose(); }}
+            onClick={() => { onChange(pendingCode); onClose(); }}
             style={{ flex: 1, padding: '7px 0', borderRadius: 7, border: '1px solid #E5E1D8', background: '#fff', color: '#5B6573', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
           >
             Passer
           </button>
           <button
             onClick={() => {
+              onChange(pendingCode);
               if (selectedGuideId && onSetGuide) onSetGuide(date, selectedGuideId);
               onClose();
             }}
@@ -128,11 +129,12 @@ export default function CellEditor({ codes, value, date, onChange, onFillRange, 
         <div key={c.code} style={{ position: 'relative', display: 'flex' }}>
           <button
             onClick={() => {
-              onChange(c.code);
-              // Si DEB et qu'on a des agents, ouvrir l'étape guide
+              // Si DEB et qu'on a des agents, ouvrir le popup guide AVANT d'appeler onChange
               if (c.code === 'DEB' && agents.length > 0 && onSetGuide) {
+                setPendingCode(c.code);
                 setGuideMode(true);
               } else {
+                onChange(c.code);
                 onClose();
               }
             }}
