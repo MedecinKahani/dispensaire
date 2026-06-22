@@ -205,7 +205,7 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
             boxSizing: 'border-box'
           }}
         >
-          {journeeCodeValue === 'RG' ? null : (journeeCancelled ? <s>{journeeCodeValue}</s> : journeeCodeValue)}
+          {journeeCancelled ? <s>{journeeCodeValue}</s> : journeeCodeValue}
         </button>
         {/* Badges guide J1 */}
         {guideAgent && (

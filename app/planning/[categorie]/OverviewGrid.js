@@ -165,7 +165,7 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                                   textDecoration: cancelled ? 'line-through' : 'none'
                                 }}
                               >
-                                {code === 'RG' ? '\u00A0' : code}
+                                {code}
                               </span>
                             );
                           })}
