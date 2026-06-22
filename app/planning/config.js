@@ -10,8 +10,8 @@ const CODES_MEDICAL = [
   { code: 'KRO', label: 'Consultation chronique', detail: '7h – 13h', color: '#1D4ED8', bg: '#EFF6FF', heures: 6 },
   { code: 'S', label: 'Consultation à Sada', detail: '7h – 13h', color: '#1D4ED8', bg: '#EFF6FF', heures: 6 },
   { code: 'ADM', label: 'Administratif (chef de service)', detail: '', color: '#1D4ED8', bg: '#EFF6FF', heures: 0 },
-  { code: 'G', label: 'Garde', detail: '19h – 7h', color: '#C2410C', bg: '#FDF1EC', heures: 12 },
-  { code: 'RS', label: 'Repos de garde', detail: '', color: '#9CA3AF', bg: '#F3F4F6', heures: 0 },
+  { code: 'G', label: 'Garde', detail: '', color: '#C2410C', bg: '#FDF1EC', heures: 12 },
+  { code: 'RG', label: 'Repos de garde', detail: '', color: '#9CA3AF', bg: '#F3F4F6', heures: 0 },
   { code: 'RC', label: 'Repos compensateur', detail: '', color: '#EAB308', bg: '#FEF08A', heures: 0 },
   { code: 'CA', label: 'Congés annuels', detail: '', color: '#15803D', bg: '#ECFDF3', heures: 0 },
   { code: 'CF', label: 'Congés formation', detail: '', color: '#15803D', bg: '#ECFDF3', heures: 0 },
@@ -174,7 +174,7 @@ export function computeAgentStats(category, agentId, cellules, year, month) {
         if (moment === 'N') gardesNuit += 1;
         else gardesJour += 1;
       }
-      if (code === 'RS') rs += 1;
+      if (code === 'RG') rs += 1;
     });
   });
   const heuresParSemaine = heures / 4.33;

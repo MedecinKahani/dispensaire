@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { dateKey, JOURS_FR, MOIS_FR, formatAgentName, sortAgents, isCancelledCode, cancelledCodeValue } from '../config';
 
-const CODES_OFF = ['CA', 'CF', 'RS', 'X'];
+const CODES_OFF = ['CA', 'CF', 'RG', 'X'];
 
 function mondayOf(date) {
   const d = new Date(date);
