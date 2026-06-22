@@ -1,4 +1,4 @@
-import { Stethoscope, HeartPulse, HandHeart, SprayCan } from 'lucide-react';
+import { Stethoscope } from 'lucide-react';
 
 // Codes valables pour le planning MÉDICAL (fournis par l'équipe).
 // Les autres catégories n'ont pas encore de codes définis : configurable plus tard.
@@ -22,43 +22,13 @@ const CODES_MEDICAL = [
 export const PLANNING_CATEGORIES = [
   {
     id: 'medical',
-    label: 'Médical',
+    label: 'Médecins Kahani',
     sublabel: 'Médecins',
     icon: Stethoscope,
     color: '#0F766E',
     bg: '#ECFAF8',
     codes: CODES_MEDICAL,
     configured: true,
-  },
-  {
-    id: 'infirmiers',
-    label: 'Infirmiers',
-    sublabel: 'IDE',
-    icon: HeartPulse,
-    color: '#0E7490',
-    bg: '#EBF6F8',
-    codes: [],
-    configured: false,
-  },
-  {
-    id: 'aide-soignants',
-    label: 'Aide-soignants',
-    sublabel: 'AS',
-    icon: HandHeart,
-    color: '#B45309',
-    bg: '#FEF3E2',
-    codes: [],
-    configured: false,
-  },
-  {
-    id: 'ash',
-    label: 'ASH',
-    sublabel: 'Agents de service',
-    icon: SprayCan,
-    color: '#65521E',
-    bg: '#F8F2E6',
-    codes: [],
-    configured: false,
   },
 ];
 
