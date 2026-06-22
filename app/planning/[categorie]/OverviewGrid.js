@@ -188,11 +188,15 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                           date={dk}
                           onChange={(newCode) => {
                             if (onSetCell) {
-                              // G → moment N, codes journée entière → M, autres → M
                               const JOURNEE_ENTIERE = ['CA', 'CF', 'ADM', 'X', 'RC', 'DEB', 'FIN'];
-                              const codeInfo = category.codes.find(c => c.code === newCode);
-                              const moment = JOURNEE_ENTIERE.includes(newCode) ? 'M' : (codeInfo?.moment || (newCode === 'G' ? 'N' : 'M'));
-                              onSetCell(agent.id, dk, moment, newCode);
+                              if (JOURNEE_ENTIERE.includes(newCode)) {
+                                // Écrire sur les 3 moments pour écraser tout ce qui existait
+                                ['M', 'AM', 'N'].forEach(m => onSetCell(agent.id, dk, m, newCode));
+                              } else {
+                                const codeInfo = category.codes.find(c => c.code === newCode);
+                                const moment = codeInfo?.moment || (newCode === 'G' ? 'N' : 'M');
+                                onSetCell(agent.id, dk, moment, newCode);
+                              }
                             }
                             setEditing(null);
                           }}
