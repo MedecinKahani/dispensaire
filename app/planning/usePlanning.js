@@ -60,5 +60,8 @@ export function usePlanning() {
   const fillRange = useCallback((categorie, agentId, fromDate, toDate, moment, code) =>
     call({ action: 'fillRange', categorie, agentId, fromDate, toDate, moment, code }), [call]);
 
-  return { planning, setCell, addAgent, removeAgent, renameAgent, updateAgentDates, copyDay, fillRange, error };
+  const setGuide = useCallback((categorie, agentId, date, guideId) =>
+    call({ action: 'setGuide', categorie, agentId, date, guideId }), [call]);
+
+  return { planning, setCell, addAgent, removeAgent, renameAgent, updateAgentDates, copyDay, fillRange, setGuide, error };
 }

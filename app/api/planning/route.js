@@ -7,13 +7,10 @@ export const PLANNING_CATEGORIES = ['medical', 'infirmiers', 'aide-soignants', '
 
 // Structure stockée dans Redis :
 // {
-//   medical:        { agents: [{ id, nom, arrivee, depart }], cellules: { "agentId|YYYY-MM-DD|M|AM|N": "code" } },
-//   infirmiers:      { agents: [...], cellules: {...} },
-//   'aide-soignants': { agents: [...], cellules: {...} },
-//   ash:             { agents: [...], cellules: {...} },
+//   medical: { agents: [...], cellules: {...}, guides: { "agentId|YYYY-MM-DD": "guideAgentId" } },
 // }
-// arrivee/depart : 'YYYY-MM-DD' ou null (pas de limite connue)
-const emptyCategory = () => ({ agents: [], cellules: {} });
+// guides : clé = "agentId|YYYY-MM-DD" (J1 du nouveau), valeur = id du guide
+const emptyCategory = () => ({ agents: [], cellules: {}, guides: {} });
 const EMPTY_PLANNING = () => ({
   medical: emptyCategory(),
   infirmiers: emptyCategory(),
@@ -28,6 +25,7 @@ function ensureShape(planning) {
     base[cat] = {
       agents: Array.isArray(safe[cat]?.agents) ? safe[cat].agents : [],
       cellules: safe[cat]?.cellules && typeof safe[cat].cellules === 'object' ? safe[cat].cellules : {},
+      guides: safe[cat]?.guides && typeof safe[cat].guides === 'object' ? safe[cat].guides : {},
     };
   });
   return base;
@@ -172,6 +170,19 @@ export async function POST(request) {
         }
       }
       current[categorie] = { ...cat, cellules: nextCellules };
+      await kv.set(KEY, current);
+      return NextResponse.json({ planning: current });
+    }
+
+    if (action === 'setGuide') {
+      // body: { categorie, agentId, date, guideId }
+      // guideId null = supprimer le lien
+      const { agentId, date, guideId } = body;
+      const nextGuides = { ...(cat.guides || {}) };
+      const key = `${agentId}|${date}`;
+      if (guideId) nextGuides[key] = guideId;
+      else delete nextGuides[key];
+      current[categorie] = { ...cat, guides: nextGuides };
       await kv.set(KEY, current);
       return NextResponse.json({ planning: current });
     }

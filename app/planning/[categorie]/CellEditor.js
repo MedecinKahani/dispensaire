@@ -3,10 +3,61 @@
 import React, { useState } from 'react';
 import { ArrowRightToLine } from 'lucide-react';
 
-export default function CellEditor({ codes, value, date, onChange, onFillRange, onClose }) {
+export default function CellEditor({ codes, value, date, onChange, onFillRange, onClose, agents = [], onSetGuide }) {
   const [rangeMode, setRangeMode] = useState(false);
   const [rangeEnd, setRangeEnd] = useState('');
   const [pendingCode, setPendingCode] = useState(null);
+  const [guideMode, setGuideMode] = useState(false); // étape guide après DEB
+  const [selectedGuideId, setSelectedGuideId] = useState('');
+
+  if (guideMode) {
+    return (
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          position: 'absolute', zIndex: 40, top: '100%', left: 0, marginTop: 4,
+          background: '#fff', border: '1px solid #E5E1D8', borderRadius: 10,
+          boxShadow: '0 8px 28px rgba(0,0,0,0.16)', padding: 14, width: 240,
+        }}
+      >
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#1A2B3D', margin: '0 0 8px 0' }}>
+          Qui montre le service ?
+        </p>
+        <select
+          value={selectedGuideId}
+          onChange={e => setSelectedGuideId(e.target.value)}
+          style={{
+            width: '100%', padding: '7px 10px', borderRadius: 8, border: '1.5px solid #E5E1D8',
+            fontSize: 13, marginBottom: 10, outline: 'none', boxSizing: 'border-box'
+          }}
+        >
+          <option value="">— Personne (optionnel) —</option>
+          {agents.map(a => (
+            <option key={a.id} value={a.id}>
+              {a.nomFamille ? `${a.nomFamille} ${a.prenom || ''}`.trim() : (a.nom || a.id)}
+            </option>
+          ))}
+        </select>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button
+            onClick={() => { onClose(); }}
+            style={{ flex: 1, padding: '7px 0', borderRadius: 7, border: '1px solid #E5E1D8', background: '#fff', color: '#5B6573', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Passer
+          </button>
+          <button
+            onClick={() => {
+              if (selectedGuideId && onSetGuide) onSetGuide(date, selectedGuideId);
+              onClose();
+            }}
+            style={{ flex: 1, padding: '7px 0', borderRadius: 7, border: 'none', background: '#1A2B3D', color: '#fff', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Valider
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (rangeMode) {
     return (
@@ -76,7 +127,15 @@ export default function CellEditor({ codes, value, date, onChange, onFillRange, 
       {codes.map(c => (
         <div key={c.code} style={{ position: 'relative', display: 'flex' }}>
           <button
-            onClick={() => { onChange(c.code); onClose(); }}
+            onClick={() => {
+              onChange(c.code);
+              // Si DEB et qu'on a des agents, ouvrir l'étape guide
+              if (c.code === 'DEB' && agents.length > 0 && onSetGuide) {
+                setGuideMode(true);
+              } else {
+                onClose();
+              }
+            }}
             title={c.label + (c.detail ? ` (${c.detail})` : '')}
             style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start',

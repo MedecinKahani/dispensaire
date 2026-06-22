@@ -14,7 +14,7 @@ export default function PlanningCategoryEntryPage() {
   const categoryId = params.categorie;
   const category = getPlanningCategory(categoryId);
 
-  const { planning, setCell, copyDay, fillRange, error } = usePlanning();
+  const { planning, setCell, copyDay, fillRange, setGuide, error } = usePlanning();
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState(null);
   const [compareMode, setCompareMode] = useState(false);
@@ -256,6 +256,9 @@ export default function PlanningCategoryEntryPage() {
               onFillRange={(fromDate, toDate, moment, code) => fillRange(categoryId, selected.id, fromDate, toDate, moment, code)}
               onCopyDay={(fromDate, toDate) => copyDay(categoryId, selected.id, fromDate, toDate)}
               requireConfirm
+              agents={agents.filter(a => a.id !== selected.id)}
+              onSetGuide={(agentId, date, guideId) => setGuide(categoryId, agentId, date, guideId)}
+              guides={data.guides || {}}
             />
           </>
         )}

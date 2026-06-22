@@ -87,7 +87,7 @@ function ConfirmChangeDialog({ label, onConfirm, onCancel }) {
   );
 }
 
-function DayCell({ category, agent, day, cellules, editable, copySource, onPaste, onSetCell, onFillRange, compact, requireConfirm }) {
+function DayCell({ category, agent, day, cellules, editable, copySource, onPaste, onSetCell, onFillRange, compact, requireConfirm, agents = [], onSetGuide, guides = {} }) {
   const dk = dateKey(day.date);
   const [editingMoment, setEditingMoment] = useState(null); // cellId (date|moment) en cours d'édition
   const [pendingChange, setPendingChange] = useState(null); // { moments: [...], finalValue, label } en attente de confirmation
@@ -100,6 +100,14 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
   const journeeCancelled = isCancelledCode(journeeCode);
   const journeeCodeValue = journeeCancelled ? cancelledCodeValue(journeeCode) : journeeCode;
   const journeeInfo = journeeCodeValue ? category.codes.find(c => c.code === journeeCodeValue) : null;
+
+  // Badges introduction : ce médecin est-il introduit par quelqu'un à J1 ?
+  const guideId = guides[`${agent.id}|${dk}`];
+  const guideAgent = guideId ? agents.find(a => a.id === guideId) : null;
+  // Ce médecin est-il guide d'un nouveau à J1 ?
+  const nouveauKey = Object.keys(guides).find(k => k.endsWith(`|${dk}`) && guides[k] === agent.id);
+  const nouveauId = nouveauKey ? nouveauKey.split('|')[0] : null;
+  const nouveauAgent = nouveauId ? agents.find(a => a.id === nouveauId) : null;
 
   const applyChange = (momentId, currentRawCode, newCode) => {
     // CA/CF : s'applique à toute la journée (M+AM+N), incompatible avec tout autre poste le même jour.
@@ -199,6 +207,17 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
         >
           {journeeCodeValue === 'RG' ? null : (journeeCancelled ? <s>{journeeCodeValue}</s> : journeeCodeValue)}
         </button>
+        {/* Badges guide J1 */}
+        {guideAgent && (
+          <div style={{ fontSize: compact ? 8.5 : 10, color: '#0F766E', fontWeight: 600, textAlign: 'center', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            * {guideAgent.nomFamille || guideAgent.nom || ''}
+          </div>
+        )}
+        {nouveauAgent && (
+          <div style={{ fontSize: compact ? 8.5 : 10, color: '#B45309', fontWeight: 600, textAlign: 'center', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            * {nouveauAgent.nomFamille || nouveauAgent.nom || ''}
+          </div>
+        )}
         {editingMoment === 'journee' && !pendingChange && (
           <CellEditor
             codes={category.codes}
@@ -207,6 +226,8 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
             onChange={(newCode) => { applyChange('M', journeeCode, newCode); setEditingMoment(null); }}
             onFillRange={() => {}}
             onClose={() => setEditingMoment(null)}
+            agents={agents}
+            onSetGuide={onSetGuide ? (date, guideId) => onSetGuide(agent.id, date, guideId) : null}
           />
         )}
         {pendingChange && (
@@ -275,6 +296,8 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
                 onChange={(newCode) => { applyChange(m.id, rawCode, newCode); setEditingMoment(null); }}
                 onFillRange={(fromDate, toDate, fillCode) => onFillRange(fromDate, toDate, m.id, fillCode)}
                 onClose={() => setEditingMoment(null)}
+                agents={agents}
+                onSetGuide={onSetGuide ? (date, guideId) => onSetGuide(agent.id, date, guideId) : null}
               />
             )}
             {isPending && pendingChange.moments[0].moment === m.id && (
@@ -287,11 +310,17 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
           </div>
         );
       })}
+      {/* Badge guide J1 — visible même quand la case n'est pas DEB (ex: guide avec K1 ce jour) */}
+      {nouveauAgent && (
+        <div style={{ fontSize: compact ? 8.5 : 10, color: '#B45309', fontWeight: 600, textAlign: 'center', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          * {nouveauAgent.nomFamille || nouveauAgent.nom || ''}
+        </div>
+      )}
     </div>
   );
 }
 
-function WeekGrid({ category, agent, week, cellules, editable, copySource, onPickCopySource, onPaste, onSetCell, onFillRange, compact, requireConfirm }) {
+function WeekGrid({ category, agent, week, cellules, editable, copySource, onPickCopySource, onPaste, onSetCell, onFillRange, compact, requireConfirm, agents, onSetGuide, guides = {} }) {
   return (
     <div style={{ marginBottom: compact ? 3 : 6 }}>
       <div className={compact ? 'planning-week-row planning-week-row--compact' : 'planning-week-row'} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: compact ? 3 : 6 }}>
@@ -325,6 +354,9 @@ function WeekGrid({ category, agent, week, cellules, editable, copySource, onPic
             onFillRange={onFillRange}
             compact={compact}
             requireConfirm={requireConfirm}
+            agents={agents}
+            onSetGuide={onSetGuide}
+            guides={guides}
           />
         ))}
       </div>
@@ -332,7 +364,7 @@ function WeekGrid({ category, agent, week, cellules, editable, copySource, onPic
   );
 }
 
-export default function AgentDetailTable({ category, agent, cellules, year, month, editable, onSetCell, onFillRange, onCopyDay, requireConfirm }) {
+export default function AgentDetailTable({ category, agent, cellules, year, month, editable, onSetCell, onFillRange, onCopyDay, requireConfirm, agents, onSetGuide, guides = {} }) {
   const [copySource, setCopySource] = useState(null);
   const [mode, setMode] = useState('semaine'); // 'semaine' | 'mois'
 
@@ -446,7 +478,7 @@ export default function AgentDetailTable({ category, agent, cellules, year, mont
             category={category} agent={agent} week={currentWeek} cellules={cellules}
             editable={editable} copySource={copySource} onPickCopySource={setCopySource}
             onPaste={handlePaste} onSetCell={onSetCell} onFillRange={onFillRange} compact={false}
-            requireConfirm={requireConfirm}
+            requireConfirm={requireConfirm} agents={agents} onSetGuide={onSetGuide} guides={guides}
           />
         </div>
       ) : (
@@ -457,7 +489,7 @@ export default function AgentDetailTable({ category, agent, cellules, year, mont
               category={category} agent={agent} week={week} cellules={cellules}
               editable={editable} copySource={copySource} onPickCopySource={setCopySource}
               onPaste={handlePaste} onSetCell={onSetCell} onFillRange={onFillRange} compact={true}
-              requireConfirm={requireConfirm}
+              requireConfirm={requireConfirm} agents={agents} onSetGuide={onSetGuide} guides={guides}
             />
           ))}
         </div>
