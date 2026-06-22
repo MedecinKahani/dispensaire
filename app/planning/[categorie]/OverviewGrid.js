@@ -187,7 +187,12 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                           value={codes[0] || ''}
                           date={dk}
                           onChange={(newCode) => {
-                            if (onSetCell) onSetCell(agent.id, dk, 'M', newCode);
+                            if (onSetCell) {
+                              // Déterminer le bon moment selon le code
+                              const codeInfo = category.codes.find(c => c.code === newCode);
+                              const moment = codeInfo?.moment || (newCode === 'G' ? 'N' : 'M');
+                              onSetCell(agent.id, dk, moment, newCode);
+                            }
                             setEditing(null);
                           }}
                           onFillRange={() => {}}
