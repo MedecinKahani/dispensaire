@@ -495,6 +495,29 @@ export default function AgentDetailTable({ category, agent, cellules, year, mont
         </div>
       )}
 
+      {/* Légende des codes */}
+      <div style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid #E5E1D8' }}>
+        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>
+          Légende
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {category.codes.filter(c => !['DEB','FIN','X'].includes(c.code)).map(c => (
+            <div key={c.code} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{
+                display: 'inline-block', padding: '2px 7px', borderRadius: 5,
+                background: c.bg, color: c.color, fontSize: 11, fontWeight: 700,
+                border: `1px solid ${c.color}30`
+              }}>
+                {c.code === 'RC' ? '■' : c.code}
+              </span>
+              <span style={{ fontSize: 11, color: '#6B7280' }}>
+                {c.label}{c.detail ? ` · ${c.detail}` : ''}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <style>{`
         .planning-week-grid, .planning-month-grid { container-type: inline-size; }
 
