@@ -3,20 +3,20 @@ import { Stethoscope } from 'lucide-react';
 // Codes valables pour le planning MÉDICAL (fournis par l'équipe).
 // Les autres catégories n'ont pas encore de codes définis : configurable plus tard.
 const CODES_MEDICAL = [
-  { code: 'K1', label: 'Zone Centre K1', detail: '7h – 13h', color: '#0E7490', bg: '#EBF6F8', heures: 6 },
-  { code: 'K2', label: 'Zone Centre K2', detail: '14h – 17h', color: '#0E7490', bg: '#EBF6F8', heures: 3 },
-  { code: 'K3', label: 'Zone Centre K3', detail: '13h – 19h', color: '#0E7490', bg: '#EBF6F8', heures: 6 },
-  { code: 'MAO', label: "Médecin d'accueil / tri", detail: '7h – 13h', color: '#B45309', bg: '#FEF3E2', heures: 6 },
-  { code: 'KRO', label: 'Consultation chronique', detail: '7h – 13h', color: '#B45309', bg: '#FEF3E2', heures: 6 },
-  { code: 'S', label: 'Consultation à Sada', detail: '7h – 13h', color: '#B45309', bg: '#FEF3E2', heures: 6 },
+  { code: 'K1', label: 'Zone Centre K1', detail: '7h – 13h', color: '#1D4ED8', bg: '#EFF6FF', heures: 6 },
+  { code: 'K2', label: 'Zone Centre K2', detail: '14h – 17h', color: '#1D4ED8', bg: '#EFF6FF', heures: 3 },
+  { code: 'K3', label: 'Zone Centre K3', detail: '13h – 19h', color: '#1D4ED8', bg: '#EFF6FF', heures: 6 },
+  { code: 'MAO', label: "Médecin d'accueil / tri", detail: '7h – 13h', color: '#1D4ED8', bg: '#EFF6FF', heures: 6 },
+  { code: 'KRO', label: 'Consultation chronique', detail: '7h – 13h', color: '#1D4ED8', bg: '#EFF6FF', heures: 6 },
+  { code: 'S', label: 'Consultation à Sada', detail: '7h – 13h', color: '#1D4ED8', bg: '#EFF6FF', heures: 6 },
+  { code: 'ADM', label: 'Administratif (chef de service)', detail: '', color: '#1D4ED8', bg: '#EFF6FF', heures: 0 },
   { code: 'G', label: 'Garde', detail: '19h – 7h', color: '#C2410C', bg: '#FDF1EC', heures: 12 },
-  { code: 'RS', label: 'Repos de garde', detail: '', color: '#65521E', bg: '#F8F2E6', heures: 0 },
+  { code: 'RS', label: 'Repos de garde', detail: '', color: '#9CA3AF', bg: '#F3F4F6', heures: 0 },
   { code: 'RG', label: 'Récupération garde', detail: '', color: '#92400E', bg: '#FEF08A', heures: 0 },
-  { code: 'CA', label: 'Congés', detail: '', color: '#15803D', bg: '#ECFDF3', heures: 0 },
-  { code: 'CF', label: 'Congés', detail: '', color: '#15803D', bg: '#ECFDF3', heures: 0 },
-  { code: 'ADM', label: 'Administratif (chef de service)', detail: '', color: '#5B21B6', bg: '#F2EBFB', heures: 0 },
-  { code: 'DEB', label: 'Début de contrat', detail: '', color: '#1A2B3D', bg: '#EEF1F4', heures: 0 },
-  { code: 'FIN', label: 'Fin de contrat', detail: '', color: '#1A2B3D', bg: '#EEF1F4', heures: 0 },
+  { code: 'CA', label: 'Congés annuels', detail: '', color: '#15803D', bg: '#ECFDF3', heures: 0 },
+  { code: 'CF', label: 'Congés formation', detail: '', color: '#15803D', bg: '#ECFDF3', heures: 0 },
+  { code: 'DEB', label: 'Début de contrat', detail: '', color: '#6B7280', bg: '#F3F4F6', heures: 0 },
+  { code: 'FIN', label: 'Fin de contrat', detail: '', color: '#6B7280', bg: '#F3F4F6', heures: 0 },
   { code: 'X', label: 'Avant / après contrat', detail: '', color: '#9CA3AF', bg: '#F3F4F6', heures: 0 },
 ];
 
