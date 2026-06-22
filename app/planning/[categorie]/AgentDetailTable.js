@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Copy, X, ChevronLeft, ChevronRight, CalendarRange, Moon, Plus } from 'lucide-react';
+import { Copy, X, ChevronLeft, ChevronRight, ChevronDown, CalendarRange, Moon, Plus } from 'lucide-react';
 import { getWeeksMonday, dateKey, JOURS_FR, MOMENTS, isPostGardeRS, isCancelledCode, cancelledCodeValue, makeCancelledCode } from '../config';
 import CellEditor from './CellEditor';
 
@@ -367,6 +367,7 @@ function WeekGrid({ category, agent, week, cellules, editable, copySource, onPic
 export default function AgentDetailTable({ category, agent, cellules, year, month, editable, onSetCell, onFillRange, onCopyDay, requireConfirm, agents, onSetGuide, guides = {} }) {
   const [copySource, setCopySource] = useState(null);
   const [mode, setMode] = useState('semaine'); // 'semaine' | 'mois'
+  const [showLegend, setShowLegend] = useState(false);
 
   // Navigation en mode mois : état local indépendant des props figées du parent
   const [viewYear, setViewYear] = useState(year);
@@ -495,27 +496,28 @@ export default function AgentDetailTable({ category, agent, cellules, year, mont
         </div>
       )}
 
-      {/* Légende des codes */}
+      {/* Légende des codes — même style que la vue chef */}
       <div style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid #E5E1D8' }}>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>
-          Légende
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {category.codes.filter(c => !['DEB','FIN','X'].includes(c.code)).map(c => (
-            <div key={c.code} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{
-                display: 'inline-block', padding: '2px 7px', borderRadius: 5,
-                background: c.bg, color: c.color, fontSize: 11, fontWeight: 700,
-                border: `1px solid ${c.color}30`
-              }}>
-                {c.code === 'RC' ? '■' : c.code}
-              </span>
-              <span style={{ fontSize: 11, color: '#6B7280' }}>
-                {c.label}{c.detail ? ` · ${c.detail}` : ''}
-              </span>
-            </div>
-          ))}
-        </div>
+        <button
+          onClick={() => setShowLegend(v => !v)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+            color: '#5B6573', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', padding: '4px 0'
+          }}
+        >
+          <ChevronDown size={14} style={{ transform: showLegend ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+          {showLegend ? 'Masquer la légende des codes' : 'Voir la légende des codes'}
+        </button>
+        {showLegend && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+            {category.codes.map(c => (
+              <div key={c.code} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 10px', borderRadius: 8, background: c.bg, fontSize: 12 }}>
+                <span style={{ fontWeight: 800, color: c.color, minWidth: 26 }}>{c.code}</span>
+                <span style={{ color: '#5B6573' }}>{c.label}{c.detail ? ` · ${c.detail}` : ''}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <style>{`
