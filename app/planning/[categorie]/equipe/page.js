@@ -33,7 +33,7 @@ export default function PlanningCategoryEquipePage() {
   const categoryId = params.categorie;
   const category = getPlanningCategory(categoryId);
 
-  const { planning, setCell, addAgent, removeAgent, copyDay, fillRange, error } = usePlanning();
+  const { planning, setCell, addAgent, removeAgent, copyDay, fillRange, setGuide, error } = usePlanning();
 
   const today = new Date();
   const [scale, setScale] = useState('jour');
@@ -272,6 +272,9 @@ export default function PlanningCategoryEquipePage() {
                 month={month}
                 onSelectAgent={selectAgent}
                 onRemoveAgent={(agent) => removeAgent(categoryId, agent.id)}
+                onSetCell={(agentId, dk, moment, code) => setCell(categoryId, agentId, dk, moment, code)}
+                guides={data.guides || {}}
+                onSetGuide={(agentId, date, guideId) => setGuide(categoryId, agentId, date, guideId)}
               />
             )}
 

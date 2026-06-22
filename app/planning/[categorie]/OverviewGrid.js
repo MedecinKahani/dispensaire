@@ -4,14 +4,16 @@ import React, { useMemo, useState } from 'react';
 import { Download, Trash2, X, Check } from 'lucide-react';
 import { getDaysInMonth, dateKey, JOURS_FR, computeAgentStats, formatAgentName, isCancelledCode, cancelledCodeValue } from '../config';
 import { exportPlanningPDF } from './exportPdf';
+import CellEditor from './CellEditor';
 
 // Vue d'ensemble compacte : une ligne par agent, une colonne par jour,
 // + une colonne de totaux (heures / gardes / RS) pour vérifier l'équité sans calcul mental.
 // Affiche le code du matin en priorité (sinon AM, sinon N) pour rester lisible ;
 // un agent + une colonne ouvrent la vue détaillée filtrée.
-export default function OverviewGrid({ category, agents, cellules, year, month, onSelectAgent, onRemoveAgent }) {
+export default function OverviewGrid({ category, agents, cellules, year, month, onSelectAgent, onRemoveAgent, onSetCell, guides = {}, onSetGuide }) {
   const days = useMemo(() => getDaysInMonth(year, month), [year, month]);
   const [confirmingId, setConfirmingId] = useState(null);
+  const [editing, setEditing] = useState(null); // { agentId, dk } ou null
 
   const codesFor = (agentId, dk) => {
     return ['M', 'AM', 'N']
@@ -120,13 +122,26 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                   const dk = dateKey(d);
                   const codes = codesFor(agent.id, dk);
                   const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                  const isEditing = editing?.agentId === agent.id && editing?.dk === dk;
+                  // Badge guide sur ce jour
+                  const guideId = guides[`${agent.id}|${dk}`];
+                  const guideAgent = guideId ? agents.find(a => a.id === guideId) : null;
+                  const nouveauKey = Object.keys(guides).find(k => k.endsWith(`|${dk}`) && guides[k] === agent.id);
+                  const nouveauAgent = nouveauKey ? agents.find(a => a.id === nouveauKey.split('|')[0]) : null;
                   return (
                     <td
                       key={dk}
-                      onClick={() => onSelectAgent(agent, dk)}
+                      onClick={() => {
+                        if (onSetCell) {
+                          setEditing(isEditing ? null : { agentId: agent.id, dk });
+                        } else {
+                          onSelectAgent(agent, dk);
+                        }
+                      }}
                       style={{
                         ...tdStyle, textAlign: 'center', cursor: 'pointer', padding: '3px 4px',
                         background: codes.length === 0 ? (isWeekend ? '#FBFAF7' : '#fff') : undefined,
+                        position: 'relative',
                       }}
                     >
                       {codes.length === 0 ? (
@@ -155,6 +170,31 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                             );
                           })}
                         </div>
+                      )}
+                      {guideAgent && (
+                        <div style={{ fontSize: 8.5, color: '#0F766E', fontWeight: 600, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          * {guideAgent.nomFamille || ''}
+                        </div>
+                      )}
+                      {nouveauAgent && (
+                        <div style={{ fontSize: 8.5, color: '#B45309', fontWeight: 600, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          * {nouveauAgent.nomFamille || ''}
+                        </div>
+                      )}
+                      {isEditing && (
+                        <CellEditor
+                          codes={category.codes}
+                          value={codes[0] || ''}
+                          date={dk}
+                          onChange={(newCode) => {
+                            if (onSetCell) onSetCell(agent.id, dk, 'M', newCode);
+                            setEditing(null);
+                          }}
+                          onFillRange={() => {}}
+                          onClose={() => setEditing(null)}
+                          agents={agents.filter(a => a.id !== agent.id)}
+                          onSetGuide={onSetGuide ? (date, guideId) => onSetGuide(agent.id, date, guideId) : null}
+                        />
                       )}
                     </td>
                   );
