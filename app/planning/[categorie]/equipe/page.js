@@ -202,8 +202,9 @@ export default function PlanningCategoryEquipePage() {
             {editMode && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, marginTop: 12, flexWrap: 'wrap' }}>
                 <AddAgentRow
-                  onAdd={(nomFamille, prenom, arrivee, depart) => addAgent(categoryId, nomFamille, prenom, arrivee, depart)}
+                  onAdd={(nomFamille, prenom, arrivee, depart, tuteurId) => addAgent(categoryId, nomFamille, prenom, arrivee, depart, tuteurId)}
                   color={category.color}
+                  agents={agents}
                 />
                 <button
                   onClick={() => setAgentView(v => !v)}

@@ -63,11 +63,16 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
           </tr>
         </thead>
         <tbody>
-          {agents.map(agent => {
+        {agents.map(agent => {
             const stats = category.codes.length > 0
               ? computeAgentStats(category, agent.id, cellules, year, month)
               : null;
             const isConfirming = confirmingId === agent.id;
+
+            // Badge J1 : qui introduit ce médecin, et qui est-il en train d'introduire ce mois ?
+            const tuteur = agent.tuteurId ? agents.find(a => a.id === agent.tuteurId) : null;
+            const nouveauxIntroduits = agents.filter(a => a.tuteurId === agent.id && a.arrivee);
+
             return (
               <tr key={agent.id}>
                 <td
@@ -97,9 +102,21 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                     </div>
                   ) : (
                     <div className="planning-agent-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-                      <span onClick={() => onSelectAgent(agent)} style={{ cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {formatAgentName(agent)}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
+                        <span onClick={() => onSelectAgent(agent)} style={{ cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {formatAgentName(agent)}
+                        </span>
+                        {tuteur && (
+                          <span style={{ fontSize: 10, color: '#0F766E', fontWeight: 500 }}>
+                            ↪ {formatAgentName(tuteur)}
+                          </span>
+                        )}
+                        {nouveauxIntroduits.map(n => (
+                          <span key={n.id} style={{ fontSize: 10, color: '#B45309', fontWeight: 500 }}>
+                            ↳ {formatAgentName(n)}
+                          </span>
+                        ))}
+                      </div>
                       {onRemoveAgent && (
                         <button
                           className="planning-agent-delete-btn"
