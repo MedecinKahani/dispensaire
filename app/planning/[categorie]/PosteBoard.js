@@ -87,7 +87,7 @@ function PosteCard({ category, agents, date, cellules, poste, onAssign, onUnassi
 
       {slotsArray.map((_, i) => {
         const agent = assignedAgents[i];
-        const cellId = `${poste.code}-${i}`;
+        const cellId = `${poste.code}-${poste.moment}-${i}`;
         return (
           <div key={i} style={{ position: 'relative', marginBottom: 6 }}>
             {agent ? (
