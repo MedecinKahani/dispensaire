@@ -11,6 +11,7 @@ const CODES_MEDICAL = [
   { code: 'S', label: 'Consultation à Sada', detail: '7h – 13h', color: '#B45309', bg: '#FEF3E2', heures: 6 },
   { code: 'G', label: 'Garde', detail: '19h – 7h', color: '#C2410C', bg: '#FDF1EC', heures: 12 },
   { code: 'RS', label: 'Repos de garde', detail: '', color: '#65521E', bg: '#F8F2E6', heures: 0 },
+  { code: 'RG', label: 'Récupération garde', detail: '', color: '#92400E', bg: '#FEF08A', heures: 0 },
   { code: 'CA', label: 'Congés', detail: '', color: '#15803D', bg: '#ECFDF3', heures: 0 },
   { code: 'CF', label: 'Congés', detail: '', color: '#15803D', bg: '#ECFDF3', heures: 0 },
   { code: 'ADM', label: 'Administratif (chef de service)', detail: '', color: '#5B21B6', bg: '#F2EBFB', heures: 0 },

@@ -54,7 +54,7 @@ function DayHeader({ agent, day, cellules, editable, onPickCopySource, compact }
   );
 }
 
-const CODES_JOURNEE_ENTIERE = ['CA', 'CF', 'ADM', 'X'];
+const CODES_JOURNEE_ENTIERE = ['CA', 'CF', 'ADM', 'X', 'RG'];
 
 function ConfirmChangeDialog({ label, onConfirm, onCancel }) {
   return (
@@ -197,7 +197,7 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
             boxSizing: 'border-box'
           }}
         >
-          {journeeCodeValue}
+          {journeeCodeValue === 'RG' ? null : (journeeCancelled ? <s>{journeeCodeValue}</s> : journeeCodeValue)}
         </button>
         {editingMoment === 'journee' && !pendingChange && (
           <CellEditor
