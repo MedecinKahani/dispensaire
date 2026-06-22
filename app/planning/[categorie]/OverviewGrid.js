@@ -188,9 +188,10 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                           date={dk}
                           onChange={(newCode) => {
                             if (onSetCell) {
-                              // Déterminer le bon moment selon le code
+                              // G → moment N, codes journée entière → M, autres → M
+                              const JOURNEE_ENTIERE = ['CA', 'CF', 'ADM', 'X', 'RC', 'DEB', 'FIN'];
                               const codeInfo = category.codes.find(c => c.code === newCode);
-                              const moment = codeInfo?.moment || (newCode === 'G' ? 'N' : 'M');
+                              const moment = JOURNEE_ENTIERE.includes(newCode) ? 'M' : (codeInfo?.moment || (newCode === 'G' ? 'N' : 'M'));
                               onSetCell(agent.id, dk, moment, newCode);
                             }
                             setEditing(null);
