@@ -54,7 +54,7 @@ function DayHeader({ agent, day, cellules, editable, onPickCopySource, compact }
   );
 }
 
-const CODES_JOURNEE_ENTIERE = ['CA', 'CF'];
+const CODES_JOURNEE_ENTIERE = ['CA', 'CF', 'ADM', 'X'];
 
 function ConfirmChangeDialog({ label, onConfirm, onCancel }) {
   return (
