@@ -2,7 +2,7 @@
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { getDaysInMonth, dateKey, JOURS_FR, MOIS_FR, computeAgentStats, formatAgentName, computeGardeBreakdown, GARDE_CATEGORIES, isCancelledCode } from '../config';
+import { getDaysInMonth, dateKey, JOURS_FR, MOIS_FR, formatAgentName, computeGardeBreakdown, GARDE_CATEGORIES, isCancelledCode } from '../config';
 
 // Génère un PDF paysage : médecins en colonnes, jours du mois en lignes,
 // une cellule par jour (code du matin en priorité, sinon AM, sinon N — comme la vue d'ensemble),
@@ -78,75 +78,98 @@ export function exportPlanningPDF(category, agents, cellules, year, month) {
   doc.setTextColor(90, 90, 90);
   doc.text(`${category.label} — pour la direction des affaires médicales (paiement des gardes)`, 14, 20);
 
-  const recapBody = agents.map(a => {
-    const stats = computeAgentStats(category, a.id, cellules, year, month);
-    return [
-      formatAgentName(a),
-      `${stats.heures} h`,
-      `${stats.heuresParSemaine.toFixed(1)} h`,
-      String(stats.gardesNuit),
-      String(stats.gardesJour),
-    ];
-  });
-
-  autoTable(doc, {
-    head: [['Médecin', 'Heures totales (mois)', 'Moy. heures / semaine', 'Gardes de nuit', 'Gardes de jour']],
-    body: recapBody,
-    startY: 26,
-    styles: { fontSize: 10, cellPadding: 3 },
-    headStyles: { fillColor: [26, 43, 61], textColor: 255 },
-    columnStyles: { 0: { halign: 'left', fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' } },
-  });
-
-  // Page 3 : détail des gardes par catégorie (nuit semaine, week-end, fériés...) pour le paiement
+  // Page 2 : détail des gardes + CA/CF pour les affaires médicales
   doc.addPage('a4', 'landscape');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
-  doc.text(`Détail des gardes — ${MOIS_FR[month]} ${year}`, 14, 14);
+  doc.setTextColor(26, 43, 61);
+  doc.text(`Récapitulatif — ${MOIS_FR[month]} ${year}`, 14, 14);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(90, 90, 90);
-  doc.text(`${category.label} — cumul par catégorie pour le paiement des gardes`, 14, 20);
+  doc.text(`${category.label} — pour la direction des affaires médicales`, 14, 20);
 
-  const gardeHead = [['Médecin', ...GARDE_CATEGORIES.map(c => c.label), 'Total gardes']];
+  const gardeHead = [['Médecin', ...GARDE_CATEGORIES.map(c => c.label), 'CA', 'CF', 'Total gardes']];
+
   const gardeBody = agents.map(a => {
     const breakdown = computeGardeBreakdown(a.id, cellules, year, month);
     const total = GARDE_CATEGORIES.reduce((sum, c) => sum + breakdown[c.id], 0);
+
+    // Compter CA et CF sur le mois
+    const days = getDaysInMonth(year, month);
+    let ca = 0, cf = 0;
+    days.forEach(d => {
+      const dk = dateKey(d);
+      ['M', 'AM', 'N'].forEach(m => {
+        const code = cellules[`${a.id}|${dk}|${m}`];
+        if (code === 'CA') ca = 1; // journée entière donc 1 par jour suffit
+        if (code === 'CF') cf = 1;
+      });
+      // Compter les jours distincts
+    });
+
+    // Recalcul propre : compter les jours (pas les créneaux) où CA ou CF est présent
+    let caJours = 0, cfJours = 0;
+    days.forEach(d => {
+      const dk = dateKey(d);
+      const hasCA = ['M', 'AM', 'N'].some(m => cellules[`${a.id}|${dk}|${m}`] === 'CA');
+      const hasCF = ['M', 'AM', 'N'].some(m => cellules[`${a.id}|${dk}|${m}`] === 'CF');
+      if (hasCA) caJours++;
+      if (hasCF) cfJours++;
+    });
+
     return [
       formatAgentName(a),
-      ...GARDE_CATEGORIES.map(c => String(breakdown[c.id])),
-      String(total),
+      ...GARDE_CATEGORIES.map(c => breakdown[c.id] > 0 ? String(breakdown[c.id]) : '–'),
+      caJours > 0 ? String(caJours) : '–',
+      cfJours > 0 ? String(cfJours) : '–',
+      total > 0 ? String(total) : '–',
     ];
   });
-  // Ligne de total général en bas du tableau
+
+  // Ligne total équipe
   const totalsRow = ['Total équipe'];
   GARDE_CATEGORIES.forEach(c => {
     const sum = agents.reduce((acc, a) => acc + computeGardeBreakdown(a.id, cellules, year, month)[c.id], 0);
-    totalsRow.push(String(sum));
+    totalsRow.push(sum > 0 ? String(sum) : '–');
+  });
+  // Total CA et CF équipe
+  ['CA', 'CF'].forEach(code => {
+    const sum = agents.reduce((acc, a) => {
+      const days = getDaysInMonth(year, month);
+      let count = 0;
+      days.forEach(d => {
+        const dk = dateKey(d);
+        if (['M', 'AM', 'N'].some(m => cellules[`${a.id}|${dk}|${m}`] === code)) count++;
+      });
+      return acc + count;
+    }, 0);
+    totalsRow.push(sum > 0 ? String(sum) : '–');
   });
   const grandTotal = agents.reduce((acc, a) => {
     const breakdown = computeGardeBreakdown(a.id, cellules, year, month);
     return acc + GARDE_CATEGORIES.reduce((s, c) => s + breakdown[c.id], 0);
   }, 0);
-  totalsRow.push(String(grandTotal));
+  totalsRow.push(grandTotal > 0 ? String(grandTotal) : '–');
   gardeBody.push(totalsRow);
 
   autoTable(doc, {
     head: gardeHead,
     body: gardeBody,
     startY: 26,
-    styles: { fontSize: 8, cellPadding: 2, halign: 'center' },
-    headStyles: { fillColor: [26, 43, 61], textColor: 255, fontSize: 7.5 },
-    columnStyles: { 0: { halign: 'left', fontStyle: 'bold', cellWidth: 42 } },
+    styles: { fontSize: 9, cellPadding: 3, halign: 'center', valign: 'middle' },
+    headStyles: { fillColor: [26, 43, 61], textColor: 255, fontSize: 8 },
+    columnStyles: {
+      0: { halign: 'left', fontStyle: 'bold', cellWidth: 44 },
+      7: { fillColor: [236, 253, 243], textColor: [21, 128, 61] }, // CA en vert pâle
+      8: { fillColor: [236, 253, 243], textColor: [21, 128, 61] }, // CF en vert pâle
+      9: { fontStyle: 'bold' },
+    },
     didParseCell: (data) => {
-      // Met en évidence la ligne de total équipe (dernière ligne du body)
+      // Ligne total en gras sur fond gris
       if (data.section === 'body' && data.row.index === gardeBody.length - 1) {
         data.cell.styles.fillColor = [240, 238, 231];
         data.cell.styles.fontStyle = 'bold';
-      }
-      // Colonnes fériés (les 2 dernières avant le total) en léger jaune pour les repérer
-      if (data.section === 'body' && (data.column.index === 7 || data.column.index === 8) && data.row.index !== gardeBody.length - 1) {
-        data.cell.styles.fillColor = [254, 243, 226];
       }
     },
   });
