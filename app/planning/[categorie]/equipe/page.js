@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Loader2, Pencil, Trash2,
-  AlertTriangle, Settings2, CalendarDays, Lock
+  AlertTriangle, Settings2, CalendarDays
 } from 'lucide-react';
 import { getPlanningCategory, MOIS_FR, JOURS_FR, formatAgentName, sortAgents } from '../../config';
 import { usePlanning } from '../../usePlanning';
@@ -14,81 +14,6 @@ import AgentDetailTable from '../AgentDetailTable';
 import PosteBoard from '../PosteBoard';
 import WeekPosteBoard from '../WeekPosteBoard';
 import AddAgentRow from '../AddAgentRow';
-
-const PIN_CORRECT = '97670';
-const PIN_KEY = 'kahani_chef_auth';
-
-function PinGate({ onUnlock }) {
-  const [pin, setPin] = useState('');
-  const [error, setError] = useState(false);
-
-  const handleSubmit = () => {
-    if (pin === PIN_CORRECT) {
-      sessionStorage.setItem(PIN_KEY, '1');
-      onUnlock();
-    } else {
-      setError(true);
-      setPin('');
-      setTimeout(() => setError(false), 1500);
-    }
-  };
-
-  return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#F7F6F2'
-    }}>
-      <div style={{
-        background: '#fff', borderRadius: 16, padding: 40, boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
-        width: 320, textAlign: 'center'
-      }}>
-        <div style={{
-          width: 48, height: 48, borderRadius: 12, background: '#1A2B3D',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px'
-        }}>
-          <Lock size={22} color="#fff" />
-        </div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1A2B3D', margin: '0 0 6px' }}>
-          Accès réservé
-        </h2>
-        <p style={{ fontSize: 13, color: '#9CA3AF', margin: '0 0 24px' }}>
-          Code d'accès chef de service
-        </p>
-        <input
-          type="password"
-          inputMode="numeric"
-          value={pin}
-          onChange={e => setPin(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-          placeholder="• • • • •"
-          maxLength={5}
-          autoFocus
-          style={{
-            width: '100%', padding: '12px 14px', borderRadius: 10, boxSizing: 'border-box',
-            border: `2px solid ${error ? '#C2410C' : '#E5E1D8'}`,
-            fontSize: 20, textAlign: 'center', letterSpacing: '0.3em',
-            outline: 'none', marginBottom: 14, transition: 'border-color 0.2s',
-            fontFamily: 'monospace'
-          }}
-        />
-        {error && (
-          <p style={{ fontSize: 12, color: '#C2410C', margin: '-8px 0 10px', fontWeight: 600 }}>
-            Code incorrect
-          </p>
-        )}
-        <button
-          onClick={handleSubmit}
-          style={{
-            width: '100%', padding: '12px 0', borderRadius: 10, border: 'none',
-            background: '#1A2B3D', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer'
-          }}
-        >
-          Accéder
-        </button>
-      </div>
-    </div>
-  );
-}
 
 const SCALES = [
   { id: 'jour', label: 'Jour' },
@@ -107,14 +32,6 @@ export default function PlanningCategoryEquipePage() {
   const params = useParams();
   const categoryId = params.categorie;
   const category = getPlanningCategory(categoryId);
-
-  const [unlocked, setUnlocked] = useState(false);
-
-  useEffect(() => {
-    if (sessionStorage.getItem(PIN_KEY) === '1') setUnlocked(true);
-  }, []);
-
-  if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />;
 
   const { planning, setCell, addAgent, removeAgent, copyDay, fillRange, setGuide, error } = usePlanning();
 
