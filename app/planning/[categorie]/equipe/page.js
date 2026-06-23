@@ -24,7 +24,7 @@ function PinGate({ onUnlock }) {
 
   const handleSubmit = () => {
     if (pin === PIN_CORRECT) {
-      sessionStorage.setItem(PIN_KEY, '1');
+      if (typeof window !== 'undefined') sessionStorage.setItem(PIN_KEY, '1');
       onUnlock();
     } else {
       setError(true);
@@ -111,7 +111,7 @@ export default function PlanningCategoryEquipePage() {
   const [unlocked, setUnlocked] = useState(false);
 
   useEffect(() => {
-    if (sessionStorage.getItem(PIN_KEY) === '1') setUnlocked(true);
+    if (typeof window !== 'undefined' && sessionStorage.getItem(PIN_KEY) === '1') setUnlocked(true);
   }, []);
 
   if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />;
