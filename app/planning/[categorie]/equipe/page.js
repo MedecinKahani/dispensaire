@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
@@ -108,11 +108,10 @@ export default function PlanningCategoryEquipePage() {
   const categoryId = params.categorie;
   const category = getPlanningCategory(categoryId);
 
-  const [unlocked, setUnlocked] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && sessionStorage.getItem(PIN_KEY) === '1') setUnlocked(true);
-  }, []);
+  const [unlocked, setUnlocked] = useState(() => {
+    if (typeof window !== 'undefined') return sessionStorage.getItem(PIN_KEY) === '1';
+    return false;
+  });
 
   if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />;
 
