@@ -53,7 +53,7 @@ export const POSTES_MEDICAL_SEMAINE = [
   { code: 'KRO', moment: 'M', slots: 1, optionnel: false },
   { code: 'S', moment: 'M', slots: 1, optionnel: true },
   { code: 'K2', moment: 'AM', slots: 1, optionnel: false },
-  { code: 'K3', moment: 'AM', slots: 1, optionnel: false },
+  { code: 'K3', moment: 'AM', slots: 2, optionnel: false },
   { code: 'G', moment: 'N', slots: 1, optionnel: false },
 ];
 
