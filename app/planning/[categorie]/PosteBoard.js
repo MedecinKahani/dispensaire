@@ -6,8 +6,8 @@ import { dateKey, getPostesForDay, getAgentsForPoste, formatAgentName } from '..
 
 function SlotPicker({ category, agents, date, cellules, moment, excludeAgentId, onPick, onClose }) {
   const { disponibles, indisponibles } = useMemo(
-    () => getAgentsForPoste(category, agents, date, cellules),
-    [category, agents, date, cellules]
+    () => getAgentsForPoste(category, agents, date, cellules, moment),
+    [category, agents, date, cellules, moment]
   );
 
   return (

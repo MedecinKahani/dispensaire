@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { dateKey, getPostesForDay, getAgentsForPoste, JOURS_FR, formatAgentName } from '../config';
 
-function MiniSlotPicker({ category, agents, date, cellules, onPick, onClose }) {
-  const { disponibles, indisponibles } = getAgentsForPoste(category, agents, date, cellules);
+function MiniSlotPicker({ category, agents, date, cellules, moment, onPick, onClose }) {
+  const { disponibles, indisponibles } = getAgentsForPoste(category, agents, date, cellules, moment);
   return (
     <div
       onClick={e => e.stopPropagation()}
@@ -111,6 +111,7 @@ function DayColumn({ category, agents, date, cellules, onSetCell, feries = [], o
                         agents={agents}
                         date={date}
                         cellules={cellules}
+                        moment={poste.moment}
                         onPick={(agentId) => onSetCell(agentId, dk, poste.moment, poste.code)}
                         onClose={() => setOpenKey(null)}
                       />

@@ -210,7 +210,7 @@ export function isPostGardeRS(agentId, date, cellules) {
 // les règles : présence (arrivée/départ), pas en congés ce jour, pas de garde la veille au soir.
 // Un agent peut être affecté à plusieurs créneaux le même jour (ex. matin + après-midi),
 // la seule contrainte forte étant l'impossibilité de travailler le lendemain d'une garde de nuit.
-export function getAgentAvailability(category, agent, date, cellules) {
+export function getAgentAvailability(category, agent, date, cellules, moment = null) {
   const dk = dateKey(date);
   const veille = dateKey(addDays(date, -1));
 
@@ -227,6 +227,14 @@ export function getAgentAvailability(category, agent, date, cellules) {
     return { available: false, reason: 'En congés ce jour' };
   }
 
+  // Si un moment précis est fourni, vérifier que le médecin n'est pas déjà sur ce créneau
+  if (moment) {
+    const codeExistant = cellules[`${agent.id}|${dk}|${moment}`];
+    if (codeExistant) {
+      return { available: false, reason: `Déjà en poste (${codeExistant}) sur ce créneau` };
+    }
+  }
+
   const codeVeilleNuit = cellules[`${agent.id}|${veille}|N`];
   if (codeVeilleNuit === 'G') {
     return { available: false, reason: 'Garde la veille au soir' };
@@ -237,10 +245,10 @@ export function getAgentAvailability(category, agent, date, cellules) {
 
 // Liste les agents disponibles pour un poste/jour donné, avec leur statut.
 // Renvoie deux groupes pour faciliter l'affichage : disponibles puis indisponibles (avec motif).
-export function getAgentsForPoste(category, agents, date, cellules) {
+export function getAgentsForPoste(category, agents, date, cellules, moment = null) {
   const withAvailability = agents.map(agent => ({
     agent,
-    ...getAgentAvailability(category, agent, date, cellules),
+    ...getAgentAvailability(category, agent, date, cellules, moment),
   }));
   return {
     disponibles: withAvailability.filter(a => a.available),
