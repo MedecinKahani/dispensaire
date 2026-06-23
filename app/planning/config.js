@@ -77,8 +77,10 @@ export function isWeekday(date) {
   return d >= 1 && d <= 5;
 }
 
-export function getPostesForDay(categoryId, date) {
+export function getPostesForDay(categoryId, date, feries = []) {
   if (categoryId !== 'medical') return [];
+  const dk = dateKey(date);
+  if (feries.includes(dk)) return POSTES_MEDICAL_DIMANCHE; // férié = structure dimanche
   const d = date.getDay(); // 0=dimanche, 6=samedi
   if (d === 6) return POSTES_MEDICAL_SAMEDI;
   if (d === 0) return POSTES_MEDICAL_DIMANCHE;

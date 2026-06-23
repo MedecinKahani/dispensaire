@@ -10,7 +10,7 @@ export const PLANNING_CATEGORIES = ['medical', 'infirmiers', 'aide-soignants', '
 //   medical: { agents: [...], cellules: {...}, guides: { "agentId|YYYY-MM-DD": "guideAgentId" } },
 // }
 // guides : clé = "agentId|YYYY-MM-DD" (J1 du nouveau), valeur = id du guide
-const emptyCategory = () => ({ agents: [], cellules: {}, guides: {} });
+const emptyCategory = () => ({ agents: [], cellules: {}, guides: {}, feries: [] });
 const EMPTY_PLANNING = () => ({
   medical: emptyCategory(),
   infirmiers: emptyCategory(),
@@ -26,6 +26,7 @@ function ensureShape(planning) {
       agents: Array.isArray(safe[cat]?.agents) ? safe[cat].agents : [],
       cellules: safe[cat]?.cellules && typeof safe[cat].cellules === 'object' ? safe[cat].cellules : {},
       guides: safe[cat]?.guides && typeof safe[cat].guides === 'object' ? safe[cat].guides : {},
+      feries: Array.isArray(safe[cat]?.feries) ? safe[cat].feries : [],
     };
   });
   return base;
@@ -183,6 +184,18 @@ export async function POST(request) {
       if (guideId) nextGuides[key] = guideId;
       else delete nextGuides[key];
       current[categorie] = { ...cat, guides: nextGuides };
+      await kv.set(KEY, current);
+      return NextResponse.json({ planning: current });
+    }
+
+    if (action === 'toggleFerie') {
+      // body: { categorie, date }
+      const { date } = body;
+      const feries = [...(cat.feries || [])];
+      const idx = feries.indexOf(date);
+      if (idx >= 0) feries.splice(idx, 1);
+      else feries.push(date);
+      current[categorie] = { ...cat, feries };
       await kv.set(KEY, current);
       return NextResponse.json({ planning: current });
     }

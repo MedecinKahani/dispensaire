@@ -134,11 +134,11 @@ function PosteCard({ category, agents, date, cellules, poste, onAssign, onUnassi
   );
 }
 
-export default function PosteBoard({ category, agents, date, cellules, onSetCell }) {
+export default function PosteBoard({ category, agents, date, cellules, onSetCell, feries = [] }) {
   const dk = dateKey(date);
-  const postesM = getPostesForDay(category.id, date).filter(p => p.moment === 'M');
-  const postesAM = getPostesForDay(category.id, date).filter(p => p.moment === 'AM');
-  const postesN = getPostesForDay(category.id, date).filter(p => p.moment === 'N');
+  const postesM = getPostesForDay(category.id, date, feries).filter(p => p.moment === 'M');
+  const postesAM = getPostesForDay(category.id, date, feries).filter(p => p.moment === 'AM');
+  const postesN = getPostesForDay(category.id, date, feries).filter(p => p.moment === 'N');
 
   if (postesM.length === 0 && postesAM.length === 0 && postesN.length === 0) {
     return (
@@ -159,7 +159,7 @@ export default function PosteBoard({ category, agents, date, cellules, onSetCell
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {postes.map(poste => (
           <PosteCard
-            key={poste.code}
+            key={`${poste.code}-${poste.moment}`}
             category={category}
             agents={agents}
             date={date}

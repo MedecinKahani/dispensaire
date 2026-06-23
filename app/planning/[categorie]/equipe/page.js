@@ -34,7 +34,7 @@ export default function PlanningCategoryEquipePage() {
   const categoryId = params.categorie;
   const category = getPlanningCategory(categoryId);
 
-  const { planning, setCell, addAgent, removeAgent, copyDay, fillRange, setGuide, error } = usePlanning();
+  const { planning, setCell, addAgent, removeAgent, copyDay, fillRange, setGuide, toggleFerie, error } = usePlanning();
 
   const today = new Date();
   const [scale, setScale] = useState('jour');
@@ -252,6 +252,7 @@ export default function PlanningCategoryEquipePage() {
                 date={currentDate}
                 cellules={data.cellules}
                 onSetCell={(agentId, date, moment, code) => setCell(categoryId, agentId, date, moment, code)}
+                feries={data.feries || []}
               />
             )}
 
@@ -262,6 +263,7 @@ export default function PlanningCategoryEquipePage() {
                 weekDays={weekDays}
                 cellules={data.cellules}
                 onSetCell={(agentId, date, moment, code) => setCell(categoryId, agentId, date, moment, code)}
+                feries={data.feries || []}
               />
             )}
 
@@ -277,6 +279,8 @@ export default function PlanningCategoryEquipePage() {
                 onSetCell={(agentId, dk, moment, code) => setCell(categoryId, agentId, dk, moment, code)}
                 guides={data.guides || {}}
                 onSetGuide={(agentId, date, guideId) => setGuide(categoryId, agentId, date, guideId)}
+                feries={data.feries || []}
+                onToggleFerie={(date) => toggleFerie(categoryId, date)}
               />
             )}
 

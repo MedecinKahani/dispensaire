@@ -42,30 +42,32 @@ function MiniSlotPicker({ category, agents, date, cellules, onPick, onClose }) {
   );
 }
 
-function DayColumn({ category, agents, date, cellules, onSetCell }) {
+function DayColumn({ category, agents, date, cellules, onSetCell, feries = [] }) {
   const dk = dateKey(date);
-  const postes = getPostesForDay(category.id, date);
+  const postes = getPostesForDay(category.id, date, feries);
   const [openKey, setOpenKey] = useState(null);
 
   return (
     <div style={{ flex: '1 1 0', minWidth: 130, border: '1px solid #E5E1D8', borderRadius: 12, padding: 10, background: '#fff' }}>
       <p style={{ fontSize: 11.5, fontWeight: 700, color: '#1A2B3D', margin: '0 0 8px', textAlign: 'center' }}>
         {JOURS_FR[date.getDay()]} {date.getDate()}
+        {feries.includes(dk) && <span style={{ marginLeft: 4, fontSize: 10, color: '#B45309' }}>★</span>}
       </p>
 
       {postes.length === 0 ? (
         <p style={{ fontSize: 10.5, color: '#C8C5BA', textAlign: 'center', padding: '8px 0' }}>—</p>
       ) : (
         postes.map(poste => {
+          const posteKey = `${poste.code}-${poste.moment}`;
           const assigned = agents.filter(a => cellules[`${a.id}|${dk}|${poste.moment}`] === poste.code);
           const info = category.codes.find(c => c.code === poste.code);
           const slotsArray = Array.from({ length: poste.slots });
           return (
-            <div key={poste.code} style={{ marginBottom: 8 }}>
+            <div key={posteKey} style={{ marginBottom: 8 }}>
               <p style={{ fontSize: 9.5, fontWeight: 700, color: '#9CA3AF', margin: '0 0 3px' }}>{poste.code}</p>
               {slotsArray.map((_, i) => {
                 const agent = assigned[i];
-                const key = `${poste.code}-${i}`;
+                const key = `${poste.code}-${poste.moment}-${i}`;
                 return (
                   <div key={key} style={{ position: 'relative', marginBottom: 3 }}>
                     {agent ? (
@@ -115,7 +117,7 @@ function DayColumn({ category, agents, date, cellules, onSetCell }) {
   );
 }
 
-export default function WeekPosteBoard({ category, agents, weekDays, cellules, onSetCell }) {
+export default function WeekPosteBoard({ category, agents, weekDays, cellules, onSetCell, feries = [] }) {
   return (
     <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
       {weekDays.map(d => (
@@ -126,6 +128,7 @@ export default function WeekPosteBoard({ category, agents, weekDays, cellules, o
           date={d}
           cellules={cellules}
           onSetCell={onSetCell}
+          feries={feries}
         />
       ))}
     </div>

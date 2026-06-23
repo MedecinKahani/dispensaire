@@ -10,7 +10,7 @@ import CellEditor from './CellEditor';
 // + une colonne de totaux (heures / gardes / RS) pour vérifier l'équité sans calcul mental.
 // Affiche le code du matin en priorité (sinon AM, sinon N) pour rester lisible ;
 // un agent + une colonne ouvrent la vue détaillée filtrée.
-export default function OverviewGrid({ category, agents, cellules, year, month, onSelectAgent, onRemoveAgent, onSetCell, guides = {}, onSetGuide }) {
+export default function OverviewGrid({ category, agents, cellules, year, month, onSelectAgent, onRemoveAgent, onSetCell, guides = {}, onSetGuide, feries = [], onToggleFerie }) {
   const days = useMemo(() => getDaysInMonth(year, month), [year, month]);
   const [confirmingId, setConfirmingId] = useState(null);
   const [editing, setEditing] = useState(null); // { agentId, dk } ou null
@@ -51,11 +51,25 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
               Agent
             </th>
             {days.map(d => {
+              const dk = dateKey(d);
               const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+              const isFerie = feries.includes(dk);
               return (
-                <th key={dateKey(d)} style={{ ...thStyle, minWidth: 34, background: isWeekend ? '#F0EEE7' : '#F7F6F2' }}>
+                <th key={dk} style={{ ...thStyle, minWidth: 34, background: isFerie ? '#FEF9C3' : (isWeekend ? '#F0EEE7' : '#F7F6F2') }}>
                   <div style={{ fontSize: 9.5, fontWeight: 600, color: '#9CA3AF' }}>{JOURS_FR[d.getDay()]}</div>
                   <div>{d.getDate()}</div>
+                  {onToggleFerie && (
+                    <button
+                      onClick={() => onToggleFerie(dk)}
+                      title={isFerie ? 'Retirer jour férié' : 'Marquer comme férié'}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 10, lineHeight: 1, color: isFerie ? '#B45309' : '#D1D5DB' }}
+                    >
+                      ★
+                    </button>
+                  )}
+                  {!onToggleFerie && isFerie && (
+                    <div style={{ fontSize: 10, color: '#B45309' }}>★</div>
+                  )}
                 </th>
               );
             })}
