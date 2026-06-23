@@ -14,6 +14,7 @@ import AgentDetailTable from '../AgentDetailTable';
 import PosteBoard from '../PosteBoard';
 import WeekPosteBoard from '../WeekPosteBoard';
 import AddAgentRow from '../AddAgentRow';
+import PinGate from './PinGate';
 
 const SCALES = [
   { id: 'jour', label: 'Jour' },
@@ -93,6 +94,7 @@ export default function PlanningCategoryEquipePage() {
       : `${MOIS_FR[month]} ${year}`;
 
   return (
+    <PinGate>
     <div style={{ minHeight: '100vh', background: '#F7F6F2', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
       <header style={{ background: '#1A2B3D', padding: '32px 24px 28px 24px', borderBottom: `4px solid ${category.color}` }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -359,6 +361,7 @@ export default function PlanningCategoryEquipePage() {
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
+    </PinGate>
   );
 }
 
