@@ -42,16 +42,25 @@ function MiniSlotPicker({ category, agents, date, cellules, onPick, onClose }) {
   );
 }
 
-function DayColumn({ category, agents, date, cellules, onSetCell, feries = [] }) {
+function DayColumn({ category, agents, date, cellules, onSetCell, feries = [], onToggleFerie }) {
   const dk = dateKey(date);
+  const isFerie = feries.includes(dk);
   const postes = getPostesForDay(category.id, date, feries);
   const [openKey, setOpenKey] = useState(null);
 
   return (
-    <div style={{ flex: '1 1 0', minWidth: 130, border: '1px solid #E5E1D8', borderRadius: 12, padding: 10, background: '#fff' }}>
+    <div style={{ flex: '1 1 0', minWidth: 130, border: `1.5px solid ${isFerie ? '#B45309' : '#E5E1D8'}`, borderRadius: 12, padding: 10, background: isFerie ? '#FFFBEB' : '#fff' }}>
       <p style={{ fontSize: 11.5, fontWeight: 700, color: '#1A2B3D', margin: '0 0 8px', textAlign: 'center' }}>
         {JOURS_FR[date.getDay()]} {date.getDate()}
-        {feries.includes(dk) && <span style={{ marginLeft: 4, fontSize: 10, color: '#B45309' }}>★</span>}
+        {onToggleFerie ? (
+          <button
+            onClick={() => onToggleFerie(dk)}
+            title={isFerie ? 'Retirer jour férié' : 'Marquer comme férié'}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: 4, fontSize: 11, color: isFerie ? '#B45309' : '#D1D5DB', padding: 0 }}
+          >★</button>
+        ) : isFerie ? (
+          <span style={{ marginLeft: 4, fontSize: 10, color: '#B45309' }}>★</span>
+        ) : null}
       </p>
 
       {postes.length === 0 ? (
@@ -117,7 +126,7 @@ function DayColumn({ category, agents, date, cellules, onSetCell, feries = [] })
   );
 }
 
-export default function WeekPosteBoard({ category, agents, weekDays, cellules, onSetCell, feries = [] }) {
+export default function WeekPosteBoard({ category, agents, weekDays, cellules, onSetCell, feries = [], onToggleFerie }) {
   return (
     <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
       {weekDays.map(d => (
@@ -129,6 +138,7 @@ export default function WeekPosteBoard({ category, agents, weekDays, cellules, o
           cellules={cellules}
           onSetCell={onSetCell}
           feries={feries}
+          onToggleFerie={onToggleFerie}
         />
       ))}
     </div>

@@ -134,8 +134,9 @@ function PosteCard({ category, agents, date, cellules, poste, onAssign, onUnassi
   );
 }
 
-export default function PosteBoard({ category, agents, date, cellules, onSetCell, feries = [] }) {
+export default function PosteBoard({ category, agents, date, cellules, onSetCell, feries = [], onToggleFerie }) {
   const dk = dateKey(date);
+  const isFerie = feries.includes(dk);
   const postesM = getPostesForDay(category.id, date, feries).filter(p => p.moment === 'M');
   const postesAM = getPostesForDay(category.id, date, feries).filter(p => p.moment === 'AM');
   const postesN = getPostesForDay(category.id, date, feries).filter(p => p.moment === 'N');
@@ -175,6 +176,21 @@ export default function PosteBoard({ category, agents, date, cellules, onSetCell
 
   return (
     <div>
+      {onToggleFerie && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <button
+            onClick={() => onToggleFerie(dk)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px',
+              borderRadius: 8, border: `1.5px solid ${isFerie ? '#B45309' : '#E5E1D8'}`,
+              background: isFerie ? '#FEF9C3' : '#fff', color: isFerie ? '#B45309' : '#9CA3AF',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer'
+            }}
+          >
+            ★ {isFerie ? 'Jour férié (cliquer pour retirer)' : 'Marquer comme férié'}
+          </button>
+        </div>
+      )}
       <Section title="Matin · 7h–13h" postes={postesM} />
       <Section title="Après-midi · 13h–19h" postes={postesAM} />
       <Section title="Nuit · 19h–7h" postes={postesN} />

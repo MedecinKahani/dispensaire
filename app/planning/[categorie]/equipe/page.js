@@ -253,6 +253,7 @@ export default function PlanningCategoryEquipePage() {
                 cellules={data.cellules}
                 onSetCell={(agentId, date, moment, code) => setCell(categoryId, agentId, date, moment, code)}
                 feries={data.feries || []}
+                onToggleFerie={(date) => toggleFerie(categoryId, date)}
               />
             )}
 
@@ -264,6 +265,7 @@ export default function PlanningCategoryEquipePage() {
                 cellules={data.cellules}
                 onSetCell={(agentId, date, moment, code) => setCell(categoryId, agentId, date, moment, code)}
                 feries={data.feries || []}
+                onToggleFerie={(date) => toggleFerie(categoryId, date)}
               />
             )}
 
