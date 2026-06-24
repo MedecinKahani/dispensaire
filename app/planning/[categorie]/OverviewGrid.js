@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { Download, Trash2, X, Check } from 'lucide-react';
-import { getDaysInMonth, dateKey, JOURS_FR, computeAgentStats, formatAgentName, isCancelledCode, cancelledCodeValue } from '../config';
+import { getDaysInMonth, dateKey, JOURS_FR, computeAgentStats, formatAgentName, isAgentPresent, isCancelledCode, cancelledCodeValue } from '../config';
 import { exportPlanningPDF } from './exportPdf';
 import CellEditor from './CellEditor';
 
@@ -137,6 +137,7 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                   const codes = codesFor(agent.id, dk);
                   const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                   const isEditing = editing?.agentId === agent.id && editing?.dk === dk;
+                  const horsContrat = !isAgentPresent(agent, dk);
                   // Badge guide sur ce jour
                   const guideId = guides[`${agent.id}|${dk}`];
                   const guideAgent = guideId ? agents.find(a => a.id === guideId) : null;
@@ -146,6 +147,7 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                     <td
                       key={dk}
                       onClick={() => {
+                        if (horsContrat) return;
                         if (onSetCell) {
                           setEditing(isEditing ? null : { agentId: agent.id, dk });
                         } else {
@@ -153,12 +155,14 @@ export default function OverviewGrid({ category, agents, cellules, year, month, 
                         }
                       }}
                       style={{
-                        ...tdStyle, textAlign: 'center', cursor: 'pointer', padding: '3px 4px',
-                        background: codes.length === 0 ? (isWeekend ? '#FBFAF7' : '#fff') : undefined,
+                        ...tdStyle, textAlign: 'center', cursor: horsContrat ? 'default' : 'pointer', padding: '3px 4px',
+                        background: horsContrat ? '#F3F4F6' : (codes.length === 0 ? (isWeekend ? '#FBFAF7' : '#fff') : undefined),
                         position: 'relative',
                       }}
                     >
-                      {codes.length === 0 ? (
+                      {horsContrat ? (
+                        <span style={{ color: '#9CA3AF', fontWeight: 700, fontSize: 11 }}>X</span>
+                      ) : codes.length === 0 ? (
                         <span style={{ color: '#D1D5DB', fontWeight: 700, fontSize: 11 }}>·</span>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'stretch' }}>

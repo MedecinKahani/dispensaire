@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Copy, X, ChevronLeft, ChevronRight, ChevronDown, CalendarRange, Moon, Plus } from 'lucide-react';
-import { getWeeksMonday, dateKey, JOURS_FR, MOMENTS, isPostGardeRS, isCancelledCode, cancelledCodeValue, makeCancelledCode } from '../config';
+import { getWeeksMonday, dateKey, JOURS_FR, MOMENTS, isPostGardeRS, isAgentPresent, isCancelledCode, cancelledCodeValue, makeCancelledCode } from '../config';
 import CellEditor from './CellEditor';
 
 const JOURS_LUN_DIM = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -89,9 +89,12 @@ function ConfirmChangeDialog({ label, onConfirm, onCancel }) {
 
 function DayCell({ category, agent, day, cellules, editable, copySource, onPaste, onSetCell, onFillRange, compact, requireConfirm, agents = [], onSetGuide, guides = {} }) {
   const dk = dateKey(day.date);
-  const [editingMoment, setEditingMoment] = useState(null); // cellId (date|moment) en cours d'édition
-  const [pendingChange, setPendingChange] = useState(null); // { moments: [...], finalValue, label } en attente de confirmation
+  const [editingMoment, setEditingMoment] = useState(null);
+  const [pendingChange, setPendingChange] = useState(null);
   const postGarde = isPostGardeRS(agent.id, day.date, cellules);
+
+  // Hors contrat : avant arrivée ou après départ → afficher X automatiquement, non éditable
+  const horsContrat = !isAgentPresent(agent, dk);
 
   // Code journée entière (CA/CF) : un seul badge sur toute la case, plutôt que répété sur les 3 bandes.
   const journeeCode = MOMENTS
@@ -169,6 +172,22 @@ function DayCell({ category, agent, day, cellules, editable, copySource, onPaste
     pendingChange.moments.forEach(({ moment, finalValue }) => onSetCell(dk, moment, finalValue));
     setPendingChange(null);
   };
+
+  // Hors contrat → afficher X grisé, non éditable
+  if (horsContrat) {
+    return (
+      <div style={{
+        border: '1px solid #E5E1D8', borderRadius: 10,
+        padding: compact ? 3 : 5,
+        background: '#F3F4F6',
+        opacity: 0.6,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        minHeight: compact ? 36 : 72,
+      }}>
+        <span style={{ fontSize: compact ? 10 : 13, fontWeight: 700, color: '#9CA3AF' }}>X</span>
+      </div>
+    );
+  }
 
   // Affichage compact : un seul badge journée entière si CA/CF détecté
   if (journeeCodeValue) {
