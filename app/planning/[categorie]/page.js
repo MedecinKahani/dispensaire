@@ -8,6 +8,7 @@ import { getPlanningCategory, formatAgentName, sortAgents } from '../config';
 import { usePlanning } from '../usePlanning';
 import AgentDetailTable from './AgentDetailTable';
 import MultiAgentCompare from './MultiAgentCompare';
+import PinGateMedecin from './PinGateMedecin';
 
 export default function PlanningCategoryEntryPage() {
   const params = useParams();
@@ -53,6 +54,7 @@ export default function PlanningCategoryEntryPage() {
   const Icon = category.icon;
 
   return (
+    <PinGateMedecin>
     <div style={{ minHeight: '100vh', background: '#F7F6F2', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
       <header style={{ background: '#1A2B3D', padding: '32px 24px 28px 24px', borderBottom: `4px solid ${category.color}` }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
@@ -266,5 +268,6 @@ export default function PlanningCategoryEntryPage() {
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
+    </PinGateMedecin>
   );
 }
