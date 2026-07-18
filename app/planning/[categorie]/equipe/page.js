@@ -34,7 +34,7 @@ export default function PlanningCategoryEquipePage() {
   const categoryId = params.categorie;
   const category = getPlanningCategory(categoryId);
 
-  const { planning, setCell, addAgent, removeAgent, copyDay, fillRange, setGuide, toggleFerie, error } = usePlanning();
+  const { planning, setCell, addAgent, removeAgent, copyDay, fillRange, setGuide, toggleFerie, error } = usePlanning(categoryId);
 
   const today = new Date();
   const [scale, setScale] = useState('jour');
@@ -94,7 +94,7 @@ export default function PlanningCategoryEquipePage() {
       : `${MOIS_FR[month]} ${year}`;
 
   return (
-    <AuthGate codePostal="97670" dispensaireNom="CMR Kahani — Chef de service" color="#1A2B3D" role="chef">
+    <AuthGate codePostal={category?.codePostal || '97670'} dispensaireNom={`${category?.label || 'Dispensaire'} — Chef de service`} color="#1A2B3D" role="chef">
     <div style={{ minHeight: '100vh', background: '#F7F6F2', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
       <header style={{ background: '#1A2B3D', padding: '32px 24px 28px 24px', borderBottom: `4px solid ${category.color}` }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>

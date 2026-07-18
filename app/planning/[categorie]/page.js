@@ -15,7 +15,7 @@ export default function PlanningCategoryEntryPage() {
   const categoryId = params.categorie;
   const category = getPlanningCategory(categoryId);
 
-  const { planning, setCell, copyDay, fillRange, setGuide, error } = usePlanning();
+  const { planning, setCell, copyDay, fillRange, setGuide, error } = usePlanning(categoryId);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState(null);
   const [compareMode, setCompareMode] = useState(false);
@@ -54,7 +54,7 @@ export default function PlanningCategoryEntryPage() {
   const Icon = category.icon;
 
   return (
-    <AuthGate codePostal="97670" dispensaireNom="CMR Kahani" color="#0F766E" role="medecin">
+    <AuthGate codePostal={category?.codePostal || '97670'} dispensaireNom={category?.label || 'Dispensaire'} color="#0F766E" role="medecin">
     <div style={{ minHeight: '100vh', background: '#F7F6F2', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
       <header style={{ background: '#1A2B3D', padding: '32px 24px 28px 24px', borderBottom: `4px solid ${category.color}` }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>

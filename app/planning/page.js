@@ -1,13 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ChevronRight, Settings2 } from 'lucide-react';
 import { PLANNING_CATEGORIES } from './config';
-import { usePlanning } from './usePlanning';
 
 export default function PlanningHome() {
-  const { planning } = usePlanning();
+  const [counts, setCounts] = useState({});
+
+  useEffect(() => {
+    PLANNING_CATEGORIES.forEach(async cat => {
+      try {
+        const res = await fetch(`/api/planning?categorie=${cat.id}`);
+        const data = await res.json();
+        const n = data.planning?.[cat.id]?.agents?.length ?? 0;
+        setCounts(prev => ({ ...prev, [cat.id]: n }));
+      } catch { }
+    });
+  }, []);
 
   return (
     <div style={{
@@ -26,7 +36,7 @@ export default function PlanningHome() {
             <ArrowLeft size={14} /> Retour à la base de référence
           </Link>
           <p style={{ color: '#94A8BD', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', margin: '0 0 6px 0' }}>
-            Dispensaire — Mayotte
+            Dispensaires — Mayotte
           </p>
           <h1 style={{
             fontFamily: "'Source Serif 4', Georgia, serif", color: '#fff', fontSize: 28,
@@ -39,19 +49,15 @@ export default function PlanningHome() {
 
       <main style={{ maxWidth: 920, margin: '0 auto', padding: '32px 24px 80px 24px' }}>
         <p style={{ fontSize: 14, color: '#5B6573', marginBottom: 24, lineHeight: 1.6 }}>
-          Choisis une catégorie pour consulter ou modifier le planning du mois.
+          Choisis un dispensaire pour consulter ou modifier le planning du mois.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
           {PLANNING_CATEGORIES.map(cat => {
             const Icon = cat.icon;
-            const count = planning?.[cat.id]?.agents?.length ?? null;
+            const count = counts[cat.id] ?? null;
             return (
-              <Link
-                key={cat.id}
-                href={`/planning/${cat.id}`}
-                style={{ textDecoration: 'none', minWidth: 0 }}
-              >
+              <Link key={cat.id} href={`/planning/${cat.id}`} style={{ textDecoration: 'none', minWidth: 0 }}>
                 <div
                   style={{
                     background: '#fff', border: '1px solid #E5E1D8', borderRadius: 16,
@@ -82,10 +88,7 @@ export default function PlanningHome() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     {!cat.configured ? (
-                      <span style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5,
-                        color: '#9CA3AF', fontWeight: 600
-                      }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: '#9CA3AF', fontWeight: 600 }}>
                         <Settings2 size={12} /> À configurer
                       </span>
                     ) : <span />}
