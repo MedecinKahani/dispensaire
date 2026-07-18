@@ -127,7 +127,7 @@ export default function AuthGate({ codePostal, dispensaireNom, color, role, chil
               value={matricule}
               onChange={e => setMatricule(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-              placeholder={role === 'chef' ? 'ex. 97670' : `ex. ${codePostal}`}
+              placeholder={role === 'chef' ? 'Code chef' : 'Code dispensaire'}
               autoFocus
               style={{
                 width: '100%', padding: '11px 14px', borderRadius: 10, boxSizing: 'border-box',
