@@ -1,41 +1,37 @@
 import { kv } from '@vercel/kv';
 import { NextResponse } from 'next/server';
 
-const KEY = 'planning_v2';
+// Mapping categorie → clé Redis
+const KEYS = {
+  medical: 'planning_v2',
+  mramadoudou: 'planning_mramadoudou',
+};
 
-export const PLANNING_CATEGORIES = ['medical', 'infirmiers', 'aide-soignants', 'ash'];
+const ALL_CATEGORIES = ['medical', 'mramadoudou'];
 
-// Structure stockée dans Redis :
-// {
-//   medical: { agents: [...], cellules: {...}, guides: { "agentId|YYYY-MM-DD": "guideAgentId" } },
-// }
-// guides : clé = "agentId|YYYY-MM-DD" (J1 du nouveau), valeur = id du guide
 const emptyCategory = () => ({ agents: [], cellules: {}, guides: {}, feries: [] });
-const EMPTY_PLANNING = () => ({
-  medical: emptyCategory(),
-  infirmiers: emptyCategory(),
-  'aide-soignants': emptyCategory(),
-  ash: emptyCategory(),
-});
 
-function ensureShape(planning) {
-  const base = EMPTY_PLANNING();
-  const safe = planning || {};
-  PLANNING_CATEGORIES.forEach(cat => {
-    base[cat] = {
-      agents: Array.isArray(safe[cat]?.agents) ? safe[cat].agents : [],
-      cellules: safe[cat]?.cellules && typeof safe[cat].cellules === 'object' ? safe[cat].cellules : {},
-      guides: safe[cat]?.guides && typeof safe[cat].guides === 'object' ? safe[cat].guides : {},
-      feries: Array.isArray(safe[cat]?.feries) ? safe[cat].feries : [],
-    };
-  });
-  return base;
+function getKey(categorie) {
+  return KEYS[categorie] || KEYS.medical;
 }
 
-export async function GET() {
+function ensureCategory(raw, categorie) {
+  const safe = raw || {};
+  return {
+    agents: Array.isArray(safe[categorie]?.agents) ? safe[categorie].agents : [],
+    cellules: safe[categorie]?.cellules && typeof safe[categorie].cellules === 'object' ? safe[categorie].cellules : {},
+    guides: safe[categorie]?.guides && typeof safe[categorie].guides === 'object' ? safe[categorie].guides : {},
+    feries: Array.isArray(safe[categorie]?.feries) ? safe[categorie].feries : [],
+  };
+}
+
+export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const categorie = searchParams.get('categorie') || 'medical';
+    const KEY = getKey(categorie);
     const raw = await kv.get(KEY);
-    const planning = ensureShape(raw);
+    const planning = { [categorie]: ensureCategory(raw, categorie) };
     return NextResponse.json({ planning });
   } catch (e) {
     return NextResponse.json({ error: 'Erreur de lecture' }, { status: 500 });
@@ -47,11 +43,13 @@ export async function POST(request) {
     const body = await request.json();
     const { action, categorie } = body;
 
-    if (!PLANNING_CATEGORIES.includes(categorie)) {
+    if (!ALL_CATEGORIES.includes(categorie)) {
       return NextResponse.json({ error: 'Catégorie de planning invalide' }, { status: 400 });
     }
 
-    const current = ensureShape(await kv.get(KEY));
+    const KEY = getKey(categorie);
+    const raw = await kv.get(KEY) || {};
+    const current = { [categorie]: ensureCategory(raw, categorie) };
     const cat = current[categorie];
 
     if (action === 'setCell') {

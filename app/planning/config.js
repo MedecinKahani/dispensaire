@@ -21,6 +21,41 @@ const CODES_MEDICAL = [
   { code: 'X', label: 'Avant / après contrat', detail: '', color: '#9CA3AF', bg: '#F3F4F6', heures: 0 },
 ];
 
+// ─── CODES MRAMADOUDOU ───────────────────────────────────────────────────────
+const CODES_MRAMA = [
+  { code: 'MRAMA', label: 'Consultation Mramadoudou', detail: '7h – 14h, 25 patients', color: '#1D4ED8', bg: '#EFF6FF', heures: 7 },
+  { code: '7-17', label: 'Consultation longue', detail: '7h – 17h, 32 patients', color: '#1D4ED8', bg: '#EFF6FF', heures: 10 },
+  { code: '14-18', label: 'Consultation après-midi', detail: '14h – 18h, 15 patients', color: '#1D4ED8', bg: '#EFF6FF', heures: 4 },
+  { code: 'DEB-BOU', label: 'Délocalisé Boueni/Dembeni', detail: '7h – 14h, 25 patients', color: '#1D4ED8', bg: '#EFF6FF', heures: 7 },
+  { code: 'G', label: 'Garde de nuit', detail: '17h – 7h', color: '#C2410C', bg: '#FDF1EC', heures: 14, moment: 'N' },
+  { code: '1/2J', label: 'Garde de jour WE/férié', detail: '7h – 17h', color: '#C2410C', bg: '#FDF1EC', heures: 10 },
+  { code: 'RG', label: 'Repos de garde', detail: '', color: '#9CA3AF', bg: '#F3F4F6', heures: 0 },
+  { code: 'RC', label: 'Repos compensateur', detail: '', color: '#EAB308', bg: '#FEF08A', heures: 0 },
+  { code: 'ORGA', label: 'Mission non clinique', detail: '', color: '#7C3AED', bg: '#F5F3FF', heures: 0 },
+  { code: 'STAFF', label: 'Formation interne', detail: '14h – 17h', color: '#0F766E', bg: '#ECFAF8', heures: 3 },
+  { code: 'ADM', label: 'Administratif', detail: '', color: '#1D4ED8', bg: '#EFF6FF', heures: 0 },
+  { code: 'CA', label: 'Congés annuels', detail: '', color: '#15803D', bg: '#ECFDF3', heures: 0 },
+  { code: 'CF', label: 'Congés formation', detail: '', color: '#15803D', bg: '#ECFDF3', heures: 0 },
+  { code: 'DEB', label: 'Début de contrat', detail: '', color: '#6B7280', bg: '#F3F4F6', heures: 0 },
+  { code: 'FIN', label: 'Fin de contrat', detail: '', color: '#6B7280', bg: '#F3F4F6', heures: 0 },
+  { code: 'X', label: 'Avant / après contrat', detail: '', color: '#9CA3AF', bg: '#F3F4F6', heures: 0 },
+];
+
+// Postes semaine Mramadoudou
+const POSTES_MRAMA_SEMAINE = [
+  { code: 'MRAMA', moment: 'M', slots: 3, optionnel: false },
+  { code: '7-17', moment: 'M', slots: 2, optionnel: false },
+  { code: '14-18', moment: 'AM', slots: 1, optionnel: false },
+  { code: 'DEB-BOU', moment: 'M', slots: 1, optionnel: true },
+  { code: 'G', moment: 'N', slots: 1, optionnel: false },
+];
+
+// Postes WE/férié Mramadoudou (1/2J matin + G nuit)
+const POSTES_MRAMA_WEEKEND = [
+  { code: '1/2J', moment: 'M', slots: 1, optionnel: false },
+  { code: 'G', moment: 'N', slots: 1, optionnel: false },
+];
+
 export const PLANNING_CATEGORIES = [
   {
     id: 'medical',
@@ -31,6 +66,20 @@ export const PLANNING_CATEGORIES = [
     bg: '#ECFAF8',
     codes: CODES_MEDICAL,
     configured: true,
+    codePostal: '97670',
+    planningKey: 'planning_v2',
+  },
+  {
+    id: 'mramadoudou',
+    label: 'Médecins Mramadoudou',
+    sublabel: 'Médecins',
+    icon: Stethoscope,
+    color: '#0E7490',
+    bg: '#EBF6F8',
+    codes: CODES_MRAMA,
+    configured: true,
+    codePostal: '97620',
+    planningKey: 'planning_mramadoudou',
   },
 ];
 
@@ -78,13 +127,24 @@ export function isWeekday(date) {
 }
 
 export function getPostesForDay(categoryId, date, feries = []) {
-  if (categoryId !== 'medical') return [];
   const dk = dateKey(date);
-  if (feries.includes(dk)) return POSTES_MEDICAL_DIMANCHE; // férié = structure dimanche
   const d = date.getDay(); // 0=dimanche, 6=samedi
-  if (d === 6) return POSTES_MEDICAL_SAMEDI;
-  if (d === 0) return POSTES_MEDICAL_DIMANCHE;
-  return POSTES_MEDICAL_SEMAINE;
+  const isWeekend = d === 0 || d === 6;
+  const isFerie = feries.includes(dk);
+
+  if (categoryId === 'medical') {
+    if (isFerie) return POSTES_MEDICAL_DIMANCHE;
+    if (d === 6) return POSTES_MEDICAL_SAMEDI;
+    if (d === 0) return POSTES_MEDICAL_DIMANCHE;
+    return POSTES_MEDICAL_SEMAINE;
+  }
+
+  if (categoryId === 'mramadoudou') {
+    if (isFerie || isWeekend) return POSTES_MRAMA_WEEKEND;
+    return POSTES_MRAMA_SEMAINE;
+  }
+
+  return [];
 }
 
 export const MOMENTS = [

@@ -2,19 +2,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-export function usePlanning() {
+export function usePlanning(categorie = 'medical') {
   const [planning, setPlanning] = useState(null);
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch('/api/planning');
+      const res = await fetch(`/api/planning?categorie=${categorie}`);
       const data = await res.json();
       setPlanning(data.planning || null);
     } catch (e) {
       setError('Impossible de charger le planning.');
     }
-  }, []);
+  }, [categorie]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -39,32 +39,32 @@ export function usePlanning() {
     }
   }, []);
 
-  const setCell = useCallback((categorie, agentId, date, moment, code) =>
-    call({ action: 'setCell', categorie, agentId, date, moment, code }), [call]);
+  const setCell = useCallback((cat, agentId, date, moment, code) =>
+    call({ action: 'setCell', categorie: cat, agentId, date, moment, code }), [call]);
 
-  const addAgent = useCallback((categorie, nomFamille, prenom, arrivee, depart) =>
-    call({ action: 'addAgent', categorie, nomFamille, prenom, arrivee, depart }), [call]);
+  const addAgent = useCallback((cat, nomFamille, prenom, arrivee, depart) =>
+    call({ action: 'addAgent', categorie: cat, nomFamille, prenom, arrivee, depart }), [call]);
 
-  const removeAgent = useCallback((categorie, agentId) =>
-    call({ action: 'removeAgent', categorie, agentId }), [call]);
+  const removeAgent = useCallback((cat, agentId) =>
+    call({ action: 'removeAgent', categorie: cat, agentId }), [call]);
 
-  const renameAgent = useCallback((categorie, agentId, nomFamille, prenom) =>
-    call({ action: 'renameAgent', categorie, agentId, nomFamille, prenom }), [call]);
+  const renameAgent = useCallback((cat, agentId, nomFamille, prenom) =>
+    call({ action: 'renameAgent', categorie: cat, agentId, nomFamille, prenom }), [call]);
 
-  const updateAgentDates = useCallback((categorie, agentId, arrivee, depart) =>
-    call({ action: 'updateAgentDates', categorie, agentId, arrivee, depart }), [call]);
+  const updateAgentDates = useCallback((cat, agentId, arrivee, depart) =>
+    call({ action: 'updateAgentDates', categorie: cat, agentId, arrivee, depart }), [call]);
 
-  const copyDay = useCallback((categorie, agentId, fromDate, toDate) =>
-    call({ action: 'copyDay', categorie, agentId, fromDate, toDate }), [call]);
+  const copyDay = useCallback((cat, agentId, fromDate, toDate) =>
+    call({ action: 'copyDay', categorie: cat, agentId, fromDate, toDate }), [call]);
 
-  const fillRange = useCallback((categorie, agentId, fromDate, toDate, moment, code) =>
-    call({ action: 'fillRange', categorie, agentId, fromDate, toDate, moment, code }), [call]);
+  const fillRange = useCallback((cat, agentId, fromDate, toDate, moment, code) =>
+    call({ action: 'fillRange', categorie: cat, agentId, fromDate, toDate, moment, code }), [call]);
 
-  const setGuide = useCallback((categorie, agentId, date, guideId) =>
-    call({ action: 'setGuide', categorie, agentId, date, guideId }), [call]);
+  const setGuide = useCallback((cat, agentId, date, guideId) =>
+    call({ action: 'setGuide', categorie: cat, agentId, date, guideId }), [call]);
 
-  const toggleFerie = useCallback((categorie, date) =>
-    call({ action: 'toggleFerie', categorie, date }), [call]);
+  const toggleFerie = useCallback((cat, date) =>
+    call({ action: 'toggleFerie', categorie: cat, date }), [call]);
 
   return { planning, setCell, addAgent, removeAgent, renameAgent, updateAgentDates, copyDay, fillRange, setGuide, toggleFerie, error };
 }

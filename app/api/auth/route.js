@@ -11,7 +11,7 @@ const DISPENSAIRES = {
   '97620': {
     nom: 'Mramadoudou',
     planningKey: 'planning_mramadoudou',
-    chefMatricule: null, // à définir plus tard
+    chefMatricule: '97620', // temporaire = code postal
   },
 };
 
