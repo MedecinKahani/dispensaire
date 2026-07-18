@@ -33,30 +33,27 @@ export default function AuthGate({ codePostal, dispensaireNom, color, role, chil
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`/api/auth?codePostal=${codePostal}&matricule=${matricule.trim()}`);
-      const data = await res.json();
-
       if (role === 'chef') {
+        const res = await fetch(`/api/auth?codePostal=${codePostal}&matricule=${matricule.trim()}`);
+        const data = await res.json();
         if (data.role === 'chef') {
           const session = { role: 'chef', dispensaire: data.dispensaire, codePostal };
           sessionStorage.setItem(getSessionKey(codePostal, role), JSON.stringify(session));
           setSessionData(session);
           setStatus('unlocked');
         } else {
-          setError('Matricule chef incorrect');
+          setError('Code chef incorrect');
           setMatricule('');
         }
       } else {
-        // Médecin
-        if (data.role === 'medecin') {
-          const session = { role: 'medecin', agentId: data.agentId, nom: data.nom, prenom: data.prenom, codePostal };
+        // Médecin : code dispensaire = code postal
+        if (matricule.trim() === codePostal) {
+          const session = { role: 'medecin', codePostal };
           sessionStorage.setItem(getSessionKey(codePostal, role), JSON.stringify(session));
           setSessionData(session);
           setStatus('unlocked');
-        } else if (data.role === 'nouveau') {
-          setStatus('firstLogin');
         } else {
-          setError('Matricule introuvable');
+          setError('Code dispensaire incorrect');
           setMatricule('');
         }
       }
@@ -117,22 +114,20 @@ export default function AuthGate({ codePostal, dispensaireNom, color, role, chil
           {dispensaireNom}
         </h2>
         <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 24px' }}>
-          {status === 'firstLogin'
-            ? 'Première connexion — renseignez vos informations'
-            : role === 'chef' ? 'Accès chef de service' : 'Accès médecins'}
+          {role === 'chef' ? 'Accès chef de service' : 'Code d\'accès médecins'}
         </p>
 
         {status === 'locked' && (
           <>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#6B7280', textAlign: 'left', marginBottom: 6 }}>
-              Matricule {role === 'chef' ? 'chef' : 'médecin'}
+              {role === 'chef' ? 'Matricule chef' : 'Code dispensaire'}
             </label>
             <input
               type="text"
               value={matricule}
               onChange={e => setMatricule(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-              placeholder={role === 'chef' ? 'ex. 97670' : 'ex. 023799'}
+              placeholder={role === 'chef' ? 'ex. 97670' : `ex. ${codePostal}`}
               autoFocus
               style={{
                 width: '100%', padding: '11px 14px', borderRadius: 10, boxSizing: 'border-box',
@@ -143,36 +138,12 @@ export default function AuthGate({ codePostal, dispensaireNom, color, role, chil
           </>
         )}
 
-        {status === 'firstLogin' && (
-          <>
-            <p style={{ fontSize: 12, color: '#1A2B3D', background: '#F0F9FF', borderRadius: 8, padding: '8px 12px', marginBottom: 16, textAlign: 'left' }}>
-              Matricule <strong>{matricule}</strong> non reconnu. Créez votre profil :
-            </p>
-            <input
-              type="text"
-              value={nom}
-              onChange={e => setNom(e.target.value)}
-              placeholder="Nom de famille (ex. DUPONT)"
-              autoFocus
-              style={{ width: '100%', padding: '11px 14px', borderRadius: 10, boxSizing: 'border-box', border: '2px solid #E5E1D8', fontSize: 14, outline: 'none', marginBottom: 10 }}
-            />
-            <input
-              type="text"
-              value={prenom}
-              onChange={e => setPrenom(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleRegister()}
-              placeholder="Prénom (ex. Jean)"
-              style={{ width: '100%', padding: '11px 14px', borderRadius: 10, boxSizing: 'border-box', border: '2px solid #E5E1D8', fontSize: 14, outline: 'none', marginBottom: 14 }}
-            />
-          </>
-        )}
-
         {error && (
           <p style={{ fontSize: 12, color: '#C2410C', marginBottom: 10, fontWeight: 600 }}>{error}</p>
         )}
 
         <button
-          onClick={status === 'firstLogin' ? handleRegister : handleSubmit}
+          onClick={handleSubmit}
           disabled={loading}
           style={{
             width: '100%', padding: '12px 0', borderRadius: 10, border: 'none',
@@ -182,7 +153,7 @@ export default function AuthGate({ codePostal, dispensaireNom, color, role, chil
           }}
         >
           {loading && <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />}
-          {status === 'firstLogin' ? 'Créer mon profil' : 'Accéder'}
+          Accéder
         </button>
 
         <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
