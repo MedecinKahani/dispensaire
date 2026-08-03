@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -603,6 +603,18 @@ export default function App() {
               }}
             >
               <Calendar size={14} strokeWidth={2.5} /> Planning de l'équipe
+            </span>
+          </Link>
+          <Link href="/assistant" style={{ textDecoration: 'none' }}>
+            <span
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+                borderRadius: 999, border: '1.5px solid #5B21B6',
+                background: '#F2EBFB', color: '#5B21B6',
+                fontSize: 13, fontWeight: 600, cursor: 'pointer'
+              }}
+            >
+              <Sparkles size={14} strokeWidth={2.5} /> Assistant IA
             </span>
           </Link>
         </div>
