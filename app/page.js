@@ -123,9 +123,19 @@ function useFiches() {
 
   const updateFiche = useCallback((id, patch) => call({ action: 'update', id, patch }), [call]);
 
+  const bulkRecategorize = useCallback(async (mapping, onProgress) => {
+    let done = 0;
+    for (const { id, category } of mapping) {
+      await call({ action: 'update', id, patch: { category } });
+      done++;
+      if (onProgress) onProgress(done, mapping.length);
+    }
+    return done;
+  }, [call]);
+
   const deleteFiche = useCallback((id) => call({ action: 'delete', id }), [call]);
 
-  return { fiches, addFiche, addFichesBulk, updateFiche, deleteFiche, error, reload: load };
+  return { fiches, addFiche, addFichesBulk, updateFiche, bulkRecategorize, deleteFiche, error, reload: load };
 }
 
 function CategoryBadge({ catId, size = 'sm' }) {
@@ -316,6 +326,109 @@ const iconBtnStyle = {
   width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
   cursor: 'pointer'
 };
+
+function RecategorizePanel({ onApply, onCancel }) {
+  const [raw, setRaw] = useState('');
+  const [parsed, setParsed] = useState(null);
+  const [parseError, setParseError] = useState(null);
+  const [applying, setApplying] = useState(false);
+  const [progress, setProgress] = useState(null);
+  const [done, setDone] = useState(null);
+
+  const validCategoryIds = CATEGORIES.map(c => c.id);
+
+  const handleParse = (text) => {
+    setRaw(text);
+    setDone(null);
+    if (!text.trim()) { setParsed(null); setParseError(null); return; }
+    try {
+      const data = JSON.parse(text);
+      if (!Array.isArray(data)) throw new Error('Le JSON doit être un tableau.');
+      const cleaned = data.map((f, i) => {
+        if (!f.id || !f.category) throw new Error(`Entrée #${i + 1} : id ou category manquant.`);
+        if (!validCategoryIds.includes(f.category)) throw new Error(`Entrée #${i + 1} : catégorie "${f.category}" inconnue.`);
+        return { id: String(f.id), category: f.category };
+      });
+      setParsed(cleaned);
+      setParseError(null);
+    } catch (e) {
+      setParsed(null);
+      setParseError(e.message || 'JSON invalide.');
+    }
+  };
+
+  const handleApply = async () => {
+    if (!parsed) return;
+    setApplying(true);
+    setProgress({ done: 0, total: parsed.length });
+    const count = await onApply(parsed, (d, t) => setProgress({ done: d, total: t }));
+    setApplying(false);
+    setDone(count);
+    setRaw('');
+    setParsed(null);
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.4)', zIndex: 60,
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto'
+    }} onClick={onCancel}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: '#fff', width: '100%', maxWidth: 640, margin: '40px auto', borderRadius: 14,
+        padding: '28px 28px 24px 28px', boxShadow: '0 20px 50px rgba(0,0,0,0.2)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 20, fontWeight: 700, color: '#1A2B3D', margin: 0 }}>
+            Reclassifier des fiches
+          </h2>
+          <button onClick={onCancel} aria-label="Fermer" style={iconBtnStyle}><X size={18} color="#5B6573" /></button>
+        </div>
+        <p style={{ fontSize: 13, color: '#6B7C90', margin: '0 0 14px 0' }}>
+          Colle un tableau JSON <code>[{'{'}"id": "...", "category": "..."{'}'}]</code> pour changer la catégorie de plusieurs fiches d'un coup.
+        </p>
+        <textarea
+          value={raw}
+          onChange={e => handleParse(e.target.value)}
+          placeholder='[{"id": "abc123", "category": "vitales"}, ...]'
+          rows={10}
+          style={{
+            width: '100%', boxSizing: 'border-box', padding: 12, borderRadius: 8, border: '1px solid #E5E1D8',
+            fontFamily: 'monospace', fontSize: 12.5, resize: 'vertical'
+          }}
+        />
+        {parseError && (
+          <p style={{ color: '#B91C1C', fontSize: 13, margin: '10px 0 0 0' }}>{parseError}</p>
+        )}
+        {parsed && (
+          <p style={{ color: '#15803D', fontSize: 13, margin: '10px 0 0 0' }}>{parsed.length} entrée(s) valide(s), prêtes à appliquer.</p>
+        )}
+        {applying && progress && (
+          <p style={{ color: '#6B7C90', fontSize: 13, margin: '10px 0 0 0' }}>Application… {progress.done}/{progress.total}</p>
+        )}
+        {done !== null && !applying && (
+          <p style={{ color: '#15803D', fontSize: 13, fontWeight: 600, margin: '10px 0 0 0' }}>{done} fiche(s) reclassée(s) ✓</p>
+        )}
+        <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+          <button
+            onClick={handleApply}
+            disabled={!parsed || applying}
+            style={{
+              flex: 1, padding: '11px 18px', borderRadius: 9, border: 'none',
+              background: (!parsed || applying) ? '#E5E1D8' : '#1A2B3D',
+              color: (!parsed || applying) ? '#9CA3AF' : '#fff',
+              fontSize: 14, fontWeight: 700, cursor: (!parsed || applying) ? 'default' : 'pointer'
+            }}
+          >
+            {applying ? 'Application…' : 'Appliquer'}
+          </button>
+          <button onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid #E5E1D8', background: '#fff', color: '#5B6573', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ImportPanel({ onImport, onCancel }) {
   const [raw, setRaw] = useState('');
@@ -551,13 +664,14 @@ const inputStyle = {
 };
 
 export default function App() {
-  const { fiches, addFiche, addFichesBulk, updateFiche, deleteFiche, error } = useFiches();
+  const { fiches, addFiche, addFichesBulk, updateFiche, bulkRecategorize, deleteFiche, error } = useFiches();
   const [query, setQuery] = useState('');
   const [navPath, setNavPath] = useState([]); // [] accueil | ['caribou'] | ['protocole'] | ['protocole','vitales'] | ['annuaire'] | ['pharmacie']
   const [selectedFiche, setSelectedFiche] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingFiche, setEditingFiche] = useState(null);
   const [showImport, setShowImport] = useState(false);
+  const [showRecat, setShowRecat] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
@@ -672,16 +786,44 @@ export default function App() {
           </div>
         )}
 
-        {/* Lien pour rouvrir l'explication du site */}
-        <button
-          onClick={() => setShowIntro(true)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
-            color: '#0E7490', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: '0 0 20px 0'
-          }}
-        >
-          <Sparkles size={13} strokeWidth={2.5} /> À quoi sert ce site ?
-        </button>
+        {/* Lien pour rouvrir l'explication du site + export */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0 20px 0' }}>
+          <button
+            onClick={() => setShowIntro(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+              color: '#0E7490', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0
+            }}
+          >
+            <Sparkles size={13} strokeWidth={2.5} /> À quoi sert ce site ?
+          </button>
+          <button
+            onClick={() => setShowRecat(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+              color: '#9CA3AF', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0, marginRight: 16
+            }}
+          >
+            <Edit3 size={12} strokeWidth={2.5} /> Reclassifier en masse
+          </button>
+          <button
+            onClick={() => {
+              const blob = new Blob([JSON.stringify(fiches, null, 2)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `fiches-export-${new Date().toISOString().slice(0, 10)}.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+              color: '#9CA3AF', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0
+            }}
+          >
+            <Upload size={12} strokeWidth={2.5} style={{ transform: 'rotate(180deg)' }} /> Exporter la base (JSON)
+          </button>
+        </div>
 
         {/* Navigation à cartes */}
         <div id="categories-fiches" style={{ marginBottom: 24 }}>
@@ -897,6 +1039,13 @@ export default function App() {
           initial={editingFiche}
           onSave={handleSave}
           onCancel={() => { setShowForm(false); setEditingFiche(null); }}
+        />
+      )}
+
+      {showRecat && (
+        <RecategorizePanel
+          onApply={async (mapping, onProgress) => bulkRecategorize(mapping, onProgress)}
+          onCancel={() => setShowRecat(false)}
         />
       )}
 
