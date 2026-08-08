@@ -134,6 +134,83 @@ function CategoryBadge({ catId, size = 'sm' }) {
   );
 }
 
+function IntroModal({ onClose, onSeeFiches }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.55)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 20, zIndex: 100
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#fff', borderRadius: 16, maxWidth: 460, width: '100%',
+          padding: '24px 24px 22px 24px', position: 'relative',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.25)'
+        }}
+      >
+        <button
+          onClick={onClose}
+          aria-label="Fermer"
+          style={{
+            position: 'absolute', top: 14, right: 14, background: '#F3F1EC', border: 'none',
+            borderRadius: 999, width: 30, height: 30, display: 'flex', alignItems: 'center',
+            justifyContent: 'center', cursor: 'pointer', color: '#5B6573'
+          }}
+        >
+          <X size={16} strokeWidth={2.5} />
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <Sparkles size={18} color="#C2410C" strokeWidth={2.5} />
+          <h2 style={{
+            fontFamily: "'Source Serif 4', Georgia, serif", color: '#1A2B3D',
+            fontSize: 19, fontWeight: 700, margin: 0
+          }}>
+            À quoi sert ce site ?
+          </h2>
+        </div>
+
+        <p style={{ fontSize: 14, lineHeight: 1.6, color: '#4B5563', margin: '0 0 16px 0' }}>
+          Ce site rassemble les fiches pratiques de l'équipe du dispensaire de Kahani : protocoles, conduites à tenir, contacts et informations utiles au quotidien. Chaque fiche est écrite et mise à jour par les médecins qui l'utilisent.
+        </p>
+
+        {/* Aperçu de la barre de recherche IA */}
+        <div style={{
+          background: '#1A2B3D', borderRadius: 12, padding: '14px 16px', marginBottom: 8
+        }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={16} color="#6B7C90" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)' }} />
+            <div style={{
+              background: '#fff', borderRadius: 10, padding: '10px 40px 10px 38px',
+              fontSize: 13.5, color: '#9CA3AF'
+            }}>
+              Décris le symptôme ou la question…
+            </div>
+            <Sparkles size={15} color="#C2410C" style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)' }} />
+          </div>
+        </div>
+        <p style={{ fontSize: 13, lineHeight: 1.5, color: '#4B5563', margin: '0 0 18px 0' }}>
+          <strong style={{ color: '#1A2B3D' }}>Recherche intelligente (IA)</strong> — tape un symptôme, une question ou un terme familier ("bébé qui tousse", "allergie pénicilline"), pas besoin des mots exacts de la fiche.
+        </p>
+
+        <button
+          onClick={onSeeFiches}
+          style={{
+            width: '100%', padding: '12px 18px', borderRadius: 10, border: 'none',
+            background: '#1A2B3D', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer'
+          }}
+        >
+          Voir les fiches par catégorie
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function FicheCard({ fiche, onClick }) {
   const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES.find(c => c.id === 'caribou');
   return (
@@ -471,6 +548,20 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [editingFiche, setEditingFiche] = useState(null);
   const [showImport, setShowImport] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem('dispensaire_intro_vue')) {
+        setShowIntro(true);
+      }
+    } catch (e) { /* localStorage indisponible, tant pis */ }
+  }, []);
+
+  const closeIntro = () => {
+    setShowIntro(false);
+    try { localStorage.setItem('dispensaire_intro_vue', '1'); } catch (e) { /* ignore */ }
+  };
 
   // Recherche IA : ids pertinents renvoyés par Claude pour la requête en cours
   const [aiIds, setAiIds] = useState(null);
@@ -635,30 +726,19 @@ export default function App() {
           </div>
         )}
 
-        {/* Explication du site */}
-        <div style={{
-          background: '#fff', border: '1.5px solid #E5E1D8', borderRadius: 14,
-          padding: '20px 22px', marginBottom: 24
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <Sparkles size={17} color="#C2410C" strokeWidth={2.5} />
-            <h2 style={{
-              fontFamily: "'Source Serif 4', Georgia, serif", color: '#1A2B3D',
-              fontSize: 17, fontWeight: 700, margin: 0
-            }}>
-              À quoi sert ce site ?
-            </h2>
-          </div>
-          <p style={{ fontSize: 14, lineHeight: 1.6, color: '#4B5563', margin: '0 0 10px 0' }}>
-            Ce site rassemble les fiches pratiques de l'équipe du dispensaire de Kahani : protocoles, conduites à tenir, contacts et informations utiles au quotidien. Chaque fiche est écrite et mise à jour par les médecins qui l'utilisent, à partir de l'expérience du terrain.
-          </p>
-          <p style={{ fontSize: 14, lineHeight: 1.6, color: '#4B5563', margin: 0 }}>
-            <strong style={{ color: '#1A2B3D' }}>Pour chercher</strong> une fiche : utilise la barre de recherche ci-dessus ou filtre par catégorie (Urgences, Pédiatrie, Pharmacie...). <strong style={{ color: '#1A2B3D' }}>Pour contribuer</strong> : ajoute une nouvelle fiche avec le bouton dédié, ou modifie une fiche existante en l'ouvrant puis en cliquant sur l'icône d'édition. Toute l'équipe peut lire et enrichir la base.
-          </p>
-        </div>
+        {/* Lien pour rouvrir l'explication du site */}
+        <button
+          onClick={() => setShowIntro(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+            color: '#0E7490', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: '0 0 20px 0'
+          }}
+        >
+          <Sparkles size={13} strokeWidth={2.5} /> À quoi sert ce site ?
+        </button>
 
         {/* Category filters */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+        <div id="categories-fiches" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
           {CATEGORIES.map(cat => {
             const Icon = cat.icon;
             const active = activeCategory === cat.id;
@@ -745,6 +825,16 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {showIntro && (
+        <IntroModal
+          onClose={closeIntro}
+          onSeeFiches={() => {
+            closeIntro();
+            document.getElementById('categories-fiches')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
+        />
+      )}
 
       {selectedFiche && !showForm && (
         <FicheDetail
