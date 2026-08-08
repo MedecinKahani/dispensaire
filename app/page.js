@@ -63,6 +63,17 @@ const CATEGORIES = [
   }
 ];
 
+const TOPLEVEL = [
+  { id: 'caribou', label: 'Caribou', icon: Compass, color: '#0F766E', bg: '#ECFAF8' },
+  { id: 'protocole', label: 'Protocole & avis', icon: Stethoscope, color: '#C2410C', bg: '#FDF1EC' },
+  { id: 'annuaire', label: 'Annuaire', icon: Phone, color: '#0E7490', bg: '#EBF6F8' },
+  { id: 'pharmacie', label: 'Pharmacie', icon: Pill, color: '#B91C1C', bg: '#FEECEC' }
+];
+
+const PROTOCOLE_SUBCATS = CATEGORIES
+  .filter(c => ['vitales', 'courantes', 'chronique', 'pediatrie'].includes(c.id))
+  .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
+
 // La génération d'ID et la clé de stockage sont maintenant gérées côté serveur (app/api/fiches/route.js)
 
 function useFiches() {
@@ -542,7 +553,7 @@ const inputStyle = {
 export default function App() {
   const { fiches, addFiche, addFichesBulk, updateFiche, deleteFiche, error } = useFiches();
   const [query, setQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState(null);
+  const [navPath, setNavPath] = useState([]); // [] accueil | ['caribou'] | ['protocole'] | ['protocole','vitales'] | ['annuaire'] | ['pharmacie']
   const [selectedFiche, setSelectedFiche] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingFiche, setEditingFiche] = useState(null);
@@ -562,18 +573,25 @@ export default function App() {
     try { localStorage.setItem('dispensaire_intro_vue', '1'); } catch (e) { /* ignore */ }
   };
 
+  // Catégorie "feuille" (celle dont on affiche les fiches), dérivée du chemin de navigation
+  const leafCategory = navPath.length === 0
+    ? null
+    : navPath[0] === 'protocole'
+      ? (navPath.length === 2 ? navPath[1] : null)
+      : navPath[0];
+
   const handleQueryChange = (value) => {
     setQuery(value);
-    if (value.trim()) setActiveCategory(null); // une recherche cherche toutes catégories confondues
+    if (value.trim()) setNavPath([]); // une recherche cherche toutes catégories confondues
   };
 
   const filtered = useMemo(() => {
     if (!fiches) return [];
     const q = query.trim();
 
-    // Sans recherche : on respecte le filtre catégorie (navigation par onglet)
+    // Sans recherche : on respecte la catégorie feuille en cours de navigation
     if (!q) {
-      const list = activeCategory ? fiches.filter(f => f.category === activeCategory) : fiches;
+      const list = leafCategory ? fiches.filter(f => f.category === leafCategory) : fiches;
       return [...list].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
     }
 
@@ -584,7 +602,7 @@ export default function App() {
       (f.summary || '').toLowerCase().includes(ql) ||
       (f.content || '').toLowerCase().includes(ql)
     )].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
-  }, [fiches, query, activeCategory]);
+  }, [fiches, query, leafCategory]);
 
   const handleSave = (data) => {
     if (editingFiche) {
@@ -665,41 +683,117 @@ export default function App() {
           <Sparkles size={13} strokeWidth={2.5} /> À quoi sert ce site ?
         </button>
 
-        {/* Category filters */}
-        <div id="categories-fiches" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-          {CATEGORIES.map(cat => {
-            const Icon = cat.icon;
-            const active = activeCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(active ? null : cat.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
-                  borderRadius: 999, border: `1.5px solid ${active ? cat.color : '#E5E1D8'}`,
-                  background: active ? cat.bg : '#fff', color: active ? cat.color : '#5B6573',
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer'
-                }}
-              >
-                <Icon size={14} strokeWidth={2.5} /> {cat.label}
-              </button>
-            );
-          })}
-          <Link href="/planning" style={{ textDecoration: 'none' }}>
-            <span
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
-                borderRadius: 999, border: '1.5px solid #C2410C',
-                background: '#FDF1EC', color: '#C2410C',
-                fontSize: 13, fontWeight: 600, cursor: 'pointer'
-              }}
-            >
-              <Calendar size={14} strokeWidth={2.5} /> Planning de l'équipe
-            </span>
-          </Link>
+        {/* Navigation à cartes */}
+        <div id="categories-fiches" style={{ marginBottom: 24 }}>
+          {!query.trim() && (
+            <>
+              {(navPath.length > 0) && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14, fontSize: 13 }}>
+                  <button
+                    onClick={() => setNavPath([])}
+                    style={{ background: 'none', border: 'none', color: '#0E7490', fontWeight: 600, cursor: 'pointer', padding: 0, fontSize: 13 }}
+                  >
+                    Accueil
+                  </button>
+                  {navPath[0] === 'protocole' && (
+                    <>
+                      <ChevronRight size={13} color="#9CA3AF" />
+                      <button
+                        onClick={() => setNavPath(['protocole'])}
+                        style={{
+                          background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 13,
+                          color: navPath.length === 1 ? '#1A2B3D' : '#0E7490', fontWeight: 600
+                        }}
+                      >
+                        Protocole & avis
+                      </button>
+                    </>
+                  )}
+                  {leafCategory && (
+                    <>
+                      <ChevronRight size={13} color="#9CA3AF" />
+                      <span style={{ color: '#1A2B3D', fontWeight: 600 }}>
+                        {CATEGORIES.find(c => c.id === leafCategory)?.label}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {navPath.length === 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12 }}>
+                  {TOPLEVEL.map(t => {
+                    const Icon = t.icon;
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => setNavPath([t.id])}
+                        style={{
+                          aspectRatio: '1', borderRadius: 14, border: `1.5px solid #E5E1D8`,
+                          background: '#fff', display: 'flex', flexDirection: 'column',
+                          alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer'
+                        }}
+                      >
+                        <div style={{
+                          width: 44, height: 44, borderRadius: 12, background: t.bg,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          <Icon size={22} color={t.color} strokeWidth={2} />
+                        </div>
+                        <span style={{ fontSize: 13.5, fontWeight: 600, color: '#1A2B3D', textAlign: 'center' }}>{t.label}</span>
+                      </button>
+                    );
+                  })}
+                  <Link href="/planning" style={{ textDecoration: 'none' }}>
+                    <div style={{
+                      aspectRatio: '1', borderRadius: 14, border: '1.5px solid #E5E1D8',
+                      background: '#fff', display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer'
+                    }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 12, background: '#FDF1EC',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        <Calendar size={22} color="#C2410C" strokeWidth={2} />
+                      </div>
+                      <span style={{ fontSize: 13.5, fontWeight: 600, color: '#1A2B3D', textAlign: 'center' }}>Planning de l'équipe</span>
+                    </div>
+                  </Link>
+                </div>
+              )}
+
+              {navPath.length === 1 && navPath[0] === 'protocole' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12 }}>
+                  {PROTOCOLE_SUBCATS.map(cat => {
+                    const Icon = cat.icon;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => setNavPath(['protocole', cat.id])}
+                        style={{
+                          aspectRatio: '1', borderRadius: 14, border: '1.5px solid #E5E1D8',
+                          background: '#fff', display: 'flex', flexDirection: 'column',
+                          alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer'
+                        }}
+                      >
+                        <div style={{
+                          width: 44, height: 44, borderRadius: 12, background: cat.bg,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          <Icon size={22} color={cat.color} strokeWidth={2} />
+                        </div>
+                        <span style={{ fontSize: 13.5, fontWeight: 600, color: '#1A2B3D', textAlign: 'center' }}>{cat.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* New fiche button */}
+        {(query.trim() || leafCategory) && (
         <div style={{ display: 'flex', gap: 10, marginBottom: 28 }}>
           <button
             onClick={() => { setEditingFiche(null); setShowForm(true); }}
@@ -723,9 +817,10 @@ export default function App() {
             <Upload size={16} strokeWidth={2.5} /> Import en masse
           </button>
         </div>
+        )}
 
         {/* Content */}
-        {loading ? (
+        {(!query.trim() && !leafCategory) ? null : loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: 10, color: '#9CA3AF' }}>
             <Loader2 size={20} className="spin" style={{ animation: 'spin 1s linear infinite' }} />
             Chargement de la base…
@@ -745,7 +840,7 @@ export default function App() {
               <p style={{ fontSize: 15 }}>Aucune fiche ne correspond à « {query} ».</p>
             )}
           </div>
-        ) : (!query.trim() && activeCategory === 'pharmacie') ? (
+        ) : (!query.trim() && leafCategory === 'pharmacie') ? (
           <div style={{ background: '#fff', border: '1px solid #E5E1D8', borderRadius: 12, overflow: 'hidden' }}>
             {filtered.map((fiche, i) => (
               <button
