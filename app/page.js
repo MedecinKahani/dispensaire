@@ -614,6 +614,66 @@ export default function App() {
     return () => { clearTimeout(timer); controller.abort(); };
   }, [query, aiUnavailable]);
 
+  // Réponse conversationnelle générée à partir des fiches les plus pertinentes (streaming)
+  const [answerText, setAnswerText] = useState('');
+  const [answerLoading, setAnswerLoading] = useState(false);
+  const [answerSources, setAnswerSources] = useState([]);
+  const [answeredQuery, setAnsweredQuery] = useState('');
+
+  useEffect(() => {
+    const q = query.trim();
+
+    if (!q) {
+      setAnswerText('');
+      setAnswerSources([]);
+      setAnsweredQuery('');
+      return;
+    }
+
+    if (!fiches || aiIds === null || aiQuery !== q || aiIds.length === 0 || answeredQuery === q) {
+      return;
+    }
+
+    const topFiches = aiIds.slice(0, 4).map(id => fiches.find(f => f.id === id)).filter(Boolean);
+    if (topFiches.length === 0) return;
+
+    const controller = new AbortController();
+    setAnsweredQuery(q);
+    setAnswerLoading(true);
+    setAnswerText('');
+    setAnswerSources(topFiches);
+
+    (async () => {
+      try {
+        const res = await fetch('/api/answer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: q,
+            fiches: topFiches.map(f => ({ id: f.id, title: f.title, content: f.content }))
+          }),
+          signal: controller.signal
+        });
+        if (!res.body) { setAnswerLoading(false); return; }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let acc = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          acc += decoder.decode(value, { stream: true });
+          setAnswerText(acc);
+        }
+      } catch (e) {
+        // requête annulée (nouvelle recherche entre-temps) : rien à faire
+      } finally {
+        setAnswerLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [aiIds, aiQuery, query, fiches, answeredQuery]);
+
   const filtered = useMemo(() => {
     if (!fiches) return [];
     const q = query.trim();
@@ -795,6 +855,46 @@ export default function App() {
             <Upload size={16} strokeWidth={2.5} /> Import en masse
           </button>
         </div>
+
+        {/* Réponse IA conversationnelle */}
+        {query.trim() && answeredQuery === query.trim() && (answerLoading || answerText) && (
+          <div style={{
+            background: '#1A2B3D', borderRadius: 14, padding: '18px 20px', marginBottom: 24,
+            color: '#fff'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <Sparkles size={16} color="#F0A875" strokeWidth={2.5} />
+              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#94A8BD' }}>
+                Réponse
+              </span>
+              {answerLoading && (
+                <Loader2 size={14} color="#94A8BD" style={{ animation: 'spin 1s linear infinite' }} />
+              )}
+            </div>
+            <div style={{ fontSize: 14.5, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+              {answerText}
+              {answerLoading && <span style={{ opacity: 0.5 }}>▍</span>}
+            </div>
+            {answerSources.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 14, paddingTop: 14, borderTop: '1px solid #2E4258' }}>
+                <span style={{ fontSize: 11, color: '#6B7C90', marginRight: 2, alignSelf: 'center' }}>Sources :</span>
+                {answerSources.map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setSelectedFiche(f)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px',
+                      borderRadius: 999, border: '1px solid #3A4E64', background: 'transparent',
+                      color: '#B8C6D6', fontSize: 12, fontWeight: 600, cursor: 'pointer'
+                    }}
+                  >
+                    {f.title} <ChevronRight size={12} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Content */}
         {loading ? (
