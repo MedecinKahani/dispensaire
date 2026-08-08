@@ -6,6 +6,14 @@ import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loade
 
 const CATEGORIES = [
   {
+    id: 'caribou',
+    label: 'Caribou — Bienvenue',
+    icon: Compass,
+    color: '#0F766E',
+    bg: '#ECFAF8',
+    description: 'Mayotte, arrivée, culture mahoraise, organisation Kahani'
+  },
+  {
     id: 'vitales',
     label: 'Urgences vitales',
     icon: Siren,
@@ -52,14 +60,6 @@ const CATEGORIES = [
     color: '#B91C1C',
     bg: '#FEECEC',
     description: 'Livret du médicament — stock disponible au CMR de Kahani'
-  },
-  {
-    id: 'caribou',
-    label: 'Caribou — Bienvenue',
-    icon: Compass,
-    color: '#0F766E',
-    bg: '#ECFAF8',
-    description: 'Mayotte, arrivée, culture mahoraise, organisation Kahani'
   }
 ];
 
@@ -555,18 +555,30 @@ export default function App() {
           </div>
         )}
 
+        {/* Explication du site */}
+        <div style={{
+          background: '#fff', border: '1.5px solid #E5E1D8', borderRadius: 14,
+          padding: '20px 22px', marginBottom: 24
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <Sparkles size={17} color="#C2410C" strokeWidth={2.5} />
+            <h2 style={{
+              fontFamily: "'Source Serif 4', Georgia, serif", color: '#1A2B3D',
+              fontSize: 17, fontWeight: 700, margin: 0
+            }}>
+              À quoi sert ce site ?
+            </h2>
+          </div>
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: '#4B5563', margin: '0 0 10px 0' }}>
+            Ce site rassemble les fiches pratiques de l'équipe du dispensaire de Kahani : protocoles, conduites à tenir, contacts et informations utiles au quotidien. Chaque fiche est écrite et mise à jour par les médecins qui l'utilisent, à partir de l'expérience du terrain.
+          </p>
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: '#4B5563', margin: 0 }}>
+            <strong style={{ color: '#1A2B3D' }}>Pour chercher</strong> une fiche : utilise la barre de recherche ci-dessus ou filtre par catégorie (Urgences, Pédiatrie, Pharmacie...). <strong style={{ color: '#1A2B3D' }}>Pour contribuer</strong> : ajoute une nouvelle fiche avec le bouton dédié, ou modifie une fiche existante en l'ouvrant puis en cliquant sur l'icône d'édition. Toute l'équipe peut lire et enrichir la base.
+          </p>
+        </div>
+
         {/* Category filters */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-          <button
-            onClick={() => setActiveCategory(null)}
-            style={{
-              padding: '8px 16px', borderRadius: 999, border: `1.5px solid ${!activeCategory ? '#1A2B3D' : '#E5E1D8'}`,
-              background: !activeCategory ? '#1A2B3D' : '#fff', color: !activeCategory ? '#fff' : '#5B6573',
-              fontSize: 13, fontWeight: 600, cursor: 'pointer'
-            }}
-          >
-            Toutes les fiches
-          </button>
           {CATEGORIES.map(cat => {
             const Icon = cat.icon;
             const active = activeCategory === cat.id;
