@@ -478,6 +478,11 @@ export default function App() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiUnavailable, setAiUnavailable] = useState(false); // désactive l'IA après un échec, repli silencieux sur le texte
 
+  const handleQueryChange = (value) => {
+    setQuery(value);
+    if (value.trim()) setActiveCategory(null); // une recherche cherche toutes catégories confondues
+  };
+
   useEffect(() => {
     const q = query.trim();
     if (q.length < 2 || aiUnavailable) {
@@ -520,25 +525,25 @@ export default function App() {
 
   const filtered = useMemo(() => {
     if (!fiches) return [];
-    let list = fiches;
-    if (activeCategory) list = list.filter(f => f.category === activeCategory);
-
     const q = query.trim();
+
+    // Sans recherche : on respecte le filtre catégorie (navigation par onglet)
     if (!q) {
+      const list = activeCategory ? fiches.filter(f => f.category === activeCategory) : fiches;
       return [...list].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
     }
 
-    // Si l'IA a répondu pour cette requête exacte, on trie selon sa pertinence
+    // Avec une recherche : on cherche dans TOUTES les catégories, le filtre catégorie est ignoré
     if (aiIds !== null && aiQuery === q) {
       const rank = new Map(aiIds.map((id, i) => [id, i]));
-      return list
+      return fiches
         .filter(f => rank.has(f.id))
         .sort((a, b) => rank.get(a.id) - rank.get(b.id));
     }
 
     // Sinon (IA pas encore revenue, ou indisponible) : recherche texte classique
     const ql = q.toLowerCase();
-    return [...list.filter(f =>
+    return [...fiches.filter(f =>
       f.title.toLowerCase().includes(ql) ||
       (f.summary || '').toLowerCase().includes(ql) ||
       (f.content || '').toLowerCase().includes(ql)
@@ -588,7 +593,7 @@ export default function App() {
             <Search size={19} color="#6B7C90" style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)' }} />
             <input
               value={query}
-              onChange={e => setQuery(e.target.value)}
+              onChange={e => handleQueryChange(e.target.value)}
               placeholder="Décris le symptôme ou la question : bébé qui tousse, allergie pénicilline…"
               style={{
                 width: '100%', padding: '14px 46px 14px 46px', borderRadius: 12, border: 'none',
