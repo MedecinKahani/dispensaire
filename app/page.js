@@ -14,6 +14,30 @@ const CATEGORIES = [
     description: 'Mayotte, arrivée, culture mahoraise, organisation Kahani'
   },
   {
+    id: 'caribou-arrivee',
+    label: 'Arrivée & découverte de Mayotte',
+    icon: Compass,
+    color: '#0F766E',
+    bg: '#ECFAF8',
+    description: 'Géographie, candidature, logistique, culture mahoraise, lexique'
+  },
+  {
+    id: 'caribou-organisation',
+    label: 'Organisation du dispensaire',
+    icon: Repeat,
+    color: '#0D9488',
+    bg: '#E9FAF5',
+    description: 'PDS, planning médecin, IAO/MAO, équipe paramédicale, MCS'
+  },
+  {
+    id: 'caribou-materiel',
+    label: 'Matériel & plateau technique',
+    icon: Wrench,
+    color: '#065F46',
+    bg: '#E5F6F0',
+    description: 'Biologie délocalisée, VNI, échographe'
+  },
+  {
     id: 'urgences',
     label: 'Urgences & réanimation',
     icon: Siren,
@@ -175,8 +199,15 @@ const TOPLEVEL = [
 ];
 
 const PROTOCOLE_SUBCATS = CATEGORIES
-  .filter(c => !['caribou', 'annuaire', 'pharmacie'].includes(c.id))
+  .filter(c => !c.id.startsWith('caribou') && !['annuaire', 'pharmacie'].includes(c.id))
   .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
+
+const CARIBOU_SUBCATS = CATEGORIES
+  .filter(c => ['caribou-arrivee', 'caribou-organisation', 'caribou-materiel'].includes(c.id))
+  .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
+
+// Table générique : quels TOPLEVEL ont un sous-niveau de cartes avant d'arriver aux fiches
+const SUBLEVELS = { protocole: PROTOCOLE_SUBCATS, caribou: CARIBOU_SUBCATS };
 
 // La génération d'ID et la clé de stockage sont maintenant gérées côté serveur (app/api/fiches/route.js)
 
@@ -794,7 +825,7 @@ export default function App() {
   // Catégorie "feuille" (celle dont on affiche les fiches), dérivée du chemin de navigation
   const leafCategory = navPath.length === 0
     ? null
-    : navPath[0] === 'protocole'
+    : SUBLEVELS[navPath[0]]
       ? (navPath.length === 2 ? navPath[1] : null)
       : navPath[0];
 
@@ -941,17 +972,17 @@ export default function App() {
                   >
                     Accueil
                   </button>
-                  {navPath[0] === 'protocole' && (
+                  {SUBLEVELS[navPath[0]] && (
                     <>
                       <ChevronRight size={13} color="#9CA3AF" />
                       <button
-                        onClick={() => setNavPath(['protocole'])}
+                        onClick={() => setNavPath([navPath[0]])}
                         style={{
                           background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 13,
                           color: navPath.length === 1 ? '#1A2B3D' : '#0E7490', fontWeight: 600
                         }}
                       >
-                        Protocole & avis
+                        {TOPLEVEL.find(t => t.id === navPath[0])?.label}
                       </button>
                     </>
                   )}
@@ -1008,14 +1039,14 @@ export default function App() {
                 </div>
               )}
 
-              {navPath.length === 1 && navPath[0] === 'protocole' && (
+              {navPath.length === 1 && SUBLEVELS[navPath[0]] && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12 }}>
-                  {PROTOCOLE_SUBCATS.map(cat => {
+                  {SUBLEVELS[navPath[0]].map(cat => {
                     const Icon = cat.icon;
                     return (
                       <button
                         key={cat.id}
-                        onClick={() => setNavPath(['protocole', cat.id])}
+                        onClick={() => setNavPath([navPath[0], cat.id])}
                         style={{
                           aspectRatio: '1', borderRadius: 14, border: '1.5px solid #E5E1D8',
                           background: '#fff', display: 'flex', flexDirection: 'column',
