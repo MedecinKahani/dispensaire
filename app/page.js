@@ -665,7 +665,9 @@ export default function App() {
           setAnswerText(acc);
         }
       } catch (e) {
-        // requête annulée (nouvelle recherche entre-temps) : rien à faire
+        if (e.name !== 'AbortError') {
+          setAnswerText(`⚠️ Erreur de connexion : ${e.message || e}`);
+        }
       } finally {
         setAnswerLoading(false);
       }

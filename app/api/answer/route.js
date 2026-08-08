@@ -8,8 +8,11 @@ export async function POST(request) {
     const q = (query || '').trim();
     const apiKey = process.env.ANTHROPIC_API_KEY;
 
-    if (!q || !apiKey || !Array.isArray(fiches) || fiches.length === 0) {
-      return new Response('', { status: 200 });
+    if (!q || !Array.isArray(fiches) || fiches.length === 0) {
+      return new Response('⚠️ Requête invalide (pas de question ou pas de fiches).', { status: 200 });
+    }
+    if (!apiKey) {
+      return new Response('⚠️ Clé API non configurée côté serveur.', { status: 200 });
     }
 
     const context = fiches
@@ -45,7 +48,9 @@ ${context}`;
     });
 
     if (!anthropicRes.ok || !anthropicRes.body) {
-      return new Response('', { status: 200 });
+      const errText = await anthropicRes.text().catch(() => '');
+      console.error('Erreur API Anthropic (answer):', anthropicRes.status, errText);
+      return new Response(`⚠️ Erreur API (${anthropicRes.status}) : ${errText.slice(0, 200)}`, { status: 200 });
     }
 
     const encoder = new TextEncoder();
@@ -84,6 +89,7 @@ ${context}`;
       headers: { 'Content-Type': 'text/plain; charset=utf-8' }
     });
   } catch (e) {
-    return new Response('', { status: 200 });
+    console.error('Erreur route /api/answer:', e);
+    return new Response(`⚠️ Erreur serveur : ${String(e).slice(0, 200)}`, { status: 200 });
   }
 }
