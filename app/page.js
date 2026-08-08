@@ -178,23 +178,22 @@ function IntroModal({ onClose, onSeeFiches }) {
           Ce site rassemble les fiches pratiques de l'équipe du dispensaire de Kahani : protocoles, conduites à tenir, contacts et informations utiles au quotidien. Chaque fiche est écrite et mise à jour par les médecins qui l'utilisent.
         </p>
 
-        {/* Aperçu de la barre de recherche IA */}
+        {/* Aperçu de la barre de recherche */}
         <div style={{
           background: '#1A2B3D', borderRadius: 12, padding: '14px 16px', marginBottom: 8
         }}>
           <div style={{ position: 'relative' }}>
             <Search size={16} color="#6B7C90" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)' }} />
             <div style={{
-              background: '#fff', borderRadius: 10, padding: '10px 40px 10px 38px',
+              background: '#fff', borderRadius: 10, padding: '10px 16px 10px 38px',
               fontSize: 13.5, color: '#9CA3AF'
             }}>
-              Décris le symptôme ou la question…
+              Chercher une fiche…
             </div>
-            <Sparkles size={15} color="#C2410C" style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)' }} />
           </div>
         </div>
         <p style={{ fontSize: 13, lineHeight: 1.5, color: '#4B5563', margin: '0 0 18px 0' }}>
-          <strong style={{ color: '#1A2B3D' }}>Recherche intelligente (IA)</strong> — tape un symptôme, une question ou un terme familier ("bébé qui tousse", "allergie pénicilline"), pas besoin des mots exacts de la fiche.
+          <strong style={{ color: '#1A2B3D' }}>Recherche</strong> — tape un mot-clé (titre, motif, médicament...) ou filtre par catégorie ci-dessous.
         </p>
 
         <button
@@ -563,118 +562,10 @@ export default function App() {
     try { localStorage.setItem('dispensaire_intro_vue', '1'); } catch (e) { /* ignore */ }
   };
 
-  // Recherche IA : ids pertinents renvoyés par Claude pour la requête en cours
-  const [aiIds, setAiIds] = useState(null);
-  const [aiQuery, setAiQuery] = useState(''); // requête à laquelle correspond aiIds
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiUnavailable, setAiUnavailable] = useState(false); // désactive l'IA après un échec, repli silencieux sur le texte
-
   const handleQueryChange = (value) => {
     setQuery(value);
     if (value.trim()) setActiveCategory(null); // une recherche cherche toutes catégories confondues
   };
-
-  useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2 || aiUnavailable) {
-      setAiIds(null);
-      setAiQuery('');
-      return;
-    }
-
-    const controller = new AbortController();
-    const timer = setTimeout(async () => {
-      setAiLoading(true);
-      try {
-        const res = await fetch('/api/search', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: q }),
-          signal: controller.signal
-        });
-        const data = await res.json();
-        if (data.ids === null) {
-          // Pas de clé configurée ou erreur côté serveur : on désactive l'IA pour cette session
-          setAiUnavailable(true);
-          setAiIds(null);
-        } else {
-          setAiIds(data.ids);
-          setAiQuery(q);
-        }
-      } catch (e) {
-        if (e.name !== 'AbortError') {
-          setAiUnavailable(true);
-          setAiIds(null);
-        }
-      } finally {
-        setAiLoading(false);
-      }
-    }, 450);
-
-    return () => { clearTimeout(timer); controller.abort(); };
-  }, [query, aiUnavailable]);
-
-  // Réponse conversationnelle générée à partir des fiches les plus pertinentes (streaming)
-  const [answerText, setAnswerText] = useState('');
-  const [answerLoading, setAnswerLoading] = useState(false);
-  const [answerSources, setAnswerSources] = useState([]);
-  const [answeredQuery, setAnsweredQuery] = useState('');
-
-  useEffect(() => {
-    const q = query.trim();
-
-    if (!q) {
-      setAnswerText('');
-      setAnswerSources([]);
-      setAnsweredQuery('');
-      return;
-    }
-
-    if (!fiches || aiIds === null || aiQuery !== q || aiIds.length === 0 || answeredQuery === q) {
-      return;
-    }
-
-    const topFiches = aiIds.slice(0, 4).map(id => fiches.find(f => f.id === id)).filter(Boolean);
-    if (topFiches.length === 0) return;
-
-    const controller = new AbortController();
-    setAnsweredQuery(q);
-    setAnswerLoading(true);
-    setAnswerText('');
-    setAnswerSources(topFiches);
-
-    (async () => {
-      try {
-        const res = await fetch('/api/answer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            query: q,
-            fiches: topFiches.map(f => ({ id: f.id, title: f.title, content: f.content }))
-          }),
-          signal: controller.signal
-        });
-        if (!res.body) { setAnswerLoading(false); return; }
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let acc = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          acc += decoder.decode(value, { stream: true });
-          setAnswerText(acc);
-        }
-      } catch (e) {
-        if (e.name !== 'AbortError') {
-          setAnswerText(`⚠️ Erreur de connexion : ${e.message || e}`);
-        }
-      } finally {
-        setAnswerLoading(false);
-      }
-    })();
-
-    return () => controller.abort();
-  }, [aiIds, aiQuery, query, fiches, answeredQuery]);
 
   const filtered = useMemo(() => {
     if (!fiches) return [];
@@ -686,22 +577,14 @@ export default function App() {
       return [...list].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
     }
 
-    // Avec une recherche : on cherche dans TOUTES les catégories, le filtre catégorie est ignoré
-    if (aiIds !== null && aiQuery === q) {
-      const rank = new Map(aiIds.map((id, i) => [id, i]));
-      return fiches
-        .filter(f => rank.has(f.id))
-        .sort((a, b) => rank.get(a.id) - rank.get(b.id));
-    }
-
-    // Sinon (IA pas encore revenue, ou indisponible) : recherche texte classique
+    // Avec une recherche : recherche texte classique, toutes catégories confondues
     const ql = q.toLowerCase();
     return [...fiches.filter(f =>
       f.title.toLowerCase().includes(ql) ||
       (f.summary || '').toLowerCase().includes(ql) ||
       (f.content || '').toLowerCase().includes(ql)
     )].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
-  }, [fiches, query, activeCategory, aiIds, aiQuery]);
+  }, [fiches, query, activeCategory]);
 
   const handleSave = (data) => {
     if (editingFiche) {
@@ -747,31 +630,14 @@ export default function App() {
             <input
               value={query}
               onChange={e => handleQueryChange(e.target.value)}
-              placeholder="Décris le symptôme ou la question : bébé qui tousse, allergie pénicilline…"
+              placeholder="Chercher une fiche : torsion, évacuation, ordonnance type…"
               style={{
-                width: '100%', padding: '14px 46px 14px 46px', borderRadius: 12, border: 'none',
+                width: '100%', padding: '14px 16px 14px 46px', borderRadius: 12, border: 'none',
                 fontSize: 16, fontFamily: "'Inter', sans-serif", outline: 'none', boxSizing: 'border-box',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
               }}
             />
-            {query.trim().length >= 2 && !aiUnavailable && (
-              aiLoading ? (
-                <Loader2
-                  size={17} color="#C2410C" className="spin"
-                  style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', animation: 'spin 1s linear infinite' }}
-                />
-              ) : (
-                <Sparkles
-                  size={17} color="#C2410C"
-                  style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }}
-                />
-              )
-            )}
           </div>
-          <p style={{ color: '#6B7C90', fontSize: 12, margin: '8px 0 0 2px' }}>
-            <Sparkles size={11} style={{ verticalAlign: -1, marginRight: 3 }} />
-            Recherche intelligente : comprend les symptômes et le sens de la question, pas seulement les mots-clés
-          </p>
         </div>
       </header>
 
@@ -857,46 +723,6 @@ export default function App() {
             <Upload size={16} strokeWidth={2.5} /> Import en masse
           </button>
         </div>
-
-        {/* Réponse IA conversationnelle */}
-        {query.trim() && answeredQuery === query.trim() && (answerLoading || answerText) && (
-          <div style={{
-            background: '#1A2B3D', borderRadius: 14, padding: '18px 20px', marginBottom: 24,
-            color: '#fff'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <Sparkles size={16} color="#F0A875" strokeWidth={2.5} />
-              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#94A8BD' }}>
-                Réponse
-              </span>
-              {answerLoading && (
-                <Loader2 size={14} color="#94A8BD" style={{ animation: 'spin 1s linear infinite' }} />
-              )}
-            </div>
-            <div style={{ fontSize: 14.5, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
-              {answerText}
-              {answerLoading && <span style={{ opacity: 0.5 }}>▍</span>}
-            </div>
-            {answerSources.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 14, paddingTop: 14, borderTop: '1px solid #2E4258' }}>
-                <span style={{ fontSize: 11, color: '#6B7C90', marginRight: 2, alignSelf: 'center' }}>Sources :</span>
-                {answerSources.map(f => (
-                  <button
-                    key={f.id}
-                    onClick={() => setSelectedFiche(f)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px',
-                      borderRadius: 999, border: '1px solid #3A4E64', background: 'transparent',
-                      color: '#B8C6D6', fontSize: 12, fontWeight: 600, cursor: 'pointer'
-                    }}
-                  >
-                    {f.title} <ChevronRight size={12} />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Content */}
         {loading ? (
