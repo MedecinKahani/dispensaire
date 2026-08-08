@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -14,28 +14,124 @@ const CATEGORIES = [
     description: 'Mayotte, arrivée, culture mahoraise, organisation Kahani'
   },
   {
-    id: 'vitales',
-    label: 'Urgences vitales',
+    id: 'urgences',
+    label: 'Urgences & réanimation',
     icon: Siren,
     color: '#C2410C',
     bg: '#FDF1EC',
-    description: 'Pronostic vital engagé : ACR, anaphylaxie, CVO, état de mal...'
+    description: 'Protocoles transversaux : ACR, anaphylaxie, brûlures, déshydratation sévère...'
   },
   {
-    id: 'courantes',
-    label: 'Consultations courantes',
-    icon: Stethoscope,
-    color: '#B45309',
-    bg: '#FEF3E2',
-    description: 'Motifs fréquents non vitaux : angine, GEA, dermato, otite...'
+    id: 'cardiologie',
+    label: 'Cardiologie',
+    icon: Heart,
+    color: '#BE123C',
+    bg: '#FDF0F3',
+    description: 'HTA, OAP, infarctus, cardiopathies, filière cardio'
   },
   {
-    id: 'chronique',
-    label: 'Suivi chronique',
-    icon: Repeat,
+    id: 'dermatologie',
+    label: 'Dermatologie',
+    icon: Droplets,
+    color: '#92400E',
+    bg: '#FDF3E7',
+    description: 'Gale, mycoses, teignes, impétigo, érysipèle...'
+  },
+  {
+    id: 'endocrinologie',
+    label: 'Endocrinologie',
+    icon: Activity,
+    color: '#4338CA',
+    bg: '#EEF0FD',
+    description: 'Diabète, insuline, métabolique'
+  },
+  {
+    id: 'gastro',
+    label: 'Gastro-entérologie',
+    icon: Utensils,
+    color: '#C2410C',
+    bg: '#FDF1EC',
+    description: 'Diarrhée, constipation, ulcères, parasitoses digestives'
+  },
+  {
+    id: 'gynecologie',
+    label: 'Gynécologie',
+    icon: UserRound,
+    color: '#BE185D',
+    bg: '#FCE7F1',
+    description: 'Contraception, suivi gynécologique'
+  },
+  {
+    id: 'hematologie',
+    label: 'Hématologie',
+    icon: Droplet,
+    color: '#9F1239',
+    bg: '#FDE8ED',
+    description: 'Drépanocytose, anémie, déficit G6PD'
+  },
+  {
+    id: 'infectiologie',
+    label: 'Infectiologie & tropical',
+    icon: Bug,
     color: '#15803D',
     bg: '#ECFDF3',
-    description: 'Diabète, HTA, drépanocytose, VIH, hépatite B... suivi au long cours'
+    description: 'Chikungunya, dengue, paludisme, leptospirose, VIH, tuberculose...'
+  },
+  {
+    id: 'nephrouro',
+    label: 'Néphro-urologie',
+    icon: Filter,
+    color: '#1D4ED8',
+    bg: '#EAF0FD',
+    description: 'Colique néphrétique, cystite, urétrite'
+  },
+  {
+    id: 'neurologie',
+    label: 'Neurologie',
+    icon: Brain,
+    color: '#4C1D95',
+    bg: '#F1EDFB',
+    description: 'État de mal épileptique, score de Glasgow'
+  },
+  {
+    id: 'orl',
+    label: 'ORL',
+    icon: Ear,
+    color: '#0891B2',
+    bg: '#E8F6FA',
+    description: 'Angine, sinusites, otites, vertige'
+  },
+  {
+    id: 'pneumologie',
+    label: 'Pneumologie',
+    icon: Wind,
+    color: '#0369A1',
+    bg: '#E7F3FB',
+    description: 'Asthme, bronchiolite'
+  },
+  {
+    id: 'psychiatrie',
+    label: 'Psychiatrie',
+    icon: MessageCircle,
+    color: '#6D28D9',
+    bg: '#F1ECFC',
+    description: 'Urgences psychiatriques'
+  },
+  {
+    id: 'toxicologie',
+    label: 'Toxicologie & envenimations',
+    icon: Skull,
+    color: '#7F1D1D',
+    bg: '#FBEAEA',
+    description: 'Intoxications, envenimations, centre antipoison'
+  },
+  {
+    id: 'traumato',
+    label: 'Traumato-orthopédie',
+    icon: Bone,
+    color: '#78350F',
+    bg: '#FBF0E6',
+    description: 'Entorses, fractures, lombalgies, plaies'
   },
   {
     id: 'annuaire',
@@ -60,6 +156,14 @@ const CATEGORIES = [
     color: '#B91C1C',
     bg: '#FEECEC',
     description: 'Livret du médicament — stock disponible au CMR de Kahani'
+  },
+  {
+    id: 'outils',
+    label: 'Outils & organisation',
+    icon: Wrench,
+    color: '#4B5563',
+    bg: '#F1F0ED',
+    description: 'Posologies de référence, biologie, équipement, vaccination'
   }
 ];
 
@@ -71,7 +175,7 @@ const TOPLEVEL = [
 ];
 
 const PROTOCOLE_SUBCATS = CATEGORIES
-  .filter(c => ['vitales', 'courantes', 'chronique', 'pediatrie'].includes(c.id))
+  .filter(c => !['caribou', 'annuaire', 'pharmacie'].includes(c.id))
   .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
 // La génération d'ID et la clé de stockage sont maintenant gérées côté serveur (app/api/fiches/route.js)
