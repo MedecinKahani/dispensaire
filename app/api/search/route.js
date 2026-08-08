@@ -20,6 +20,7 @@ export async function POST(request) {
     }
 
     const fiches = (await kv.get(KEY)) || [];
+    console.log(`[recherche IA] requête="${q}" — ${fiches.length} fiches en base`);
     if (fiches.length === 0) {
       return NextResponse.json({ ids: [] });
     }
@@ -83,6 +84,7 @@ Exemple de réponse valide : ["a1b2c3","d4e5f6"]`;
       .map(b => (b.type === 'text' ? b.text : ''))
       .join('')
       .trim();
+    console.log(`[recherche IA] réponse brute du modèle: ${text.slice(0, 500)}`);
 
     let ids;
     try {
@@ -97,6 +99,9 @@ Exemple de réponse valide : ["a1b2c3","d4e5f6"]`;
     // On ne garde que des ids qui existent réellement, par sécurité
     const validIds = new Set(fiches.map(f => f.id));
     ids = ids.filter(id => validIds.has(id));
+
+    const titresRenvoyes = ids.map(id => fiches.find(f => f.id === id)?.title);
+    console.log(`[recherche IA] résultats finaux pour "${q}":`, titresRenvoyes);
 
     return NextResponse.json({ ids });
   } catch (e) {

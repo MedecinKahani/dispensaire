@@ -710,6 +710,11 @@ export default function App() {
             <Sparkles size={11} style={{ verticalAlign: -1, marginRight: 3 }} />
             Recherche intelligente : comprend les symptômes et le sens de la question, pas seulement les mots-clés
           </p>
+          {query.trim().length >= 2 && (
+            <p style={{ color: '#F0B429', fontSize: 11, margin: '6px 0 0 2px', fontFamily: 'monospace' }}>
+              DEBUG — aiUnavailable: {String(aiUnavailable)} · aiLoading: {String(aiLoading)} · aiIds: {aiIds === null ? 'null' : `[${aiIds.length} résultats]`} · aiQuery match: {String(aiQuery === query.trim())}
+            </p>
+          )}
         </div>
       </header>
 
