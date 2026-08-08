@@ -472,20 +472,78 @@ export default function App() {
   const [editingFiche, setEditingFiche] = useState(null);
   const [showImport, setShowImport] = useState(false);
 
+  // Recherche IA : ids pertinents renvoyés par Claude pour la requête en cours
+  const [aiIds, setAiIds] = useState(null);
+  const [aiQuery, setAiQuery] = useState(''); // requête à laquelle correspond aiIds
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiUnavailable, setAiUnavailable] = useState(false); // désactive l'IA après un échec, repli silencieux sur le texte
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2 || aiUnavailable) {
+      setAiIds(null);
+      setAiQuery('');
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setAiLoading(true);
+      try {
+        const res = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q }),
+          signal: controller.signal
+        });
+        const data = await res.json();
+        if (data.ids === null) {
+          // Pas de clé configurée ou erreur côté serveur : on désactive l'IA pour cette session
+          setAiUnavailable(true);
+          setAiIds(null);
+        } else {
+          setAiIds(data.ids);
+          setAiQuery(q);
+        }
+      } catch (e) {
+        if (e.name !== 'AbortError') {
+          setAiUnavailable(true);
+          setAiIds(null);
+        }
+      } finally {
+        setAiLoading(false);
+      }
+    }, 450);
+
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [query, aiUnavailable]);
+
   const filtered = useMemo(() => {
     if (!fiches) return [];
     let list = fiches;
     if (activeCategory) list = list.filter(f => f.category === activeCategory);
-    if (query.trim()) {
-      const q = query.trim().toLowerCase();
-      list = list.filter(f =>
-        f.title.toLowerCase().includes(q) ||
-        (f.summary || '').toLowerCase().includes(q) ||
-        (f.content || '').toLowerCase().includes(q)
-      );
+
+    const q = query.trim();
+    if (!q) {
+      return [...list].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
     }
-    return [...list].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
-  }, [fiches, query, activeCategory]);
+
+    // Si l'IA a répondu pour cette requête exacte, on trie selon sa pertinence
+    if (aiIds !== null && aiQuery === q) {
+      const rank = new Map(aiIds.map((id, i) => [id, i]));
+      return list
+        .filter(f => rank.has(f.id))
+        .sort((a, b) => rank.get(a.id) - rank.get(b.id));
+    }
+
+    // Sinon (IA pas encore revenue, ou indisponible) : recherche texte classique
+    const ql = q.toLowerCase();
+    return [...list.filter(f =>
+      f.title.toLowerCase().includes(ql) ||
+      (f.summary || '').toLowerCase().includes(ql) ||
+      (f.content || '').toLowerCase().includes(ql)
+    )].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
+  }, [fiches, query, activeCategory, aiIds, aiQuery]);
 
   const handleSave = (data) => {
     if (editingFiche) {
@@ -531,14 +589,31 @@ export default function App() {
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Chercher une fiche : torsion, évacuation, ordonnance type…"
+              placeholder="Décris le symptôme ou la question : bébé qui tousse, allergie pénicilline…"
               style={{
-                width: '100%', padding: '14px 16px 14px 46px', borderRadius: 12, border: 'none',
+                width: '100%', padding: '14px 46px 14px 46px', borderRadius: 12, border: 'none',
                 fontSize: 16, fontFamily: "'Inter', sans-serif", outline: 'none', boxSizing: 'border-box',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
               }}
             />
+            {query.trim().length >= 2 && !aiUnavailable && (
+              aiLoading ? (
+                <Loader2
+                  size={17} color="#C2410C" className="spin"
+                  style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', animation: 'spin 1s linear infinite' }}
+                />
+              ) : (
+                <Sparkles
+                  size={17} color="#C2410C"
+                  style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }}
+                />
+              )
+            )}
           </div>
+          <p style={{ color: '#6B7C90', fontSize: 12, margin: '8px 0 0 2px' }}>
+            <Sparkles size={11} style={{ verticalAlign: -1, marginRight: 3 }} />
+            Recherche intelligente : comprend les symptômes et le sens de la question, pas seulement les mots-clés
+          </p>
         </div>
       </header>
 
