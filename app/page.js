@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Plus, X, Phone, Stethoscope, Languages, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -36,14 +36,6 @@ const CATEGORIES = [
     color: '#0E7490',
     bg: '#EBF6F8',
     description: 'Contacts, spécialistes, filières d\'évacuation'
-  },
-  {
-    id: 'lexique',
-    label: 'Lexique Shimaoré',
-    icon: Languages,
-    color: '#65521E',
-    bg: '#F8F2E6',
-    description: 'Vocabulaire médical Shimaoré / Français'
   },
   {
     id: 'pediatrie',
