@@ -745,6 +745,30 @@ export default function App() {
               <p style={{ fontSize: 15 }}>Aucune fiche ne correspond à « {query} ».</p>
             )}
           </div>
+        ) : (!query.trim() && activeCategory === 'pharmacie') ? (
+          <div style={{ background: '#fff', border: '1px solid #E5E1D8', borderRadius: 12, overflow: 'hidden' }}>
+            {filtered.map((fiche, i) => (
+              <button
+                key={fiche.id}
+                onClick={() => setSelectedFiche(fiche)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                  width: '100%', textAlign: 'left', padding: '13px 18px', background: 'none', border: 'none',
+                  borderTop: i === 0 ? 'none' : '1px solid #EFECE4', cursor: 'pointer'
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14.5, color: '#1A2B3D' }}>{fiche.title}</div>
+                  {fiche.summary && (
+                    <div style={{ fontSize: 13, color: '#6B7C90', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {fiche.summary}
+                    </div>
+                  )}
+                </div>
+                <ChevronRight size={16} color="#9CA3AF" style={{ flexShrink: 0 }} />
+              </button>
+            ))}
+          </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
             {filtered.map(fiche => (
