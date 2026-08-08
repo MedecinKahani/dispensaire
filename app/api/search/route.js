@@ -31,7 +31,7 @@ export async function POST(request) {
       titre: f.title,
       categorie: f.category,
       resume: f.summary || '',
-      extrait: (f.content || '').slice(0, 400)
+      extrait: (f.content || '').slice(0, 1200)
     }));
 
     const systemPrompt = `Tu es le moteur de recherche interne d'une base de fiches médicales pratiques utilisées par des médecins dans un dispensaire à Mayotte. On te donne une liste de fiches (id, titre, catégorie, résumé, extrait du contenu) et une recherche tapée par un médecin.
