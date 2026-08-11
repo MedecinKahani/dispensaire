@@ -279,7 +279,12 @@ function useFiches() {
 
   const deleteFiche = useCallback((id) => call({ action: 'delete', id }), [call]);
 
-  return { fiches, addFiche, addFichesBulk, updateFiche, bulkRecategorize, deleteFiche, error, reload: load };
+  const bulkDeleteByTitle = useCallback(async (titles) => {
+    const data = await call({ action: 'bulkDeleteByTitle', titles });
+    return data ? data.deleted : 0;
+  }, [call]);
+
+  return { fiches, addFiche, addFichesBulk, updateFiche, bulkRecategorize, deleteFiche, bulkDeleteByTitle, error, reload: load };
 }
 
 function CategoryBadge({ catId, size = 'sm' }) {
@@ -574,6 +579,81 @@ function RecategorizePanel({ onApply, onCancel }) {
   );
 }
 
+function BulkDeletePanel({ onApply, onCancel }) {
+  const [raw, setRaw] = useState('');
+  const [applying, setApplying] = useState(false);
+  const [done, setDone] = useState(null);
+
+  const titles = raw.split('\n').map(t => t.trim()).filter(Boolean);
+
+  const handleApply = async () => {
+    if (!titles.length) return;
+    setApplying(true);
+    const count = await onApply(titles);
+    setApplying(false);
+    setDone(count);
+    setRaw('');
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.4)', zIndex: 60,
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto'
+    }} onClick={onCancel}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: '#fff', width: '100%', maxWidth: 640, margin: '40px auto', borderRadius: 14,
+        padding: '28px 28px 24px 28px', boxShadow: '0 20px 50px rgba(0,0,0,0.2)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <h2 style={{ fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 20, fontWeight: 700, color: '#1A2B3D', margin: 0 }}>
+            Supprimer des fiches en masse
+          </h2>
+          <button onClick={onCancel} aria-label="Fermer" style={iconBtnStyle}><X size={18} color="#5B6573" /></button>
+        </div>
+        <p style={{ fontSize: 13, color: '#6B7C90', margin: '0 0 14px 0' }}>
+          Colle un titre de fiche par ligne (copie-colle depuis un export JSON ou tape-les à la main). Toute fiche dont le titre correspond exactement sera supprimée définitivement.
+        </p>
+        <textarea
+          value={raw}
+          onChange={e => { setRaw(e.target.value); setDone(null); }}
+          placeholder={'Titre exact de la fiche 1\nTitre exact de la fiche 2\n...'}
+          rows={10}
+          style={{
+            width: '100%', boxSizing: 'border-box', padding: 12, borderRadius: 8, border: '1px solid #E5E1D8',
+            fontFamily: 'monospace', fontSize: 12.5, resize: 'vertical'
+          }}
+        />
+        {titles.length > 0 && !applying && done === null && (
+          <p style={{ color: '#9A3412', fontSize: 13, margin: '10px 0 0 0' }}>{titles.length} titre(s) saisi(s) — suppression définitive et irréversible.</p>
+        )}
+        {applying && (
+          <p style={{ color: '#6B7C90', fontSize: 13, margin: '10px 0 0 0' }}>Suppression…</p>
+        )}
+        {done !== null && !applying && (
+          <p style={{ color: '#15803D', fontSize: 13, fontWeight: 600, margin: '10px 0 0 0' }}>{done} fiche(s) supprimée(s) ✓</p>
+        )}
+        <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+          <button
+            onClick={handleApply}
+            disabled={!titles.length || applying}
+            style={{
+              flex: 1, padding: '11px 18px', borderRadius: 9, border: 'none',
+              background: (!titles.length || applying) ? '#E5E1D8' : '#B91C1C',
+              color: (!titles.length || applying) ? '#9CA3AF' : '#fff',
+              fontSize: 14, fontWeight: 700, cursor: (!titles.length || applying) ? 'default' : 'pointer'
+            }}
+          >
+            {applying ? 'Suppression…' : `Supprimer${titles.length ? ` (${titles.length})` : ''}`}
+          </button>
+          <button onClick={onCancel} style={{ padding: '11px 18px', borderRadius: 9, border: '1px solid #E5E1D8', background: '#fff', color: '#5B6573', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ImportPanel({ onImport, onCancel }) {
   const [raw, setRaw] = useState('');
   const [parsed, setParsed] = useState(null);
@@ -808,7 +888,7 @@ const inputStyle = {
 };
 
 export default function App() {
-  const { fiches, addFiche, addFichesBulk, updateFiche, bulkRecategorize, deleteFiche, error } = useFiches();
+  const { fiches, addFiche, addFichesBulk, updateFiche, bulkRecategorize, deleteFiche, bulkDeleteByTitle, error } = useFiches();
   const [query, setQuery] = useState('');
   const [navPath, setNavPath] = useState([]); // [] accueil | ['caribou'] | ['protocole'] | ['protocole','vitales'] | ['annuaire'] | ['pharmacie']
   const [selectedFiche, setSelectedFiche] = useState(null);
@@ -816,6 +896,7 @@ export default function App() {
   const [editingFiche, setEditingFiche] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const [showRecat, setShowRecat] = useState(false);
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
@@ -949,6 +1030,15 @@ export default function App() {
             }}
           >
             <Edit3 size={12} strokeWidth={2.5} /> Reclassifier en masse
+          </button>
+          <button
+            onClick={() => setShowBulkDelete(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+              color: '#9CA3AF', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0, marginRight: 16
+            }}
+          >
+            <Trash2 size={12} strokeWidth={2.5} /> Supprimer en masse
           </button>
           <button
             onClick={() => {
@@ -1197,6 +1287,13 @@ export default function App() {
         <ImportPanel
           onImport={async (fichesList) => addFichesBulk(fichesList)}
           onCancel={() => setShowImport(false)}
+        />
+      )}
+
+      {showBulkDelete && (
+        <BulkDeletePanel
+          onApply={async (titles) => bulkDeleteByTitle(titles)}
+          onCancel={() => setShowBulkDelete(false)}
         />
       )}
 

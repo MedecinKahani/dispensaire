@@ -45,6 +45,14 @@ export async function POST(request) {
       return NextResponse.json({ fiches: next });
     }
 
+    if (action === 'bulkDeleteByTitle') {
+      const titles = new Set((body.titles || []).map(t => String(t).trim().toLowerCase()));
+      const next = current.filter(f => !titles.has(String(f.title).trim().toLowerCase()));
+      const deleted = current.length - next.length;
+      await kv.set(KEY, next);
+      return NextResponse.json({ fiches: next, deleted });
+    }
+
     return NextResponse.json({ error: 'Action inconnue' }, { status: 400 });
   } catch (e) {
     return NextResponse.json({ error: 'Erreur de traitement', details: String(e) }, { status: 500 });
