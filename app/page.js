@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench, Languages } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -188,6 +188,14 @@ const CATEGORIES = [
     color: '#4B5563',
     bg: '#F1F0ED',
     description: 'Posologies de référence, biologie, équipement, vaccination'
+  },
+  {
+    id: 'lexique',
+    label: 'Lexique Shimaoré',
+    icon: Languages,
+    color: '#166534',
+    bg: '#ECFDF3',
+    description: 'Traduction français-shimaoré par service (source CHM, édition 2017)'
   }
 ];
 
