@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench, Languages } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench, Languages, Syringe } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -156,6 +156,14 @@ const CATEGORIES = [
     color: '#78350F',
     bg: '#FBF0E6',
     description: 'Entorses, fractures, lombalgies, plaies'
+  },
+  {
+    id: 'medicaments-smur',
+    label: 'Médicaments SMUR / Réanimation',
+    icon: Syringe,
+    color: '#701A75',
+    bg: '#F6EAF9',
+    description: 'Fiches médicaments de réanimation et SMUR : forme, indication, posologie, préparation, contre-indications'
   },
   {
     id: 'annuaire',
