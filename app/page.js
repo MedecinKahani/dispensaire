@@ -934,13 +934,19 @@ export default function App() {
       return [...list].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
     }
 
-    // Avec une recherche : recherche texte classique, toutes catégories confondues
+    // Avec une recherche : recherche texte classique, toutes catégories confondues.
+    // Priorité aux fiches dont le titre contient le mot-clé, puis alphabétique dans chaque groupe.
     const ql = q.toLowerCase();
-    return [...fiches.filter(f =>
-      f.title.toLowerCase().includes(ql) ||
-      (f.summary || '').toLowerCase().includes(ql) ||
-      (f.content || '').toLowerCase().includes(ql)
-    )].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
+    const inTitle = [];
+    const elsewhere = [];
+    for (const f of fiches) {
+      const titleMatch = f.title.toLowerCase().includes(ql);
+      const summaryOrContentMatch = (f.summary || '').toLowerCase().includes(ql) || (f.content || '').toLowerCase().includes(ql);
+      if (titleMatch) inTitle.push(f);
+      else if (summaryOrContentMatch) elsewhere.push(f);
+    }
+    const byTitleFr = (a, b) => a.title.localeCompare(b.title, 'fr');
+    return [...inTitle.sort(byTitleFr), ...elsewhere.sort(byTitleFr)];
   }, [fiches, query, leafCategory]);
 
   const handleSave = (data) => {
