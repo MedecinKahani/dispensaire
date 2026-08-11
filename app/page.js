@@ -203,11 +203,12 @@ const TOPLEVEL = [
   { id: 'caribou', label: 'Caribou', icon: Compass, color: '#0F766E', bg: '#ECFAF8' },
   { id: 'protocole', label: 'Protocole & avis', icon: Stethoscope, color: '#C2410C', bg: '#FDF1EC' },
   { id: 'annuaire', label: 'Annuaire', icon: Phone, color: '#0E7490', bg: '#EBF6F8' },
-  { id: 'pharmacie', label: 'Pharmacie', icon: Pill, color: '#B91C1C', bg: '#FEECEC' }
+  { id: 'pharmacie', label: 'Pharmacie', icon: Pill, color: '#B91C1C', bg: '#FEECEC' },
+  { id: 'lexique', label: 'Lexique Shimaoré', icon: Languages, color: '#166534', bg: '#ECFDF3' }
 ];
 
 const PROTOCOLE_SUBCATS = CATEGORIES
-  .filter(c => !c.id.startsWith('caribou') && !['annuaire', 'pharmacie'].includes(c.id))
+  .filter(c => !c.id.startsWith('caribou') && !['annuaire', 'pharmacie', 'lexique'].includes(c.id))
   .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
 const CARIBOU_SUBCATS = CATEGORIES
