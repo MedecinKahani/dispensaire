@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench, Languages, Syringe } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench, Languages, Syringe, Printer } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -431,6 +431,22 @@ function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
       display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
       padding: '0', overflowY: 'auto'
     }} onClick={onClose}>
+      {/* Zone imprimable : uniquement ce bloc est visible à l'impression, formaté pour une imprimante
+          thermique / étiquette au format 7,5cm x 9cm portrait. */}
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          #fiche-print-area, #fiche-print-area * { visibility: visible; }
+          #fiche-print-area {
+            position: absolute; top: 0; left: 0; width: 7.5cm;
+            padding: 3mm; margin: 0; box-shadow: none; background: #fff;
+          }
+          #fiche-print-area h1 { font-size: 12pt; margin: 0 0 2mm 0; }
+          #fiche-print-area .fiche-print-meta { font-size: 7pt; margin: 0 0 2mm 0; }
+          #fiche-print-area .fiche-print-content { font-size: 8.5pt; line-height: 1.35; white-space: pre-wrap; }
+          @page { size: 7.5cm 9cm; margin: 0; }
+        }
+      `}</style>
       <div
         onClick={e => e.stopPropagation()}
         style={{
@@ -444,6 +460,9 @@ function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
         }}>
           <CategoryBadge catId={fiche.category} size="md" />
           <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => window.print()} aria-label="Imprimer" style={iconBtnStyle}>
+              <Printer size={18} color="#5B6573" />
+            </button>
             <button onClick={() => onEdit(fiche)} aria-label="Modifier" style={iconBtnStyle}>
               <Edit3 size={18} color="#5B6573" />
             </button>
@@ -455,7 +474,7 @@ function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
             </button>
           </div>
         </div>
-        <div style={{ padding: '36px 32px 0 32px' }}>
+        <div id="fiche-print-area" style={{ padding: '36px 32px 0 32px' }}>
           <h1 style={{
             fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 30, fontWeight: 700,
             color: '#1A2B3D', margin: '0 0 8px 0', lineHeight: 1.2
@@ -463,11 +482,11 @@ function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
             {fiche.title}
           </h1>
           {fiche.updatedAt && (
-            <p style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 28px 0' }}>
+            <p className="fiche-print-meta" style={{ fontSize: 12, color: '#9CA3AF', margin: '0 0 28px 0' }}>
               Mis à jour le {new Date(fiche.updatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           )}
-          <div style={{
+          <div className="fiche-print-content" style={{
             fontSize: 16, lineHeight: 1.75, color: '#2D3744', whiteSpace: 'pre-wrap',
             fontFamily: "'Inter', system-ui, sans-serif"
           }}>
