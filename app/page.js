@@ -426,7 +426,7 @@ function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
   if (!fiche) return null;
   const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES.find(c => c.id === 'caribou');
   return (
-    <div style={{
+    <div className="fiche-modal-overlay" style={{
       position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.4)', zIndex: 50,
       display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
       padding: '0', overflowY: 'auto'
@@ -437,8 +437,17 @@ function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
         @media print {
           body * { visibility: hidden; }
           #fiche-print-area, #fiche-print-area * { visibility: visible; }
+          /* Neutralise le position:fixed de la modale : sinon Chrome réimprime
+             tout le sous-arbre "fixed" identique sur chaque page générée. */
+          .fiche-modal-overlay, .fiche-modal-panel {
+            position: static !important; inset: auto !important;
+            height: auto !important; min-height: 0 !important; max-height: none !important;
+            overflow: visible !important; background: none !important; box-shadow: none !important;
+            padding: 0 !important; display: block !important; width: auto !important; max-width: none !important;
+          }
+          .fiche-modal-header { display: none !important; position: static !important; }
           #fiche-print-area {
-            position: absolute; top: 0; left: 0; width: 7.5cm;
+            position: static !important; width: 7.5cm;
             padding: 3mm; margin: 0; box-shadow: none; background: #fff;
           }
           #fiche-print-area h1 { font-size: 12pt; margin: 0 0 2mm 0; }
@@ -448,13 +457,14 @@ function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
         }
       `}</style>
       <div
+        className="fiche-modal-panel"
         onClick={e => e.stopPropagation()}
         style={{
           background: '#fff', width: '100%', maxWidth: 760, minHeight: '100vh',
           padding: '0 0 60px 0', boxShadow: '-4px 0 24px rgba(0,0,0,0.08)'
         }}
       >
-        <div style={{
+        <div className="fiche-modal-header" style={{
           position: 'sticky', top: 0, background: '#fff', borderBottom: '1px solid #E5E1D8',
           padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 5
         }}>
