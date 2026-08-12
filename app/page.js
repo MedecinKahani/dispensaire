@@ -422,6 +422,48 @@ function FicheCard({ fiche, onClick }) {
   );
 }
 
+function printFiche(fiche) {
+  const w = window.open('', '_blank', 'width=400,height=600');
+  if (!w) return; // popup bloqué par le navigateur
+  const escapeHtml = (s) => String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const dateStr = fiche.updatedAt
+    ? new Date(fiche.updatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+  w.document.write(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>${escapeHtml(fiche.title)}</title>
+<style>
+  @page { size: 7.5cm 9cm; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 7.5cm; padding: 3mm;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #1A2B3D;
+  }
+  h1 {
+    font-family: Georgia, 'Source Serif 4', serif;
+    font-size: 12pt; font-weight: 700; margin: 0 0 2mm 0; line-height: 1.2;
+  }
+  .meta { font-size: 7pt; color: #6B7280; margin: 0 0 2mm 0; }
+  .content { font-size: 8.5pt; line-height: 1.35; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+  <h1>${escapeHtml(fiche.title)}</h1>
+  ${dateStr ? `<p class="meta">Mis à jour le ${escapeHtml(dateStr)}</p>` : ''}
+  <div class="content">${escapeHtml(fiche.content)}</div>
+</body>
+</html>`);
+  w.document.close();
+  w.focus();
+  // Laisser le temps au document de se mettre en page avant d'ouvrir la boîte d'impression.
+  setTimeout(() => { w.print(); }, 300);
+}
+
 function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
   if (!fiche) return null;
   const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES.find(c => c.id === 'caribou');
@@ -431,31 +473,6 @@ function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
       display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
       padding: '0', overflowY: 'auto'
     }} onClick={onClose}>
-      {/* Zone imprimable : uniquement ce bloc est visible à l'impression, formaté pour une imprimante
-          thermique / étiquette au format 7,5cm x 9cm portrait. */}
-      <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          #fiche-print-area, #fiche-print-area * { visibility: visible; }
-          /* Neutralise le position:fixed de la modale : sinon Chrome réimprime
-             tout le sous-arbre "fixed" identique sur chaque page générée. */
-          .fiche-modal-overlay, .fiche-modal-panel {
-            position: static !important; inset: auto !important;
-            height: auto !important; min-height: 0 !important; max-height: none !important;
-            overflow: visible !important; background: none !important; box-shadow: none !important;
-            padding: 0 !important; display: block !important; width: auto !important; max-width: none !important;
-          }
-          .fiche-modal-header { display: none !important; position: static !important; }
-          #fiche-print-area {
-            position: static !important; width: 7.5cm;
-            padding: 3mm; margin: 0; box-shadow: none; background: #fff;
-          }
-          #fiche-print-area h1 { font-size: 12pt; margin: 0 0 2mm 0; }
-          #fiche-print-area .fiche-print-meta { font-size: 7pt; margin: 0 0 2mm 0; }
-          #fiche-print-area .fiche-print-content { font-size: 8.5pt; line-height: 1.35; white-space: pre-wrap; }
-          @page { size: 7.5cm 9cm; margin: 0; }
-        }
-      `}</style>
       <div
         className="fiche-modal-panel"
         onClick={e => e.stopPropagation()}
@@ -470,7 +487,7 @@ function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
         }}>
           <CategoryBadge catId={fiche.category} size="md" />
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => window.print()} aria-label="Imprimer" style={iconBtnStyle}>
+            <button onClick={() => printFiche(fiche)} aria-label="Imprimer" style={iconBtnStyle}>
               <Printer size={18} color="#5B6573" />
             </button>
             <button onClick={() => onEdit(fiche)} aria-label="Modifier" style={iconBtnStyle}>
