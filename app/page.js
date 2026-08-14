@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench, Languages, Syringe, Printer, FileText, Copy } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench, Languages, Syringe, Printer, FileText, Copy, Settings } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -379,7 +379,7 @@ function IntroModal({ onClose, onSeeFiches }) {
         </div>
 
         <p style={{ fontSize: 14, lineHeight: 1.6, color: '#4B5563', margin: '0 0 16px 0' }}>
-          Ce site rassemble les fiches pratiques de l'équipe du dispensaire de Kahani : protocoles, conduites à tenir, contacts et informations utiles au quotidien. Chaque fiche est écrite et mise à jour par les médecins qui l'utilisent.
+          Ce site a pour objectif d'unifier les prises en charge et documents ressources des centres médicaux de référence de Mayotte. Chaque fiche est écrite et mise à jour par les médecins qui l'utilisent.
         </p>
 
         {/* Aperçu de la barre de recherche */}
@@ -1006,6 +1006,7 @@ export default function App() {
   const [showImport, setShowImport] = useState(false);
   const [showRecat, setShowRecat] = useState(false);
   const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [showAdminTools, setShowAdminTools] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
@@ -1126,7 +1127,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Lien pour rouvrir l'explication du site + export */}
+        {/* Lien pour rouvrir l'explication du site + outils avancés (masqués par défaut) */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 0 20px 0' }}>
           <button
             onClick={() => setShowIntro(true)}
@@ -1137,41 +1138,59 @@ export default function App() {
           >
             <Sparkles size={13} strokeWidth={2.5} /> À quoi sert ce site ?
           </button>
-          <button
-            onClick={() => setShowRecat(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
-              color: '#9CA3AF', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0, marginRight: 16
-            }}
-          >
-            <Edit3 size={12} strokeWidth={2.5} /> Reclassifier en masse
-          </button>
-          <button
-            onClick={() => setShowBulkDelete(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
-              color: '#9CA3AF', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0, marginRight: 16
-            }}
-          >
-            <Trash2 size={12} strokeWidth={2.5} /> Supprimer en masse
-          </button>
-          <button
-            onClick={() => {
-              const blob = new Blob([JSON.stringify(fiches, null, 2)], { type: 'application/json' });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `fiches-export-${new Date().toISOString().slice(0, 10)}.json`;
-              a.click();
-              URL.revokeObjectURL(url);
-            }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
-              color: '#9CA3AF', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0
-            }}
-          >
-            <Upload size={12} strokeWidth={2.5} style={{ transform: 'rotate(180deg)' }} /> Exporter la base (JSON)
-          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {showAdminTools && (
+              <>
+                <button
+                  onClick={() => setShowRecat(true)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+                    color: '#9CA3AF', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0
+                  }}
+                >
+                  <Edit3 size={12} strokeWidth={2.5} /> Reclassifier en masse
+                </button>
+                <button
+                  onClick={() => setShowBulkDelete(true)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+                    color: '#9CA3AF', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0
+                  }}
+                >
+                  <Trash2 size={12} strokeWidth={2.5} /> Supprimer en masse
+                </button>
+                <button
+                  onClick={() => {
+                    const blob = new Blob([JSON.stringify(fiches, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `fiches-export-${new Date().toISOString().slice(0, 10)}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+                    color: '#9CA3AF', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0
+                  }}
+                >
+                  <Upload size={12} strokeWidth={2.5} style={{ transform: 'rotate(180deg)' }} /> Exporter la base (JSON)
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => setShowAdminTools(v => !v)}
+              aria-label="Outils avancés"
+              title="Outils avancés"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'none', border: 'none', color: '#D1D5DB', cursor: 'pointer', padding: 2
+              }}
+            >
+              <Settings size={14} strokeWidth={2} />
+            </button>
+          </div>
         </div>
 
         {/* Navigation à cartes */}
