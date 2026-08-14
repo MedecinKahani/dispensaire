@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench, Languages, Syringe, Printer, FileText } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench, Languages, Syringe, Printer, FileText, Copy } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -482,8 +482,34 @@ function printFiche(fiche) {
 }
 
 function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
+  const [copied, setCopied] = useState(false);
   if (!fiche) return null;
   const cat = CATEGORIES.find(c => c.id === fiche.category) || CATEGORIES.find(c => c.id === 'caribou');
+
+  const copyFiche = async () => {
+    const text = `${fiche.title}\n\n${fiche.content}`;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Repli pour les navigateurs/contextes sans Clipboard API (ex. HTTP non sécurisé)
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (e) {
+      // silencieux : au pire le bouton ne donne pas de feedback
+    }
+  };
+
   return (
     <div className="fiche-modal-overlay" style={{
       position: 'fixed', inset: 0, background: 'rgba(26,43,61,0.4)', zIndex: 50,
@@ -504,6 +530,9 @@ function FicheDetail({ fiche, onClose, onEdit, onDelete }) {
         }}>
           <CategoryBadge catId={fiche.category} size="md" />
           <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={copyFiche} aria-label="Copier le contenu" style={iconBtnStyle} title={copied ? 'Copié !' : 'Copier'}>
+              {copied ? <Check size={18} color="#16A34A" /> : <Copy size={18} color="#5B6573" />}
+            </button>
             <button onClick={() => printFiche(fiche)} aria-label="Imprimer" style={iconBtnStyle}>
               <Printer size={18} color="#5B6573" />
             </button>
