@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench, Languages, Syringe, Printer } from 'lucide-react';
+import { Search, Plus, X, Phone, Stethoscope, ChevronRight, AlertTriangle, Loader2, Trash2, Edit3, Upload, Check, Compass, Siren, Repeat, Calendar, Baby, Pill, Sparkles, Heart, Droplets, Activity, Utensils, Droplet, Bug, Filter, Brain, Ear, Wind, UserRound, MessageCircle, Skull, Bone, Wrench, Languages, Syringe, Printer, FileText } from 'lucide-react';
 
 const CATEGORIES = [
   {
@@ -204,6 +204,22 @@ const CATEGORIES = [
     color: '#166534',
     bg: '#ECFDF3',
     description: 'Traduction français-shimaoré par service (source CHM, édition 2017)'
+  },
+  {
+    id: 'echographie',
+    label: 'Échographie',
+    icon: Activity,
+    color: '#0369A1',
+    bg: '#EAF4FB',
+    description: 'Mesures et formules échographiques de référence, protocoles d\\'échographie ciblée'
+  },
+  {
+    id: 'certificats',
+    label: 'Modèle certificat',
+    icon: FileText,
+    color: '#92400E',
+    bg: '#FBF0E4',
+    description: 'Modèles de certificats médicaux et guidance médico-légale (ITT, SDT/SDRE, CERFA...)'
   }
 ];
 
@@ -211,13 +227,14 @@ const TOPLEVEL = [
   { id: 'caribou', label: 'Caribou', icon: Compass, color: '#0F766E', bg: '#ECFAF8' },
   { id: 'protocole', label: 'Protocole & avis', icon: Stethoscope, color: '#C2410C', bg: '#FDF1EC' },
   { id: 'medicaments-smur', label: "Médicaments d'urgence", icon: Syringe, color: '#701A75', bg: '#F6EAF9' },
+  { id: 'certificats', label: 'Modèle certificat', icon: FileText, color: '#92400E', bg: '#FBF0E4' },
   { id: 'annuaire', label: 'Annuaire', icon: Phone, color: '#0E7490', bg: '#EBF6F8' },
   { id: 'pharmacie', label: 'Pharmacie', icon: Pill, color: '#B91C1C', bg: '#FEECEC' },
   { id: 'lexique', label: 'Lexique Shimaoré', icon: Languages, color: '#166534', bg: '#ECFDF3' }
 ];
 
 const PROTOCOLE_SUBCATS = CATEGORIES
-  .filter(c => !c.id.startsWith('caribou') && !['annuaire', 'pharmacie', 'lexique', 'medicaments-smur'].includes(c.id))
+  .filter(c => !c.id.startsWith('caribou') && !['annuaire', 'pharmacie', 'lexique', 'medicaments-smur', 'certificats'].includes(c.id))
   .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
 const CARIBOU_SUBCATS = CATEGORIES
