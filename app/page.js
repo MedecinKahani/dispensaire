@@ -211,7 +211,7 @@ const CATEGORIES = [
     icon: Activity,
     color: '#0369A1',
     bg: '#EAF4FB',
-    description: 'Mesures et formules échographiques de référence, protocoles d\\'échographie ciblée'
+    description: "Mesures et formules échographiques de référence, protocoles d'échographie ciblée"
   },
   {
     id: 'certificats',
