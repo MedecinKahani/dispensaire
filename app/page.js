@@ -22,12 +22,20 @@ const CATEGORIES = [
     description: 'Géographie, candidature, logistique, culture mahoraise, lexique'
   },
   {
-    id: 'caribou-organisation',
-    label: 'Organisation du dispensaire',
+    id: 'caribou-organisation-kahani',
+    label: 'Organisation — Kahani',
     icon: Repeat,
     color: '#0D9488',
     bg: '#E9FAF5',
     description: 'PDS, planning médecin, IAO/MAO, équipe paramédicale, MCS'
+  },
+  {
+    id: 'caribou-organisation-mramadoudou',
+    label: "Organisation — M'ramadoudou",
+    icon: Sparkles,
+    color: '#0D9488',
+    bg: '#E9FAF5',
+    description: 'Secteur Sud : effectifs, dispensaires périphériques, parcours patient, administratif'
   },
   {
     id: 'caribou-materiel',
@@ -246,7 +254,7 @@ const PROTOCOLE_SUBCATS = CATEGORIES
   .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
 const CARIBOU_SUBCATS = CATEGORIES
-  .filter(c => ['caribou-arrivee', 'caribou-organisation', 'caribou-materiel'].includes(c.id))
+  .filter(c => ['caribou-arrivee', 'caribou-organisation-kahani', 'caribou-organisation-mramadoudou', 'caribou-materiel'].includes(c.id))
   .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
 // Table générique : quels TOPLEVEL ont un sous-niveau de cartes avant d'arriver aux fiches
