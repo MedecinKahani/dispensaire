@@ -214,6 +214,14 @@ const CATEGORIES = [
     description: "Mesures et formules échographiques de référence, protocoles d'échographie ciblée"
   },
   {
+    id: 'nutrition',
+    label: 'Nutrition',
+    icon: Utensils,
+    color: '#B45309',
+    bg: '#FEF3E2',
+    description: 'Dépistage et prise en charge de la malnutrition, diététique'
+  },
+  {
     id: 'certificats',
     label: 'Modèle certificat',
     icon: FileText,
