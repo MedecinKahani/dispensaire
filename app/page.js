@@ -22,14 +22,6 @@ const CATEGORIES = [
     description: 'Géographie, candidature, logistique, culture mahoraise, lexique'
   },
   {
-    id: 'caribou-organisation',
-    label: 'Organisation (ancien, à migrer)',
-    icon: Repeat,
-    color: '#94A3B8',
-    bg: '#F1F5F9',
-    description: 'Fiches pas encore migrées vers Kahani / M\'ramadoudou — à vider puis supprimer'
-  },
-  {
     id: 'caribou-organisation-kahani',
     label: 'Organisation — Kahani',
     icon: Repeat,
@@ -262,7 +254,7 @@ const PROTOCOLE_SUBCATS = CATEGORIES
   .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
 const CARIBOU_SUBCATS = CATEGORIES
-  .filter(c => ['caribou-arrivee', 'caribou-organisation', 'caribou-organisation-kahani', 'caribou-organisation-mramadoudou', 'caribou-materiel'].includes(c.id))
+  .filter(c => ['caribou-arrivee', 'caribou-organisation-kahani', 'caribou-organisation-mramadoudou', 'caribou-materiel'].includes(c.id))
   .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 
 // Table générique : quels TOPLEVEL ont un sous-niveau de cartes avant d'arriver aux fiches
