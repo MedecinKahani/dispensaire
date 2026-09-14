@@ -1239,7 +1239,7 @@ export default function App() {
               )}
 
               {navPath.length === 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12 }}>
                   {TOPLEVEL.map(t => {
                     const Icon = t.icon;
                     return (
