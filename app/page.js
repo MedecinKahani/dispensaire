@@ -1262,21 +1262,6 @@ export default function App() {
                       </button>
                     );
                   })}
-                  <Link href="/planning" style={{ textDecoration: 'none' }}>
-                    <div style={{
-                      aspectRatio: '1', borderRadius: 14, border: '1.5px solid #E5E1D8',
-                      background: '#fff', display: 'flex', flexDirection: 'column',
-                      alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer'
-                    }}>
-                      <div style={{
-                        width: 44, height: 44, borderRadius: 12, background: '#FDF1EC',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                      }}>
-                        <Calendar size={22} color="#C2410C" strokeWidth={2} />
-                      </div>
-                      <span style={{ fontSize: 13.5, fontWeight: 600, color: '#1A2B3D', textAlign: 'center' }}>Planning de l'équipe</span>
-                    </div>
-                  </Link>
                 </div>
               )}
 
