@@ -460,9 +460,6 @@ function printFiche(fiche) {
   if (!w) return; // popup bloqué par le navigateur
   const escapeHtml = (s) => String(s || '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const dateStr = fiche.updatedAt
-    ? new Date(fiche.updatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-    : '';
   w.document.write(`<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -481,13 +478,11 @@ function printFiche(fiche) {
     font-family: Georgia, 'Source Serif 4', serif;
     font-size: 12pt; font-weight: 700; margin: 0 0 2mm 0; line-height: 1.2;
   }
-  .meta { font-size: 7pt; color: #6B7280; margin: 0 0 2mm 0; }
   .content { font-size: 8.5pt; line-height: 1.35; white-space: pre-wrap; }
 </style>
 </head>
 <body>
   <h1>${escapeHtml(fiche.title)}</h1>
-  ${dateStr ? `<p class="meta">Mis à jour le ${escapeHtml(dateStr)}</p>` : ''}
   <div class="content">${escapeHtml(fiche.content)}</div>
 </body>
 </html>`);
